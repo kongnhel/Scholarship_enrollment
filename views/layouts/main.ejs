@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="<%= typeof currentLang !== 'undefined' && currentLang === 'km' ? 'km' : 'en' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Scholarship & Enroll Online' %> | NMU</title>
+  <link rel="icon" type="image/jpeg" href="/images/nmu-logo.jpg">
+  <link rel="shortcut icon" type="image/jpeg" href="/images/nmu-logo.jpg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            'khmer': ['Hanuman', 'sans-serif'],
+            'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: { 
+            primary: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Hanuman', 'Plus Jakarta Sans', sans-serif; }
+    .slide-down { animation: slideDown 0.2s ease-out; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #manageDropdown.active #manageMenu { display: block; }
+    .hidden-on-screen { display: none; }
+    @media print {
+      aside, nav, footer, .no-print { display: none !important; }
+      main { margin-left: 0 !important; padding-top: 0 !important; }
+      body { background: white !important; }
+      .hidden-on-screen { display: block !important; }
+      img { max-width: 100% !important; height: auto !important; }
+    }
+    @keyframes swal2FadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes swal2FadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes swal2ZoomIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes swal2ZoomOut { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.9) translateY(20px); } }
+    @keyframes swal2IconBounceIn {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.2); }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .swal2-icon { animation: swal2IconBounceIn 0.5s ease; }
+    .swal2-popup { max-height: 90vh; overflow-y: auto; }
+    .swal2-popup .swal2-actions button:focus { outline: none; }
+    .swal2-popup .swal2-actions button:active { transform: scale(0.97); }
+    .swal2-timer-progress-bar { position: absolute; left: 0; bottom: 0; height: 4px; background: currentColor; border-radius: 0 0 1rem 1rem; opacity: 0.5; animation: swal2TimerProgress 5s linear forwards; }
+    @keyframes swal2TimerProgress { from { width: 100%; } to { width: 0%; } }
+
+    .upload-area.dragover {
+      border-color: #22c55e !important;
+      background-color: rgba(34, 197, 94, 0.05);
+    }
+    .dark .upload-area.dragover {
+      background-color: rgba(34, 197, 94, 0.12);
+    }
+    .upload-area .preview-placeholder {
+      transition: opacity 0.2s;
+    }
+    .upload-area.has-image .preview-placeholder {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .phone-group {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .phone-group:focus-within {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    }
+    .phone-code-select {
+      padding: 10px 28px 10px 12px;
+      border: none;
+      border-right: 1px solid #e5e7eb;
+      border-radius: 12px 0 0 12px;
+      background: #f9fafb;
+      font-size: 0.875rem;
+      color: #374151;
+      font-weight: 500;
+      outline: none;
+      min-width: 85px;
+    }
+    .phone-local-input {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.875rem;
+      background: white;
+      color: #111827;
+      outline: none;
+      width: 100%;
+    }
+    .dark .phone-group {
+      border-color: #374151;
+    }
+    .dark .phone-group:focus-within {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+    .dark .phone-code-select {
+      background: #111827;
+      color: #d1d5db;
+      border-color: #374151;
+    }
+    .dark .phone-local-input {
+      background: #1f2937;
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/navbar') %>
+  <%- include('../partials/flash') %>
+
+  <% if (user) { %>
+    <main class="lg:ml-[260px] pt-14 min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <%- body %>
+      </div>
+    </main>
+  <% } else { %>
+    <main class="min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <%- body %>
+      </div>
+    </main>
+  <% } %>
+
+  <%- include('../partials/footer') %>
+  <script src="/js/swal.js"></script>
+  <script src="/js/main.js"></script>
+  <script>
+  document.querySelectorAll('form').forEach(function(form) {
+    form.addEventListener('submit', function() {
+      form.querySelectorAll('.phone-group').forEach(function(group) {
+        var code = group.querySelector('.phone-code-select');
+        var local = group.querySelector('.phone-local-input');
+        var hidden = group.parentElement.querySelector('.phone-full-value');
+        if (code && local && hidden) {
+          hidden.value = code.value + local.value.replace(/\s/g, '');
+        }
+      });
+    });
+  });
+  </script>
+</body>
+</html>

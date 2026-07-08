@@ -1,0 +1,104 @@
+<div class="min-h-[80vh] flex items-center justify-center py-8">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-6">
+      <img src="/images/nmu-logo.jpg" alt="NMU" class="w-16 h-16 rounded-full mx-auto mb-4 ring-4 ring-green-100 shadow-lg">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'បញ្ជាក់គណនី' : 'Verify Your Account' %></h1>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'បញ្ជាក់គណនីរបស់អ្នក' : 'Verify your account' %></p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+      <div class="text-center mb-6">
+        <% if (verifyMethod === 'telegram') { %>
+          <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4">
+            <i class="bi bi-telegram text-blue-500 text-3xl"></i>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? 'បញ្ចូលលេខកូដ ៥ ខ្ទង់ដែលបានផ្ញើទៅ Telegram របស់អ្នក' : 'Enter the 5-digit code sent to your Telegram' %></p>
+        <% } else { %>
+          <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+            <i class="bi bi-envelope-check text-green-500 text-3xl"></i>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? 'បញ្ចូលលេខកូដ ៥ ខ្ទង់ដែលបានផ្ញើទៅអ៊ីមែលរបស់អ្នក' : 'Enter the 5-digit code sent to your email' %></p>
+        <% } %>
+        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-2"><%= maskedPhone %></p>
+      </div>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
+          <div class="flex items-center gap-2">
+            <i class="bi bi-exclamation-circle text-red-500"></i>
+            <p class="text-sm text-red-600 dark:text-red-400"><%= error %></p>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-4">
+          <div class="flex items-center gap-2">
+            <i class="bi bi-check-circle text-green-500"></i>
+            <p class="text-sm text-green-600 dark:text-green-400"><%= success %></p>
+          </div>
+        </div>
+      <% } %>
+
+      <form method="POST" action="/auth/verify-otp" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="userId" value="<%= userId %>">
+        <input type="hidden" name="verify_method" value="<%= verifyMethod %>">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខកូដ' : 'Verification Code' %></label>
+          <div class="relative">
+            <i class="bi bi-shield-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="text" name="otpCode" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" autocomplete="one-time-code"
+              class="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-center text-lg tracking-[0.5em] font-mono"
+              placeholder="00000" required autofocus>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm">
+          <i class="bi bi-check-circle mr-1"></i><%= currentLang === 'km' ? 'បញ្ជាក់' : 'Verify' %>
+        </button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <% if (canResend) { %>
+          <form method="POST" action="/auth/resend-otp" class="inline">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="userId" value="<%= userId %>">
+            <button type="submit" class="text-sm text-green-600 dark:text-green-400 hover:text-green-700 font-semibold">
+              <i class="bi bi-arrow-repeat mr-1"></i><%= currentLang === 'km' ? 'ផ្ញើឡើងវិញ' : 'Resend Code' %>
+            </button>
+          </form>
+        <% } else { %>
+          <p class="text-sm text-gray-500 dark:text-gray-400" id="cooldown-timer">
+            <%= currentLang === 'km' ? 'ផ្ញើឡើងវិញបានក្នុងរយៈពេល' : 'Resend available in' %> <span id="seconds"><%= waitSeconds %></span>s
+          </p>
+        <% } %>
+      </div>
+
+      <div class="mt-4 text-center">
+        <a href="/auth/login" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+          <i class="bi bi-arrow-left mr-1"></i><%= currentLang === 'km' ? 'ត្រឡប់ទៅចូល' : 'Back to Login' %>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if (!canResend) { %>
+<script>
+(function() {
+  var secondsEl = document.getElementById('seconds');
+  var timerEl = document.getElementById('cooldown-timer');
+  if (!secondsEl || !timerEl) return;
+  var seconds = parseInt(secondsEl.textContent);
+  var interval = setInterval(function() {
+    seconds--;
+    if (seconds <= 0) {
+      clearInterval(interval);
+      location.reload();
+    } else {
+      secondsEl.textContent = seconds;
+    }
+  }, 1000);
+})();
+</script>
+<% } %>

@@ -1,0 +1,330 @@
+<div class="max-w-7xl mx-auto space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+        <i class="bi bi-file-earmark-text text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានពាក្យសុំ' : 'Application Detail' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតនៃពាក្យសុំអាហារូបករណ៍របស់អ្នក' : 'Detailed information of your scholarship application' %></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all no-print"><i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ភ' : 'Print' %></button>
+      <a href="/student/dashboard" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
+          <i class="bi bi-person"></i>
+          <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន' : 'Personal Information' %></h3>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-3.5">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-person text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.khmer_first_name %> <%= application.khmer_last_name %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-person text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.english_first_name %> <%= application.english_last_name %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-gender-ambiguous text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (currentLang === 'km' ? 'ស្រី' : 'Female') %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-calendar text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.date_of_birth ? new Date(application.date_of_birth).toLocaleDateString() : '—' %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-flag text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.nationality || 'Cambodian' %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-card-text text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អត្តសញ្ញាណប័ណ្ណ' : 'National ID' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.national_id %></p>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-3.5">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-house text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អាស័យដ្ឋាន' : 'Address' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.current_address || '—' %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-phone text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.phone %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-building text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សាលា' : 'School' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.school_name %> · <%= currentLang === 'km' ? application.province_name_kh : (application.province_name_en || '—') %></p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-star text-purple-600 dark:text-purple-400 text-sm"></i></div>
+                <div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អាហារូបករណ៍' : 'Scholarship' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? application.major_first_name_kh : application.major_first_name_en %></p>
+                  <p class="text-xs text-gray-400"><%= currentLang === 'km' ? application.category_name_kh : application.category_name_en %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white flex items-center gap-2">
+          <i class="bi bi-files"></i>
+          <h3 class="font-bold"><%= currentLang === 'km' ? 'ឯកសារដែលបានបង្ហោះ' : 'Uploaded Documents' %></h3>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <% function renderDoc(docPath, label) { %>
+              <div class="flex items-center gap-3 p-3 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+                <% if (docPath) { %>
+                  <% var isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(docPath); %>
+                  <% if (isImg) { %>
+                    <div class="doc-thumb relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer hover:shadow-lg hover:scale-110 hover:border-green-400 dark:hover:border-green-500 transition-all duration-200 flex-shrink-0" onclick="openDocPreview('/uploads/<%= docPath %>', '<%= label %>')">
+                      <img src="/uploads/<%= docPath %>" alt="<%= label %>" class="w-full h-full object-cover">
+                    </div>
+                  <% } else { %>
+                    <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 flex items-center justify-center flex-shrink-0">
+                      <i class="bi bi-file-earmark-pdf text-red-500 text-lg"></i>
+                    </div>
+                  <% } %>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"><%= label %></p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 truncate"><%= docPath.split('/').pop() %></p>
+                  </div>
+                  <% if (isImg) { %>
+                    <button onclick="openDocPreview('/uploads/<%= docPath %>', '<%= label %>')" class="p-2 rounded-lg text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex-shrink-0 no-print" title="<%= currentLang === 'km' ? 'មើល' : 'Preview' %>"><i class="bi bi-eye-fill text-lg"></i></button>
+                  <% } else { %>
+                    <a href="/uploads/<%= docPath %>" target="_blank" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex-shrink-0 no-print" title="<%= currentLang === 'km' ? 'បើក' : 'Open' %>"><i class="bi bi-box-arrow-up-right text-lg"></i></a>
+                  <% } %>
+                <% } else { %>
+                  <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700/30 border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                    <i class="bi bi-dash text-gray-300 dark:text-gray-600"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= label %></p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'មិនទាន់បង្ហោះ' : 'Not uploaded' %></p>
+                  </div>
+                <% } %>
+              </div>
+            <% } %>
+            <%- renderDoc(application.photo_path, (currentLang === 'km' ? 'រូបថត' : 'Photo')) %>
+            <%- renderDoc(application.transcript_path, (currentLang === 'km' ? 'សំណុំបែបបទ' : 'Transcript')) %>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="space-y-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="p-6 text-center">
+          <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"><%= currentLang === 'km' ? 'ស្ថានភាពបច្ចុប្បន្ន' : 'Current Status' %></p>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold rounded-full <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : application.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>">
+            <span class="w-2 h-2 rounded-full <%= application.status === 'approved' ? 'bg-green-500' : application.status === 'rejected' ? 'bg-red-500' : application.status === 'pending' ? 'bg-yellow-500' : application.status === 'correction_requested' ? 'bg-orange-500' : 'bg-blue-500' %>"></span>
+            <%= application.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : application.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : application.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : application.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW') : application.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECTION') : application.status.replace('_', ' ').toUpperCase() %>
+          </span>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-2"><%= currentLang === 'km' ? 'ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ' : 'Last updated' %>: <%= application.updated_at ? new Date(application.updated_at).toLocaleDateString() : '—' %></p>
+        </div>
+      </div>
+
+      <% if (application.status === 'approved' && (application.exam_date || application.exam_time || application.exam_venue)) { %>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-violet-500 text-white flex items-center gap-2">
+            <i class="bi bi-calendar-check"></i>
+            <h6 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានប្រឡង' : 'Exam Information' %></h6>
+          </div>
+          <div class="p-6 space-y-3 text-sm">
+            <% if (application.exam_date) { %>
+              <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"><i class="bi bi-calendar text-purple-600 dark:text-purple-400"></i></div><div><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></p><p class="font-medium text-gray-900 dark:text-gray-100"><%= application.exam_date %></p></div></div>
+            <% } %>
+            <% if (application.exam_time) { %>
+              <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"><i class="bi bi-clock text-purple-600 dark:text-purple-400"></i></div><div><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ម៉ោង' : 'Time' %></p><p class="font-medium text-gray-900 dark:text-gray-100"><%= application.exam_time %></p></div></div>
+            <% } %>
+            <% if (application.exam_venue) { %>
+              <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"><i class="bi bi-geo-alt text-purple-600 dark:text-purple-400"></i></div><div><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ទីកន្លែង' : 'Venue' %></p><p class="font-medium text-gray-900 dark:text-gray-100"><%= application.exam_venue %></p></div></div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (application.status === 'correction_requested') { %>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-orange-300 dark:border-orange-800 overflow-hidden">
+          <div class="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center gap-2">
+            <i class="bi bi-pencil"></i>
+            <h6 class="font-bold"><%= currentLang === 'km' ? 'កំណត់សម្គាល់កែប្រែ' : 'Correction Notes' %></h6>
+          </div>
+          <div class="p-6">
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4"><%= application.correction_notes || (currentLang === 'km' ? 'សូមពិនិត្យមើលនិងកែប្រែពាក្យសុំរបស់អ្នក។' : 'Please review and correct your application.') %></p>
+            <button class="w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-amber-600 transition-all text-sm flex items-center justify-center gap-2 shadow-sm" onclick="document.getElementById('correctionModal').classList.remove('hidden')"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែនិងដាក់ស្នើឡើងវិញ' : 'Edit & Resubmit' %></button>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-500 text-white flex items-center gap-2">
+          <i class="bi bi-clock-history"></i>
+          <h6 class="font-bold"><%= currentLang === 'km' ? 'ប្រវត្តិស្ថានភាព' : 'Status History' %></h6>
+        </div>
+        <div class="p-6">
+          <% if (statusHistory && statusHistory.length > 0) { %>
+            <div class="space-y-4">
+              <% statusHistory.forEach(function(item) { %>
+                <div class="relative pl-4 border-l-2 border-green-500">
+                  <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500"></div>
+                  <p class="text-sm font-bold text-gray-800 dark:text-gray-100"><%= item.new_status.replace('_', ' ').toUpperCase() %></p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400"><%= item.notes || (currentLang === 'km' ? 'គ្មានកំណត់សម្គាល់' : 'No notes') %></p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><i class="bi bi-person"></i> <%= item.changed_by_name || 'System' %> <span class="mx-1">·</span> <i class="bi bi-clock"></i> <%= item.created_at ? new Date(item.created_at).toLocaleString() : '—' %></p>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="flex flex-col items-center gap-2 py-4">
+              <i class="bi bi-clock text-3xl text-gray-300 dark:text-gray-600"></i>
+              <p class="text-sm text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'មិនមានប្រវត្តិ' : 'No history' %></p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="docPreviewModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4" onclick="closeDocPreview()">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"></div>
+  <div class="relative max-w-5xl w-full transform transition-all" onclick="event.stopPropagation()">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><i class="bi bi-image text-green-600 dark:text-green-400 text-sm"></i></div>
+          <h5 id="docPreviewTitle" class="font-bold text-gray-900 dark:text-gray-100"></h5>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="docPreviewLink" href="" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all flex items-center gap-1.5"><i class="bi bi-box-arrow-up-right"></i><%= currentLang === 'km' ? 'បើកក្នុងTabថ្មី' : 'New tab' %></a>
+          <button onclick="closeDocPreview()" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"><i class="bi bi-x-lg text-sm"></i></button>
+        </div>
+      </div>
+      <div class="flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-2" style="min-height: 200px; max-height: 72vh;">
+        <img id="docPreviewImg" src="" class="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openDocPreview(src, title) {
+  var modal = document.getElementById('docPreviewModal');
+  document.getElementById('docPreviewImg').src = src;
+  document.getElementById('docPreviewTitle').textContent = title;
+  document.getElementById('docPreviewLink').href = src;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+}
+function closeDocPreview() {
+  var modal = document.getElementById('docPreviewModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDocPreview(); });
+function toggleOtherNationality(select, inputId) {
+  var input = document.getElementById(inputId);
+  if (select.value === 'Other') {
+    input.classList.remove('hidden');
+    input.querySelector('input').required = true;
+  } else {
+    input.classList.add('hidden');
+    input.querySelector('input').required = false;
+    input.querySelector('input').value = '';
+  }
+}
+document.querySelector('#correctionModal form').addEventListener('submit', function(e) {
+  var sel = document.getElementById('nationalitySelect');
+  if (sel && sel.value === 'Other') {
+    var custom = document.querySelector('[name="nationality_other"]').value.trim();
+    if (!custom) {
+      e.preventDefault();
+      alert('<%= currentLang === "km" ? "សូមបញ្ចូលសញ្ជាតិរបស់អ្នក" : "Please enter your nationality" %>');
+      return false;
+    }
+  }
+});
+</script>
+
+<% if (application.status === 'correction_requested') { %>
+  <div id="correctionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <form method="POST" action="/student/application/<%= application.id %>/correct" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center justify-between sticky top-0 rounded-t-2xl">
+          <h5 class="font-bold flex items-center gap-2"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែនិងដាក់ស្នើឡើងវិញ' : 'Edit & Resubmit Application' %></h5>
+          <button type="button" onclick="this.closest('#correctionModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'កំណត់សម្គាល់កែប្រែ' : 'Correction Notes' %></label>
+            <textarea name="correction_notes" rows="3" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"><%= application.correction_notes || '' %></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ (នាម)' : 'Khmer First Name' %></label><input type="text" name="khmer_first_name" value="<%= application.khmer_first_name %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ (នាមត្រកូល)' : 'Khmer Last Name' %></label><input type="text" name="khmer_last_name" value="<%= application.khmer_last_name %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស (នាម)' : 'English First Name' %></label><input type="text" name="english_first_name" value="<%= application.english_first_name %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស (នាមត្រកូល)' : 'English Last Name' %></label><input type="text" name="english_last_name" value="<%= application.english_last_name %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></label><div class="flex gap-4 mt-2"><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="gender" value="male" <%= application.gender === 'male' ? 'checked' : '' %> class="w-4 h-4 text-green-600 dark:text-green-400" required><span class="text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></span></label><label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="gender" value="female" <%= application.gender === 'female' ? 'checked' : '' %> class="w-4 h-4 text-green-600 dark:text-green-400"><span class="text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></span></label></div></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %></label><input type="date" name="date_of_birth" value="<%= application.date_of_birth ? new Date(application.date_of_birth).toISOString().split('T')[0] : '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %></label><select id="nationalitySelect" name="nationality" onchange="toggleOtherNationality(this, 'otherNationalityInput')" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"><option value="Cambodian" <%= application.nationality === 'Cambodian' ? 'selected' : '' %>><%= currentLang === 'km' ? 'ខ្មែរ' : 'Cambodian' %></option><option value="Thai" <%= application.nationality === 'Thai' ? 'selected' : '' %>><%= currentLang === 'km' ? 'ថៃ' : 'Thai' %></option><option value="Vietnamese" <%= application.nationality === 'Vietnamese' ? 'selected' : '' %>><%= currentLang === 'km' ? 'វៀតណាម' : 'Vietnamese' %></option><option value="Other" <%= application.nationality === 'Other' || (!['Cambodian','Thai','Vietnamese'].includes(application.nationality) && application.nationality) ? 'selected' : '' %>><%= currentLang === 'km' ? 'ផ្សេងៗ' : 'Other' %></option></select><div id="otherNationalityInput" class="<%= !['Cambodian','Thai','Vietnamese'].includes(application.nationality) && application.nationality ? '' : 'hidden' %> mt-2"><input type="text" name="nationality_other" maxlength="50" pattern="[A-Za-z\u1780-\u17FF\s]+" oninput="this.value=this.value.replace(/[^A-Za-z\u1780-\u17FF\s]/g,'')" value="<%= !['Cambodian','Thai','Vietnamese'].includes(application.nationality) && application.nationality ? application.nationality : '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលសញ្ជាតិរបស់អ្នក' : 'Enter your nationality' %>"><p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'អក្ខរាវិរុទ្ធខ្មែរ ឬអង់គ្លេសបាន' : 'Khmer or English letters only' %></p></div></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'អត្តសញ្ញាណប័ណ្ណ' : 'National ID' %></label><input type="text" name="national_id" value="<%= application.national_id %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'អាស័យដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %></label><textarea name="current_address" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required><%= application.current_address || '' %></textarea></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'រូបថត' : 'Photo' %></label><input type="file" name="photo" accept=".jpg,.jpeg,.png" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></label><%- include('../../partials/phone-input', { phoneName: 'phone', phoneValue: application.phone || '', required: true, inputId: 'editPhone', showLabel: false }) %></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះសាលា' : 'School Name' %></label><input type="text" name="school_name" value="<%= application.school_name %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឆ្នាំបញ្ចប់' : 'Graduation Year' %></label><input type="number" name="graduation_year" value="<%= application.graduation_year %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'សំណុំបែបបទ' : 'Transcript' %></label><input type="file" name="transcript" accept=".pdf,.jpg,.jpeg,.png" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឯកសារអត្តសញ្ញាណប័ណ្ណ' : 'National ID Document' %></label><input type="file" name="nationalId" accept=".pdf,.jpg,.jpeg,.png" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"><%= currentLang === 'km' ? 'ឯកសារបន្ថែម' : 'Additional Documents' %></label><input type="file" name="additionalDocuments" accept=".pdf,.jpg,.jpeg,.png" multiple class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"></div>
+          </div>
+        </div>
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-between border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+          <button type="button" onclick="this.closest('#correctionModal').classList.add('hidden')" class="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all text-sm"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+          <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-amber-600 transition-all text-sm flex items-center gap-2 shadow-sm"><i class="bi bi-send"></i><%= currentLang === 'km' ? 'ដាក់ស្នើឡើងវិញ' : 'Resubmit' %></button>
+        </div>
+      </form>
+    </div>
+  </div>
+<% } %>

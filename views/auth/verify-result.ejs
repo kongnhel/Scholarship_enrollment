@@ -1,0 +1,25 @@
+<div class="min-h-[80vh] flex items-center justify-center">
+  <div class="w-full max-w-md">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 text-center">
+      <% if (success) { %>
+        <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+          <i class="bi bi-check-circle text-green-500 text-3xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'បញ្ជាក់ជោគជ័យ' : 'Verification Successful' %></h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6"><%= message %></p>
+        <a href="/auth/login" class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm">
+          <i class="bi bi-box-arrow-in-right"></i><%= currentLang === 'km' ? 'ចូល' : 'Go to Login' %>
+        </a>
+      <% } else { %>
+        <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+          <i class="bi bi-x-circle text-red-500 text-3xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'បញ្ជាក់មិនជោគជ័យ' : 'Verification Failed' %></h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6"><%= message %></p>
+        <a href="/auth/login" class="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+          <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់ទៅចូល' : 'Back to Login' %>
+        </a>
+      <% } %>
+    </div>
+  </div>
+</div>

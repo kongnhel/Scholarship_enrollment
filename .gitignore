@@ -1,0 +1,10 @@
+node_modules/
+.env
+uploads/
+*.log
+.DS_Store
+Thumbs.db
+database/migrate_aiven.js
+database/fix_*.js
+database/reseed.js
+database/_cleanup_*.js

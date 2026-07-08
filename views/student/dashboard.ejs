@@ -1,0 +1,133 @@
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ស្វាគមន៍' : 'Welcome' %>, <%= user.english_name %></h1>
+  <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'តារាងព័ត៌មានសិស្ស' : 'Student Dashboard' %></p>
+</div>
+
+<% if (application) { %>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2"><i class="bi bi-file-earmark-text text-green-600 dark:text-green-400"></i><%= currentLang === 'km' ? 'ស្ថានភាពពាក្យសុំ' : 'Application Status' %></h2>
+        <span class="px-3 py-1 rounded-full text-sm font-bold <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : application.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= application.status.replace('_', ' ').toUpperCase() %></span>
+        <div class="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+          <p><strong><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %>:</strong> <%= currentLang === 'km' ? application.major_name_kh : application.major_name_en %></p>
+          <p><strong><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %>:</strong> <%= currentLang === 'km' ? application.category_name_kh : application.category_name_en %></p>
+          <p><strong><%= currentLang === 'km' ? 'ថ្ងៃដាក់ស្នើ' : 'Submitted' %>:</strong> <%= application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : 'N/A' %></p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <a href="/student/application/<%= application.id %>" class="px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-all"><i class="bi bi-eye mr-1"></i><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+        <a href="/student/status" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all"><i class="bi bi-clipboard-check mr-1"></i><%= currentLang === 'km' ? 'តាមដាន' : 'Track' %></a>
+      </div>
+    </div>
+  </div>
+<% } else { %>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 mb-6 text-center">
+    <i class="bi bi-file-earmark-text text-5xl text-gray-300 mb-4 block"></i>
+    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'មិនទាន់មានពាក្យសុំ' : 'No Application Yet' %></h3>
+    <p class="text-gray-500 dark:text-gray-400 mb-6"><%= currentLang === 'km' ? 'អ្នកមិនទាន់បានដាក់ពាក្យសុំអាហារូបករណ៍នៅឡើយទេ។' : "You haven't submitted a scholarship application yet." %></p>
+    <% if (!registrationClosed) { %>
+      <a href="/student/application/new" class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all shadow-sm inline-flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'ដាក់ពាក្យឥឡូវនេះ' : 'Apply Now' %></a>
+    <% } else { %>
+      <p class="text-red-500 dark:text-red-400 font-medium"><%= currentLang === 'km' ? 'ការចុះឈ្មោះបានបិទហើយ' : 'Registration is currently closed.' %></p>
+    <% } %>
+  </div>
+<% } %>
+
+<% if (enrollment) { %>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2"><i class="bi bi-person-check text-blue-600 dark:text-blue-400"></i><%= currentLang === 'km' ? 'ស្ថានភាពការចុះឈ្មោះ' : 'Enrollment Status' %></h2>
+        <span class="px-3 py-1 rounded-full text-sm font-bold <%= enrollment.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : enrollment.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' %>"><%= enrollment.status.toUpperCase() %></span>
+        <div class="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+          <p><strong><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %>:</strong> <%= enrollment.major_choice || 'N/A' %></p>
+          <p><strong><%= currentLang === 'km' ? 'ឆ្នាំសិក្សា' : 'Academic Year' %>:</strong> <%= enrollment.academic_year %></p>
+          <p><strong><%= currentLang === 'km' ? 'ឆ្នាំទី' : 'Year' %>:</strong> <%= currentLang === 'km' ? 'ឆ្នាំទី ' + enrollment.semester : 'Year ' + enrollment.semester %></p>
+          <p><strong><%= currentLang === 'km' ? 'ថ្ងៃចុះឈ្មោះ' : 'Enrolled' %>:</strong> <%= enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleDateString() : 'N/A' %></p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <a href="/student/enroll" class="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 transition-all"><i class="bi bi-eye mr-1"></i><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+        <a href="/student/payments" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all"><i class="bi bi-credit-card mr-1"></i><%= currentLang === 'km' ? 'ទូទាត់' : 'Pay' %></a>
+      </div>
+    </div>
+  </div>
+<% } else if (!enrollmentClosed) { %>
+  <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl p-6 shadow-sm mb-6 text-white">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h2 class="font-bold mb-1 flex items-center gap-2"><i class="bi bi-person-check"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះចូលរៀន' : 'Enroll Now' %></h2>
+        <p class="text-blue-100 text-sm"><%= currentLang === 'km' ? 'ចុះឈ្មោះជំនាញនិងឆ្នាំសិក្សា ហើយទូទាត់ថ្លៃសិក្សាតាម Bakong KHQR។' : 'Choose your major, academic year, and pay tuition via Bakong KHQR.' %></p>
+      </div>
+      <a href="/student/enroll" class="px-6 py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg inline-flex items-center gap-2 whitespace-nowrap"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះឥឡូវនេះ' : 'Enroll Now' %></a>
+    </div>
+  </div>
+<% } %>
+
+<% if (payments.length > 0) { %>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+    <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2"><i class="bi bi-credit-card text-amber-600 dark:text-amber-400"></i><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h2>
+    <div class="flex items-center gap-4 mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+      <span class="text-sm text-gray-600 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុបប្រាក់ដែលបានផ្ទៀងផ្ទាត់៖' : 'Total Verified:' %></span>
+      <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400"><%= totalPaid.toLocaleString() %>៛</span>
+    </div>
+    <div class="space-y-2">
+      <% payments.slice(0, 3).forEach(function(p) { %>
+        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center <%= p.status === 'verified' ? 'bg-green-100 dark:bg-green-900/30' : p.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30' %>">
+              <i class="bi bi-<%= p.status === 'verified' ? 'check-circle text-green-600 dark:text-green-400' : p.status === 'rejected' ? 'x-circle text-red-600 dark:text-red-400' : 'clock text-yellow-600 dark:text-yellow-400' %> text-sm"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? p.fee_name_kh : p.fee_name_en %></p>
+              <p class="text-xs text-gray-400 dark:text-gray-500"><%= p.created_at ? new Date(p.created_at).toLocaleDateString() : '' %></p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400"><%= Number(p.amount).toLocaleString() %>៛</p>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full <%= p.status === 'verified' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : p.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' %>"><%= p.status === 'verified' ? (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verified') : p.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'Rejected') : (currentLang === 'km' ? 'រង់ចាំ' : 'Pending') %></span>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+    <% if (payments.length > 3) { %>
+      <a href="/student/payments" class="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium inline-flex items-center gap-1"><%= currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' %> (<%= payments.length %>) →</a>
+    <% } %>
+  </div>
+<% } %>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <a href="/student/notifications" class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md transition-all">
+    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="bi bi-bell text-blue-600 dark:text-blue-400 text-xl"></i></div>
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' %></h4>
+    <% if (notificationsCount > 0) { %>
+      <span class="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-bold"><%= notificationsCount %> <%= currentLang === 'km' ? 'ថ្មី' : 'new' %></span>
+    <% } else { %>
+      <p class="text-gray-400 dark:text-gray-500 text-sm"><%= currentLang === 'km' ? 'មិនមាន' : 'None' %></p>
+    <% } %>
+  </a>
+  <a href="/student/application/new" class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md transition-all">
+    <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="bi bi-plus-circle text-green-600 dark:text-green-400 text-xl"></i></div>
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? 'ពាក្យសុំថ្មី' : 'New Application' %></h4>
+    <% if (!registrationClosed) { %>
+      <span class="text-sm text-green-600 dark:text-green-400 font-medium"><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %> →</span>
+    <% } else { %>
+      <span class="text-sm text-red-400 dark:text-red-500 font-medium"><%= currentLang === 'km' ? 'បិទហើយ' : 'Closed' %></span>
+    <% } %>
+  </a>
+  <a href="/student/enroll" class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md transition-all">
+    <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="bi bi-person-check text-indigo-600 dark:text-indigo-400 text-xl"></i></div>
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollment' %></h4>
+    <% if (!enrollmentClosed) { %>
+      <span class="text-sm text-indigo-600 dark:text-indigo-400 font-medium"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enroll' %> →</span>
+    <% } else { %>
+      <span class="text-sm text-red-400 dark:text-red-500 font-medium"><%= currentLang === 'km' ? 'បិទហើយ' : 'Closed' %></span>
+    <% } %>
+  </a>
+  <a href="/student/payments" class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md transition-all">
+    <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="bi bi-credit-card text-amber-600 dark:text-amber-400 text-xl"></i></div>
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h4>
+    <span class="text-sm text-amber-600 dark:text-amber-400 font-medium"><%= totalPaid.toLocaleString() %>៛</span>
+  </a>
+</div>

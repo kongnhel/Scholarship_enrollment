@@ -1,0 +1,125 @@
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><i class="bi bi-file-earmark-text text-blue-600 dark:text-blue-400"></i><%= currentLang === 'km' ? 'ពាក្យសុំ #' : 'Application #' %><%= application.id %></h1>
+  <a href="/committee/applications" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 text-sm flex items-center gap-1"><i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 space-y-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-4 bg-blue-500 text-white flex items-center gap-2">
+        <i class="bi bi-person"></i>
+        <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន' : 'Personal Information' %></h3>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.khmer_first_name %> <%= application.khmer_last_name %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.english_first_name %> <%= application.english_last_name %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (currentLang === 'km' ? 'ស្រី' : 'Female') %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.date_of_birth ? new Date(application.date_of_birth).toLocaleDateString() : 'N/A' %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.nationality || 'N/A' %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'អាស័យដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.current_address || 'N/A' %></span></p>
+          </div>
+          <div class="space-y-3">
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'អត្តសញ្ញាណប័ណ្ណ' : 'National ID' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.national_id %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.phone %></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-4 bg-purple-500 text-white flex items-center gap-2">
+        <i class="bi bi-book"></i>
+        <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានការសិក្សា' : 'Education' %></h3>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'សាលា' : 'School' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.school_name %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.province_name_kh : application.province_name_en %></span></p>
+          </div>
+          <div class="space-y-3">
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ឆ្នាំបញ្ចប់' : 'Graduation Year' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.graduation_year %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'លទ្ធផលប្រឡង' : 'Exam Result' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.exam_result || 'N/A' %></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-4 bg-green-500 text-white flex items-center gap-2">
+        <i class="bi bi-star"></i>
+        <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានអាហារូបករណ៍' : 'Scholarship' %></h3>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ជម្រើសទី ១' : 'First Choice' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.major_name_kh : application.major_name_en %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ជម្រើសទី ២' : 'Second Choice' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.major2_name_kh : (application.major2_name_en || 'N/A') %></span></p>
+          </div>
+          <div class="space-y-3">
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.category_name_kh : application.category_name_en %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %>:</span> <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-full <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= application.status.replace('_', ' ').toUpperCase() %></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-700 text-white flex items-center gap-2">
+        <i class="bi bi-clock-history"></i>
+        <h6 class="font-bold"><%= currentLang === 'km' ? 'ប្រវត្តិស្ថានភាព' : 'Status History' %></h6>
+      </div>
+      <div class="p-6">
+        <% if (history && history.length > 0) { %>
+          <div class="space-y-4">
+            <% history.forEach(function(h) { %>
+              <div class="border-l-4 border-blue-500 pl-3">
+                <p class="text-sm font-bold text-gray-800"><%= h.new_status.replace('_', ' ').toUpperCase() %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= h.notes || 'N/A' %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ដោយ' : 'By' %>: <%= h.changed_by_name || 'System' %> | <%= h.created_at ? new Date(h.created_at).toLocaleString() : 'N/A' %></p>
+              </div>
+            <% }); %>
+          </div>
+        <% } else { %>
+          <p class="text-sm text-gray-400 dark:text-gray-500 text-center"><%= currentLang === 'km' ? 'មិនមានប្រវត្តិ' : 'No history' %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (application.admin_remark) { %>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-orange-500 text-white flex items-center gap-2">
+          <i class="bi bi-chat-dots"></i>
+          <h6 class="font-bold"><%= currentLang === 'km' ? 'កំណត់សម្គាល់អ្នកគ្រប់គ្រង' : 'Admin Remark' %></h6>
+        </div>
+        <div class="p-6">
+          <p class="text-sm text-gray-600 dark:text-gray-300"><%= application.admin_remark %></p>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (application.status === 'approved' && (application.exam_date || application.exam_time || application.exam_venue)) { %>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-purple-500 text-white flex items-center gap-2">
+          <i class="bi bi-calendar-check"></i>
+          <h6 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានប្រឡង' : 'Exam Information' %></h6>
+        </div>
+        <div class="p-6 space-y-2 text-sm text-gray-700 dark:text-gray-200">
+          <% if (application.exam_date) { %>
+            <div><span class="font-medium"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %>:</span> <%= application.exam_date %></div>
+          <% } %>
+          <% if (application.exam_time) { %>
+            <div><span class="font-medium"><%= currentLang === 'km' ? 'ម៉ោង' : 'Time' %>:</span> <%= application.exam_time %></div>
+          <% } %>
+          <% if (application.exam_venue) { %>
+            <div><span class="font-medium"><%= currentLang === 'km' ? 'ទីកន្លែង' : 'Venue' %>:</span> <%= application.exam_venue %></div>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>

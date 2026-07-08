@@ -1,0 +1,34 @@
+<footer class="bg-gray-900 dark:bg-gray-950 text-white mt-16 <%= user ? 'lg:ml-[260px]' : '' %>">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div>
+        <div class="flex items-center gap-2.5 mb-4">
+          <img src="/images/nmu-logo.jpg" alt="NMU" class="h-10 w-10 rounded-full">
+          <span class="font-bold text-lg">NMU <span class="text-green-400">Scholarship & Enroll Online</span></span>
+        </div>
+        <p class="text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'ប្រព័ន្ធអាហារូបករណ៍ និងការចុះឈ្មោះអនឡាញ សាកលវិទ្យាល័យជាតិមានជ័យ' : 'Scholarship & Enroll Online System - National Meanchey University' %></p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4"><%= currentLang === 'km' ? 'តំណភ្ជាប់' : 'Quick Links' %></h4>
+        <ul class="space-y-2">
+          <li><a href="/" class="text-gray-400 hover:text-white text-sm transition-colors"><%= currentLang === 'km' ? 'ទំព័រដើម' : 'Home' %></a></li>
+          <li><a href="/auth/login" class="text-gray-400 hover:text-white text-sm transition-colors"><%= currentLang === 'km' ? 'ចូល' : 'Login' %></a></li>
+          <li><a href="/auth/register" class="text-gray-400 hover:text-white text-sm transition-colors"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Register' %></a></li>
+          <li><a href="/faq" class="text-gray-400 hover:text-white text-sm transition-colors"><%= currentLang === 'km' ? 'សំណួរញឹកញាប់' : 'FAQ' %></a></li>
+          <li><a href="/terms" class="text-gray-400 hover:text-white text-sm transition-colors"><%= currentLang === 'km' ? 'លក្ខខណ្ឌ' : 'Terms' %></a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4"><%= currentLang === 'km' ? 'ទំនាក់ទំនង' : 'Contact' %></h4>
+        <ul class="space-y-2 text-gray-400 text-sm">
+          <li class="flex items-center gap-2"><i class="bi bi-globe"></i> <a href="https://nmu.edu.kh/" target="_blank" class="hover:text-white transition-colors">nmu.edu.kh</a></li>
+          <li class="flex items-center gap-2"><i class="bi bi-envelope"></i> info@nmu.edu.kh</li>
+          <li class="flex items-center gap-2"><i class="bi bi-phone"></i> +855 12 345 678</li>
+          <li class="flex items-center gap-2"><i class="bi bi-geo-alt"></i> Meanchey, Cambodia</li>
+        </ul>
+      </div>
+    </div>
+    <hr class="border-gray-800 my-8">
+    <p class="text-center text-gray-500 text-sm">&copy; 2026 National Meanchey University. <%= currentLang === 'km' ? 'រក្សាសិទ្ធិគ្រប់យ៉ាង។' : 'All rights reserved.' %></p>
+  </div>
+</footer>

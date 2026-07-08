@@ -1,0 +1,971 @@
+================================================================================
+         COMPLETE CSS STYLE GUIDE - SCHOLARSHIP SYSTEM
+         Reusable for any admin dashboard / registration system
+================================================================================
+
+================================================================================
+1. CDN LINKS (Add to <head>)
+================================================================================
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts: Hanuman (Khmer) + Plus Jakarta Sans (English) -->
+  <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Chart.js (for dashboards) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+
+================================================================================
+2. TAILWIND CONFIG
+================================================================================
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            'khmer': ['Hanuman', 'sans-serif'],
+            'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
+              400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
+              800: '#166534', 900: '#14532d'
+            },
+          }
+        }
+      }
+    }
+  </script>
+
+
+================================================================================
+3. DARK MODE TOGGLE SCRIPT (Add to <head>)
+================================================================================
+
+  <script>
+    if (localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+
+
+================================================================================
+4. CUSTOM CSS
+================================================================================
+
+  <style>
+    * { font-family: 'Hanuman', 'Plus Jakarta Sans', sans-serif; }
+
+    /* Slide-in menu */
+    .slide-in { transform: translateX(100%); transition: transform 0.3s ease; }
+    .slide-in.active { transform: translateX(0); }
+
+    /* Overlay */
+    .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+
+    /* Dropdown active */
+    #manageDropdown.active #manageMenu { display: block; }
+
+    /* Print-only elements (hidden on screen) */
+    .hidden-on-screen { display: none; }
+
+    /* Print styles */
+    @media print {
+      aside, nav, footer, .no-print { display: none !important; }
+      main { margin-left: 0 !important; padding-top: 0 !important; }
+      body { background: white !important; }
+      .hidden-on-screen { display: block !important; }
+      img { max-width: 100% !important; height: auto !important; }
+    }
+  </style>
+
+
+================================================================================
+5. COLOR SYSTEM (Used Throughout)
+================================================================================
+
+  --- Body ---
+  bg-gray-50 dark:bg-gray-900          (page background)
+  transition-colors duration-200        (smooth theme transition)
+
+  --- Primary Accent ---
+  green-500 (#22c55e)                   (primary buttons, active states)
+  green-600 (#16a34a)                   (primary button hover)
+  green-50 dark:bg-green-900/20        (active sidebar item, active nav)
+  green-100 dark:bg-green-900/30       (icon backgrounds, badges)
+  green-600 dark:text-green-400        (accent text, links)
+
+  --- Cards ---
+  bg-white dark:bg-gray-800            (card background)
+  rounded-2xl                           (card border radius)
+  shadow-sm                             (card shadow)
+  border border-gray-100 dark:border-gray-700  (card border)
+
+  --- Text ---
+  text-gray-900 dark:text-gray-100      (headings, primary text)
+  text-gray-700 dark:text-gray-200      (body text, labels)
+  text-gray-600 dark:text-gray-300      (secondary text)
+  text-gray-500 dark:text-gray-400      (muted text, dates)
+  text-gray-400 dark:text-gray-500      (placeholder, very muted)
+
+  --- Section Headers (colored banners) ---
+  bg-green-500   (personal info)
+  bg-blue-500    (contact info, documents)
+  bg-purple-500  (education, exam info)
+  bg-orange-500  (scholarship preferences, corrections)
+  bg-gray-700    (documents, status history)
+
+
+================================================================================
+6. LAYOUT STRUCTURE
+================================================================================
+
+  --- Public Pages (no user logged in) ---
+  <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <!-- Sticky top navbar -->
+    <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
+      ...
+    </nav>
+    <main class="min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- page content -->
+      </div>
+    </main>
+    <!-- footer -->
+  </body>
+
+  --- Authenticated Pages (with sidebar) ---
+  <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <!-- Sidebar: fixed left, 260px wide -->
+    <aside id="sidebar" class="fixed top-0 left-0 h-full bg-white dark:bg-gray-800
+           border-r border-gray-200 dark:border-gray-700 z-40
+           transition-all duration-300 flex flex-col
+           -translate-x-full lg:translate-x-0" style="width: 260px;">
+      ...
+    </aside>
+
+    <!-- Mobile hamburger toggle -->
+    <button id="sidebarToggle" class="fixed top-4 left-4 z-50 p-2 rounded-lg
+            bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+            shadow-lg text-gray-600 dark:text-gray-300
+            hover:bg-gray-50 dark:hover:bg-gray-700 transition-all lg:hidden">
+      <i class="bi bi-list text-xl"></i>
+    </button>
+
+    <!-- Mobile overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 dark:bg-black/70
+         z-30 hidden lg:hidden"></div>
+
+    <!-- Top bar: fixed, right of sidebar -->
+    <nav class="fixed top-0 left-0 lg:left-[260px] right-0 h-14
+         bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg
+         border-b border-gray-100 dark:border-gray-700 z-30
+         flex items-center justify-end px-4 sm:px-6 gap-3">
+      ...
+    </nav>
+
+    <!-- Main content: offset by sidebar + top bar -->
+    <main class="lg:ml-[260px] pt-14 min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- page content -->
+      </div>
+    </main>
+
+    <!-- Footer: offset by sidebar -->
+    <footer class="bg-gray-900 dark:bg-gray-950 text-white mt-16 lg:ml-[260px]">
+      ...
+    </footer>
+  </body>
+
+
+================================================================================
+7. SIDEBAR COMPONENT
+================================================================================
+
+  --- Logo Section ---
+  <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+    <img src="logo.png" class="h-9 w-9 rounded-full ring-2 ring-green-100 dark:ring-green-900 flex-shrink-0">
+    <span class="font-bold text-gray-900 dark:text-white text-lg whitespace-nowrap">
+      Brand <span class="text-green-600 dark:text-green-400">Name</span>
+    </span>
+  </div>
+
+  --- Nav Links ---
+  <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg
+     text-sm font-medium transition-all
+     text-gray-600 dark:text-gray-400
+     hover:bg-gray-50 dark:hover:bg-gray-700/50
+     hover:text-gray-900 dark:hover:text-white">
+
+  --- Active Nav Link ---
+  <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg
+     text-sm font-medium transition-all
+     bg-green-50 dark:bg-green-900/20
+     text-green-600 dark:text-green-400">
+
+  --- Section Divider Label ---
+  <div class="pt-3 pb-1 px-3">
+    <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+      Section Name
+    </p>
+  </div>
+
+  --- User Profile Area (bottom) ---
+  <div class="border-t border-gray-200 dark:border-gray-700 px-3 py-3 space-y-2">
+    <div class="flex items-center gap-2 px-3 py-1.5">
+      <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900
+           flex items-center justify-center
+           text-green-700 dark:text-green-300 font-bold text-sm
+           flex-shrink-0 overflow-hidden">
+        <!-- profile pic or initial -->
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">Name</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 truncate capitalize">role</p>
+      </div>
+    </div>
+  </div>
+
+  --- Theme Toggle Button ---
+  <button class="p-2 rounded-lg text-gray-500 dark:text-gray-400
+         hover:bg-gray-100 dark:hover:bg-gray-700 transition-all" title="Toggle theme">
+    <i class="bi bi-moon-fill dark:hidden"></i>
+    <i class="bi bi-sun-fill hidden dark:inline"></i>
+  </button>
+
+  --- Language Switcher ---
+  <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
+    <a href="?lang=km" class="flex-1 text-center py-1.5 rounded-md text-xs font-bold
+       transition-all bg-white dark:bg-gray-600
+       text-green-600 dark:text-green-400 shadow-sm">KM</a>
+    <a href="?lang=en" class="flex-1 text-center py-1.5 rounded-md text-xs font-bold
+       transition-all text-gray-500 dark:text-gray-400">EN</a>
+  </div>
+
+  --- Logout Button ---
+  <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg
+     text-sm font-medium text-red-600 dark:text-red-400
+     hover:bg-red-50 dark:hover:bg-red-900/30 transition-all">
+    <i class="bi bi-box-arrow-right"></i>
+    <span>Logout</span>
+  </a>
+
+
+================================================================================
+8. TOP NAVBAR (Public)
+================================================================================
+
+  --- Container ---
+  <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg
+       border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        ...
+      </div>
+    </div>
+  </nav>
+
+  --- Nav Link (public) ---
+  <a href="#" class="px-3 py-2 rounded-lg text-sm font-medium
+     text-gray-600 dark:text-gray-300
+     hover:bg-green-50 dark:hover:bg-green-900/20
+     hover:text-green-600 dark:hover:text-green-400 transition-all">
+
+  --- Active Nav Link (public) ---
+  class="... bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+
+  --- Login Button ---
+  <a href="#" class="px-4 py-1.5 text-gray-600 dark:text-gray-300 rounded-lg
+     text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+    Login
+  </a>
+
+  --- Register Button ---
+  <a href="#" class="px-4 py-1.5 bg-green-500 text-white rounded-lg
+     text-sm font-medium hover:bg-green-600 transition-all shadow-sm">
+    Register
+  </a>
+
+  --- Mobile Menu Button ---
+  <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+    <i class="bi bi-list text-xl text-gray-700 dark:text-gray-300"></i>
+  </button>
+
+
+================================================================================
+9. FLASH MESSAGES
+================================================================================
+
+  --- Success ---
+  <div class="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300
+       px-4 py-3 rounded-xl text-sm flex items-center gap-2
+       border border-green-200 dark:border-green-700">
+    <i class="bi bi-check-circle-fill"></i>Message here
+    <button onclick="this.parentElement.remove()"
+            class="ml-auto text-green-500 hover:text-green-700 dark:text-green-400">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  --- Error ---
+  class="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300
+         border border-red-200 dark:border-red-700"
+
+  --- Warning ---
+  class="bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300
+         border border-yellow-200 dark:border-yellow-700"
+
+
+================================================================================
+10. CARD COMPONENTS
+================================================================================
+
+  --- Standard Card ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm
+       border border-gray-100 dark:border-gray-700 overflow-hidden">
+  </div>
+
+  --- Card with Hover Effect ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm
+       border border-gray-100 dark:border-gray-700
+       hover:shadow-md transition-all">
+  </div>
+
+  --- Card with Colored Header ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm
+       border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-green-500 text-white flex items-center gap-2">
+      <i class="bi bi-icon-name"></i>
+      <h3 class="font-bold">Section Title</h3>
+    </div>
+    <div class="p-6">
+      <!-- content -->
+    </div>
+  </div>
+
+  --- Stat Card (Dashboard) ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm
+       border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+    <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl
+         flex items-center justify-center mb-3">
+      <i class="bi bi-icon text-green-600 dark:text-green-400"></i>
+    </div>
+    <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">123</div>
+    <div class="text-gray-500 dark:text-gray-400 text-xs">Label</div>
+  </div>
+
+  --- Empty State Card ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm
+       border border-gray-100 dark:border-gray-700 text-center">
+    <i class="bi bi-inbox text-5xl text-gray-300 mb-4 block"></i>
+    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Title</h3>
+    <p class="text-gray-500 dark:text-gray-400 mb-6">Description</p>
+    <a href="#" class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium
+       hover:bg-green-600 transition-all inline-flex items-center gap-2">
+      <i class="bi bi-plus-circle"></i>Action
+    </a>
+  </div>
+
+
+================================================================================
+11. BUTTON COMPONENTS
+================================================================================
+
+  --- Primary Button (Green) ---
+  <button class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium
+         hover:bg-green-600 transition-all shadow-sm">
+    Button Text
+  </button>
+
+  --- Primary Button with Icon ---
+  <button class="px-6 py-3 bg-green-500 text-white rounded-xl font-bold
+         hover:bg-green-600 transition-all shadow-sm">
+    <i class="bi bi-send mr-1"></i>Submit
+  </button>
+
+  --- Secondary Button (Gray) ---
+  <a href="#" class="px-4 py-2 bg-gray-100 dark:bg-gray-700
+     text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium
+     hover:bg-gray-200 transition-all">
+    <i class="bi bi-arrow-left mr-1"></i>Cancel
+  </a>
+
+  --- Small Button ---
+  <button class="px-4 py-2 bg-green-500 text-white rounded-xl
+         text-sm font-medium hover:bg-green-600 transition-all">
+    Action
+  </button>
+
+  --- Blue Button (Mark All Read) ---
+  <button class="px-4 py-2 bg-blue-500 text-white rounded-xl
+         text-sm font-medium hover:bg-blue-600 transition-all">
+    <i class="bi bi-check-all mr-1"></i>Mark All Read
+  </button>
+
+  --- Danger Link ---
+  <a href="#" class="text-red-600 dark:text-red-400 hover:text-red-700
+     text-sm font-medium">Delete</a>
+
+  --- Action Link (green) ---
+  <a href="#" class="text-green-600 dark:text-green-400
+     hover:text-green-700 text-sm font-medium">View →</a>
+
+  --- Icon Action Button ---
+  <a href="#" class="p-2 hover:bg-green-50 dark:hover:bg-green-900/20
+     rounded-lg transition-colors text-green-600 dark:text-green-400">
+    <i class="bi bi-pencil"></i>
+  </a>
+
+
+================================================================================
+12. FORM COMPONENTS
+================================================================================
+
+  --- Form Input ---
+  <input type="text"
+    class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700
+           rounded-xl text-sm
+           focus:ring-2 focus:ring-green-500 focus:border-transparent
+           outline-none">
+
+  --- Form Input with Icon ---
+  <div class="relative">
+    <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2
+       text-gray-400 dark:text-gray-500"></i>
+    <input type="email"
+      class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700
+             rounded-xl text-sm
+             focus:ring-2 focus:ring-green-500 focus:border-transparent
+             outline-none">
+  </div>
+
+  --- Form Select ---
+  <select class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700
+          rounded-xl text-sm
+          focus:ring-2 focus:ring-green-500 focus:border-transparent
+          outline-none bg-white dark:bg-gray-800">
+    <option>Option</option>
+  </select>
+
+  --- Form Textarea ---
+  <textarea rows="2"
+    class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700
+           rounded-xl text-sm
+           focus:ring-2 focus:ring-green-500 focus:border-transparent
+           outline-none resize-none">
+  </textarea>
+
+  --- Form File Input ---
+  <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+    class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700
+           rounded-xl text-sm
+           focus:ring-2 focus:ring-green-500 focus:border-transparent
+           outline-none">
+  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">PDF, JPG, PNG • Max 5MB</p>
+
+  --- Form Radio ---
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input type="radio" name="option" value="value"
+           class="w-4 h-4 text-green-600 dark:text-green-400">
+    <span class="text-sm text-gray-700 dark:text-gray-200">Label</span>
+  </label>
+
+  --- Form Label ---
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+    Label <span class="text-red-500">*</span>
+  </label>
+
+  --- Form Grid (2 columns) ---
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- form fields -->
+  </div>
+
+
+================================================================================
+13. TABLE COMPONENTS
+================================================================================
+
+  --- Table Container ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm
+       border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        ...
+      </table>
+    </div>
+  </div>
+
+  --- Table Header ---
+  <thead class="bg-gray-50 dark:bg-gray-800/50">
+    <tr>
+      <th class="px-5 py-3 text-left text-xs font-semibold
+          text-gray-500 dark:text-gray-400 uppercase">
+        Column Name
+      </th>
+    </tr>
+  </thead>
+
+  --- Table Body ---
+  <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+      <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200">Data</td>
+    </tr>
+  </tbody>
+
+  --- Table Empty State ---
+  <tr>
+    <td colspan="7" class="px-5 py-12 text-center text-gray-400 dark:text-gray-500">
+      <i class="bi bi-inbox text-3xl mb-2 block"></i>No data
+    </td>
+  </tr>
+
+
+================================================================================
+14. BADGE COMPONENTS (Status)
+================================================================================
+
+  --- Approved (Green) ---
+  <span class="px-2 py-1 text-xs font-bold rounded-full
+        bg-green-100 dark:bg-green-900/30
+        text-green-700 dark:text-green-300">
+    APPROVED
+  </span>
+
+  --- Pending (Yellow) ---
+  <span class="px-2 py-1 text-xs font-bold rounded-full
+        bg-yellow-100 dark:bg-yellow-900/30
+        text-yellow-700 dark:text-yellow-300">
+    PENDING
+  </span>
+
+  --- Rejected (Red) ---
+  <span class="px-2 py-1 text-xs font-bold rounded-full
+        bg-red-100 dark:bg-red-900/30
+        text-red-700 dark:text-red-300">
+    REJECTED
+  </span>
+
+  --- Under Review (Blue) ---
+  <span class="px-2 py-1 text-xs font-bold rounded-full
+        bg-blue-100 dark:bg-blue-900/30
+        text-blue-700 dark:text-blue-300">
+    UNDER REVIEW
+  </span>
+
+  --- Correction Requested (Orange) ---
+  <span class="px-2 py-1 text-xs font-bold rounded-full
+        bg-orange-100 dark:bg-orange-900/30
+        text-orange-700 dark:text-orange-300">
+    CORRECTION REQUESTED
+  </span>
+
+  --- Gender: Male (Blue) ---
+  <span class="px-2 py-1 text-xs font-medium rounded-full
+        bg-blue-100 dark:bg-blue-900/30
+        text-blue-700 dark:text-blue-300">M</span>
+
+  --- Gender: Female (Pink) ---
+  <span class="px-2 py-1 text-xs font-medium rounded-full
+        bg-pink-100 text-pink-700">F</span>
+
+  --- Notification Count Badge ---
+  <span class="px-3 py-1 bg-red-100 dark:bg-red-900/30
+        text-red-600 dark:text-red-400 rounded-full text-xs font-bold">
+    3 new
+  </span>
+
+
+================================================================================
+15. SEARCH BAR
+================================================================================
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm
+       border border-gray-100 dark:border-gray-700 mb-6">
+    <div class="flex items-center gap-3">
+      <i class="bi bi-search text-gray-400 dark:text-gray-500"></i>
+      <input type="text" placeholder="Search..."
+        class="flex-1 outline-none text-sm">
+    </div>
+  </div>
+
+
+================================================================================
+16. LOGIN / AUTH PAGES
+================================================================================
+
+  --- Centered Auth Container ---
+  <div class="min-h-[80vh] flex items-center justify-center">
+    <div class="w-full max-w-md">
+      <!-- Logo + Title -->
+      <div class="text-center mb-8">
+        <img src="logo.png" class="w-16 h-16 rounded-full mx-auto mb-4
+             ring-4 ring-green-100 shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Subtitle</p>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg
+           border border-gray-100 dark:border-gray-700">
+        <form class="space-y-4">
+          <!-- inputs -->
+          <button type="submit"
+            class="w-full py-2.5 bg-green-500 text-white rounded-xl
+                   font-semibold hover:bg-green-600 transition-all shadow-sm">
+            Sign In
+          </button>
+        </form>
+      </div>
+
+      <!-- Footer text -->
+      <p class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400">
+        Don't have an account?
+        <a href="#" class="text-green-600 dark:text-green-400 font-semibold
+           hover:text-green-700">Register</a>
+      </p>
+    </div>
+  </div>
+
+
+================================================================================
+17. HERO SECTION (Homepage)
+================================================================================
+
+  <section class="bg-gradient-to-br from-green-600 via-green-500 to-emerald-400
+       rounded-3xl p-8 md:p-12 text-white mb-8">
+    <div class="max-w-3xl mx-auto text-center">
+      <img src="logo.png" class="w-20 h-20 rounded-full mx-auto mb-6
+           ring-4 ring-white/30 shadow-xl">
+      <h1 class="text-3xl md:text-4xl font-bold mb-3">Title</h1>
+      <p class="text-green-100 text-lg mb-2">Subtitle</p>
+      <p class="text-green-200 text-sm mb-8 max-w-xl mx-auto">Description</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="#" class="px-8 py-3 bg-white text-green-600 rounded-xl font-bold
+           hover:bg-green-50 transition-all shadow-lg">Primary CTA</a>
+        <a href="#" class="px-8 py-3 bg-white/20 text-white rounded-xl font-bold
+           hover:bg-white/30 transition-all border border-white/30">Secondary CTA</a>
+      </div>
+    </div>
+  </section>
+
+
+================================================================================
+18. FEATURE CARDS (Homepage)
+================================================================================
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
+         border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl
+           flex items-center justify-center mb-4">
+        <i class="bi bi-icon text-green-600 dark:text-green-400 text-xl"></i>
+      </div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">Title</h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm">Description</p>
+    </div>
+  </div>
+
+
+================================================================================
+19. STEP INDICATORS (How to Apply)
+================================================================================
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="text-center">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl
+           flex items-center justify-center text-xl font-bold mx-auto mb-3">1</div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1">Step</h4>
+      <p class="text-gray-500 dark:text-gray-400 text-xs">Description</p>
+    </div>
+  </div>
+
+
+================================================================================
+20. STAT NUMBERS (Homepage)
+================================================================================
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center
+         shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">12+</div>
+      <div class="text-gray-500 dark:text-gray-400 text-sm">Label</div>
+    </div>
+  </div>
+
+
+================================================================================
+21. CTA SECTION (Homepage Bottom)
+================================================================================
+
+  <section class="bg-gradient-to-r from-green-500 to-emerald-500
+       rounded-2xl p-8 text-center text-white mb-12">
+    <h2 class="text-2xl font-bold mb-3">Title</h2>
+    <p class="text-green-100 mb-6">Description</p>
+    <a href="#" class="px-8 py-3 bg-white text-green-600 rounded-xl font-bold
+       hover:bg-green-50 transition-all shadow-lg inline-block">
+      Call to Action
+    </a>
+  </section>
+
+
+================================================================================
+22. NOTIFICATION LIST
+================================================================================
+
+  --- Unread Notification ---
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm
+       border border-gray-100 dark:border-gray-700 p-4
+       border-l-4 border-l-blue-500 bg-blue-50/30">
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="font-semibold text-gray-900 dark:text-gray-100 text-sm">Title</span>
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">Message</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Date</p>
+      </div>
+      <form>
+        <button type="submit" class="text-blue-500 hover:text-blue-700 text-sm">
+          <i class="bi bi-check-circle"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  --- Read Notification ---
+  class="... border-l-0 (no blue left border)"
+
+
+================================================================================
+23. DASHBOARD HEADER
+================================================================================
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
+       border border-gray-100 dark:border-gray-700 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img src="logo.png" class="w-14 h-14 rounded-full ring-2 ring-green-100">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Title</h1>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Subtitle
+            <span class="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30
+                  text-green-700 dark:text-green-300 rounded-full text-xs font-bold">
+              Count
+            </span>
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <!-- action buttons -->
+      </div>
+    </div>
+  </div>
+
+
+================================================================================
+24. FOOTER
+================================================================================
+
+  <footer class="bg-gray-900 dark:bg-gray-950 text-white mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="flex items-center gap-2.5 mb-4">
+            <img src="logo.png" class="h-10 w-10 rounded-full">
+            <span class="font-bold text-lg">Brand <span class="text-green-400">Name</span></span>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed">Description</p>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Link</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-4">Contact</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li class="flex items-center gap-2"><i class="bi bi-envelope"></i> email</li>
+            <li class="flex items-center gap-2"><i class="bi bi-phone"></i> phone</li>
+            <li class="flex items-center gap-2"><i class="bi bi-geo-alt"></i> address</li>
+          </ul>
+        </div>
+      </div>
+      <hr class="border-gray-800 my-8">
+      <p class="text-center text-gray-500 text-sm">© 2026 Company. All rights reserved.</p>
+    </div>
+  </footer>
+
+
+================================================================================
+25. JAVASCRIPT UTILITIES
+================================================================================
+
+  --- Theme Toggle ---
+  function toggleTheme() {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+      html.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    } else {
+      html.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  --- Sidebar Toggle (Mobile) ---
+  const toggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  toggle.addEventListener('click', function() {
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+    toggle.classList.toggle('hidden');
+  });
+  overlay.addEventListener('click', function() {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+    toggle.classList.remove('hidden');
+  });
+
+  --- Mobile Menu Toggle (Public Navbar) ---
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileMenu').classList.add('active');
+    document.getElementById('menuOverlay').classList.add('active');
+  });
+  document.getElementById('closeMenuBtn').addEventListener('click', function() {
+    document.getElementById('mobileMenu').classList.remove('active');
+    document.getElementById('menuOverlay').classList.remove('active');
+  });
+  document.getElementById('menuOverlay').addEventListener('click', function() {
+    document.getElementById('mobileMenu').classList.remove('active');
+    document.getElementById('menuOverlay').classList.remove('active');
+  });
+
+  --- Password Toggle ---
+  function togglePass() {
+    var x = document.getElementById("password");
+    var i = document.getElementById("eyeIcon");
+    if (x.type === "password") {
+      x.type = "text";
+      i.className = "bi bi-eye-slash";
+    } else {
+      x.type = "password";
+      i.className = "bi bi-eye";
+    }
+  }
+
+  --- Auto-dismiss Alerts ---
+  const alerts = document.querySelectorAll('.alert');
+  alerts.forEach(function(alert) {
+    setTimeout(function() {
+      alert.style.transition = 'opacity 0.5s, transform 0.5s';
+      alert.style.opacity = '0';
+      alert.style.transform = 'translateY(-10px)';
+      setTimeout(function() { alert.remove(); }, 500);
+    }, 5000);
+  });
+
+  --- File Input Validation ---
+  const fileInputs = document.querySelectorAll('input[type="file"]');
+  fileInputs.forEach(function(input) {
+    input.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const maxSize = 5 * 1024 * 1024;
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+      if (file.size > maxSize) { alert('File size must be less than 5MB.'); this.value = ''; return; }
+      if (!allowedTypes.includes(file.type)) { alert('Only JPG, PNG, and PDF allowed.'); this.value = ''; return; }
+    });
+  });
+
+  --- Submit Button Loading State ---
+  const submitBtns = document.querySelectorAll('button[type="submit"]');
+  submitBtns.forEach(function(btn) {
+    btn.closest('form')?.addEventListener('submit', function() {
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+    });
+  });
+
+
+================================================================================
+26. COMPLETE <head> TEMPLATE (Copy This)
+================================================================================
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My App</title>
+
+    <!-- CDN Links -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Dark Mode Init -->
+    <script>
+      if (localStorage.getItem('theme') === 'dark' ||
+          (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+
+    <!-- Tailwind Config -->
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              'khmer': ['Hanuman', 'sans-serif'],
+              'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
+                400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
+                800: '#166534', 900: '#14532d'
+              },
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS -->
+    <style>
+      * { font-family: 'Hanuman', 'Plus Jakarta Sans', sans-serif; }
+      .slide-in { transform: translateX(100%); transition: transform 0.3s ease; }
+      .slide-in.active { transform: translateX(0); }
+      .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+      .overlay.active { opacity: 1; pointer-events: auto; }
+      .hidden-on-screen { display: none; }
+      @media print {
+        aside, nav, footer, .no-print { display: none !important; }
+        main { margin-left: 0 !important; padding-top: 0 !important; }
+        body { background: white !important; }
+        .hidden-on-screen { display: block !important; }
+        img { max-width: 100% !important; height: auto !important; }
+      }
+    </style>
+  </head>
+
+================================================================================
+                              END OF STYLE GUIDE
+================================================================================

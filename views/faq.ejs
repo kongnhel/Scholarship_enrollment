@@ -1,0 +1,28 @@
+<div class="max-w-3xl mx-auto">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សំណួរដែលគេសួរញឹកញាប់' : 'Frequently Asked Questions' %></h1>
+    <p class="text-gray-500 dark:text-gray-400 mt-2"><%= currentLang === 'km' ? 'ស្វែងរកចម្លើយចំពោះសំណួរទូទៅ' : 'Find answers to common questions about the scholarship program' %></p>
+  </div>
+
+  <div class="space-y-4">
+    <% var faqs = [
+      { q_km: 'តើអ្នកណាអាចដាក់ពាក្យសុំអាហារូបករណ៍បាន?', q_en: 'Who can apply for this scholarship?', a_km: 'សិស្សានុសិស្សដែលបានបញ្ចប់ការសិក្សាថ្នាក់ទី១២ និងមានបំណងចង់សិក្សានៅសាកលវិទ្យាល័យជាតិគ្រប់គ្រង (NMU) អាចដាក់ពាក្យសុំបាន។', a_en: 'Students who have completed Grade 12 and wish to study at the National Management University (NMU) are eligible to apply.' },
+      { q_km: 'តើត្រូវការឯកសារអ្វីខ្លះសម្រាប់ការដាក់ពាក្យ?', q_en: 'What documents are required for application?', a_km: 'ឯកសារដែលត្រូវការរួមមាន៖ រូបថត, សំណុំបែបបទ, អត្តសញ្ញាណប័ណ្ណ, និងឯកសារបន្ថែមផ្សេងទៀត។', a_en: 'Required documents include: photo, transcript, national ID, and additional supporting documents.' },
+      { q_km: 'តើខ្ញុំអាចដឹងលទ្ធផលនៃពាក្យសុំរបស់ខ្ញុំដោយរបៀបណា?', q_en: 'How can I check my application result?', a_km: 'អ្នកអាចពិនិត្យស្ថានភាពពាក្យសុំរបស់អ្នកតាមរយៈទំព័រ "ស្ថានភាព" នៅក្នុងគណនីរបស់អ្នក។', a_en: 'You can check your application status through the "Status" page in your account.' },
+      { q_km: 'តើរយៈពេលនៃការដាក់ពាក្យមានរយៈពេលប៉ុន្មាន?', q_en: 'How long is the application period?', a_km: 'ការដាក់ពាក្យជាធម្មតាបើកពីខែមិថុនាដល់ខែសីហា។ សូមពិនិត្យមើលកាលបរិច្ឆេទពិតប្រាកដនៅលើទំព័រដើម។', a_en: 'Applications typically open from June to August. Please check the exact dates on the homepage.' },
+      { q_km: 'តើខ្ញុំអាចកែប្រែពាក្យសុំបានទេបន្ទាប់ពីដាក់ស្នើ?', q_en: 'Can I edit my application after submission?', a_km: 'បាទ/ចាស ប្រសិនបើអ្នកគ្រប់គ្រងស្នើសុំឱ្យអ្នកកែប្រែ អ្នកអាចកែប្រែនិងដាក់ស្នើឡើងវិញបាន។', a_en: 'Yes, if an admin requests corrections, you can edit and resubmit your application.' },
+      { q_km: 'តើត្រូវចំណាយថ្លៃដាក់ពាក្យទេ?', q_en: 'Is there an application fee?', a_km: 'ទេ ការដាក់ពាក្យសុំអាហារូបករណ៍នេះគឺឥតគិតថ្លៃទាំងស្រុង។', a_en: 'No, applying for this scholarship is completely free of charge.' },
+    ]; %>
+    <% faqs.forEach(function(faq) { %>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <button onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('i').classList.toggle('bi-chevron-down');this.querySelector('i').classList.toggle('bi-chevron-up')" class="w-full px-6 py-4 flex items-center justify-between text-left font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+          <span><%= currentLang === 'km' ? faq.q_km : faq.q_en %></span>
+          <i class="bi bi-chevron-down text-gray-400 dark:text-gray-500 transition-all"></i>
+        </button>
+        <div class="px-6 pb-4 hidden text-sm text-gray-600 dark:text-gray-300">
+          <%= currentLang === 'km' ? faq.a_km : faq.a_en %>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</div>

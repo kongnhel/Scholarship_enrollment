@@ -1,0 +1,223 @@
+﻿<div class="max-w-7xl mx-auto space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+        <i class="bi bi-cash-stack text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ថ្លៃសិក្សាតាមជំនាញ' : 'Major Tuition' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងថ្លៃសិក្សាប្រចាំឆ្នាំសម្រាប់មួយៗជំនាញ' : 'Manage yearly tuition fees per major' %></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <i class="bi bi-database text-gray-400"></i>
+        <span class="text-sm text-gray-600 dark:text-gray-300"><%= tuitionList.length %> <%= currentLang === 'km' ? 'ជំនាញ' : 'majors' %></span>
+      </div>
+      <button onclick="openAddModal()" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-sm flex items-center gap-1.5">
+        <i class="bi bi-plus-lg"></i><%= currentLang === 'km' ? 'បន្ថែមថ្មី' : 'Add New' %>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឆ្នាំសិក្សា' : 'Academic Year' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ថ្លៃសិក្សាប្រចាំឆ្នាំ' : 'Yearly Tuition' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <% if (tuitionList.length === 0) { %>
+            <tr>
+              <td colspan="7" class="px-5 py-12 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <i class="bi bi-cash-stack text-4xl text-gray-300 dark:text-gray-600"></i>
+                  <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានទិន្នន័យ' : 'No data found' %></p>
+                </div>
+              </td>
+            </tr>
+          <% } else { %>
+            <% tuitionList.forEach(function(t, i) { %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= i + 1 %></span>
+                </td>
+                <td class="px-5 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? t.major_name_kh : t.major_name_en %></td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? (t.faculty_kh || '—') : (t.faculty_en || '—') %></td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"><i class="bi bi-calendar3"></i><%= t.academic_year %></span>
+                </td>
+                <td class="px-5 py-4">
+                  <div>
+                    <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400"><%= Number(t.tuition_per_year).toLocaleString() %>៛</span>
+                    <span class="text-xs text-gray-400 dark:text-gray-500 ml-1">(~$<%= Math.round(t.tuition_per_year / 4000).toLocaleString() %>)</span>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <% if (t.is_active) { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span><%= currentLang === 'km' ? 'សកម្ម' : 'Active' %></span>
+                  <% } else { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><%= currentLang === 'km' ? 'មិនសកម្ម' : 'Inactive' %></span>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-1.5">
+                    <button onclick="editTuition(this)" data-id="<%= t.id %>" data-major="<%= currentLang === 'km' ? t.major_name_kh : t.major_name_en %>" data-year="<%= t.academic_year %>" data-amount="<%= t.tuition_per_year %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
+                    <form action="/admin/major-tuition/<%= t.id %>/toggle" method="POST" class="inline">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 <%= t.is_active ? 'border-orange-200 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20' : 'border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' %>">
+                        <i class="bi bi-<%= t.is_active ? 'pause-circle' : 'play-circle' %>"></i><%= t.is_active ? (currentLang === 'km' ? 'បិទ' : 'Off') : (currentLang === 'km' ? 'បើក' : 'On') %>
+                      </button>
+                    </form>
+                    <form action="/admin/major-tuition/<%= t.id %>/delete" method="POST" class="inline delete-form">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="button" onclick="confirmDelete(this, event)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Del' %></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="addModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white flex items-center justify-between">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមថ្លៃសិក្សាថ្មី' : 'Add New Tuition' %></h5>
+      <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form action="/admin/major-tuition" method="POST" class="p-6 space-y-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %> *</label>
+        <select name="major_id" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+          <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសជំនាញ' : 'Select Major' %></option>
+          <% majors.forEach(function(m) { %>
+            <option value="<%= m.id %>"><%= currentLang === 'km' ? m.name_kh : m.name_en %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឆ្នាំសិក្សា' : 'Academic Year' %> *</label>
+        <select name="academic_year" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+          <option value="2025-2026">2025-2026</option>
+          <option value="2026-2027">2026-2027</option>
+          <option value="2027-2028">2027-2028</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ថ្លៃសិក្សាប្រចាំឆ្នាំ (រៀល)' : 'Yearly Tuition (KHR)' %> *</label>
+        <input type="number" name="tuition_per_year" min="0" step="1000" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="500000">
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">1 USD = 4,000 KHR</p>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white flex items-center justify-between">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែថ្លៃសិក្សា' : 'Edit Tuition' %></h5>
+      <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form id="editForm" method="POST" class="p-6 space-y-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></label>
+        <p id="editMajorName" class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-900 dark:text-gray-100"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឆ្នាំសិក្សា' : 'Academic Year' %></label>
+        <p id="editYear" class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ថ្លៃសិក្សាប្រចាំឆ្នាំ (រៀល)' : 'Yearly Tuition (KHR)' %> *</label>
+        <input type="number" name="tuition_per_year" id="editTuitionAmount" min="0" step="1000" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">1 USD = 4,000 KHR</p>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl text-sm font-semibold hover:from-amber-600 hover:to-orange-700 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="deletePopover" class="hidden fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 w-72" onclick="event.stopPropagation()">
+  <div class="flex items-center gap-3 mb-3">
+    <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+      <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400"></i>
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'លុបថ្លៃសិក្សា' : 'Delete Tuition' %></p>
+      <p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សកម្មភាពនេះមិនអាចប្រែក្រឡេវបានទេ' : 'This action cannot be undone.' %></p>
+    </div>
+  </div>
+  <div class="flex gap-2">
+    <button onclick="closeDeletePopover()" class="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+    <button onclick="submitDelete()" class="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition shadow-sm"><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
+  </div>
+</div>
+
+<script>
+var deleteForm = null;
+function openAddModal() { document.getElementById('addModal').classList.remove('hidden'); }
+function editTuition(btn) {
+  var id = btn.getAttribute('data-id');
+  var major = btn.getAttribute('data-major');
+  var year = btn.getAttribute('data-year');
+  var amount = btn.getAttribute('data-amount');
+  document.getElementById('editForm').action = '/admin/major-tuition/' + id + '/edit';
+  document.getElementById('editMajorName').textContent = major;
+  document.getElementById('editYear').textContent = year;
+  document.getElementById('editTuitionAmount').value = amount;
+  document.getElementById('editModal').classList.remove('hidden');
+}
+function confirmDelete(btn, e) {
+  deleteForm = btn.closest('form');
+  var pop = document.getElementById('deletePopover');
+  pop.classList.remove('hidden');
+  var rect = e.currentTarget.getBoundingClientRect();
+  var popW = 288;
+  var popH = pop.offsetHeight || 140;
+  var left = rect.right + 8;
+  if (left + popW > window.innerWidth) left = rect.left - popW - 8;
+  var top = rect.top + (rect.height / 2) - (popH / 2);
+  if (top < 8) top = 8;
+  if (top + popH > window.innerHeight - 8) top = window.innerHeight - popH - 8;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+function submitDelete() {
+  if (deleteForm) { deleteForm.submit(); }
+  closeDeletePopover();
+}
+function closeDeletePopover() {
+  document.getElementById('deletePopover').classList.add('hidden');
+}
+document.addEventListener('click', function(e) {
+  var pop = document.getElementById('deletePopover');
+  if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('[onclick*="confirmDelete"]')) {
+    closeDeletePopover();
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDeletePopover();
+});
+</script>

@@ -1,0 +1,288 @@
+<section class="bg-gradient-to-br from-green-600 via-green-500 to-emerald-400 rounded-3xl p-8 md:p-12 text-white mb-8">
+  <div class="max-w-3xl mx-auto text-center">
+    <img src="/images/nmu-logo.jpg" alt="NMU" class="w-20 h-20 rounded-full mx-auto mb-6 ring-4 ring-white/30 shadow-xl">
+    <h1 class="text-3xl md:text-4xl font-bold mb-3"><%= currentLang === 'km' ? 'អាហារូបករណ៍ និងការចុះឈ្មោះចូលរៀនអនឡាញ' : 'Scholarship & Online Enrollment' %></h1>
+    <p class="text-green-100 text-lg mb-2"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យជាតិមានជ័យ' : 'National Meanchey University' %></p>
+    <p class="text-green-200 text-sm mb-8 max-w-xl mx-auto"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍ និងចុះឈ្មោះចូលរៀនតាមអ៊ីនធឺណិតយ៉ាងងាយស្រួល។ ជ្រើសរើសជំនាញ ប្រភេទអាហារូបករណ៍ និងទូទាត់ថ្លៃសិក្សាតាម Bakong KHQR។' : 'Apply for scholarships and enroll online easily. Choose your major, scholarship type, and pay tuition via Bakong KHQR.' %></p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/auth/register" class="px-8 py-3 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 rounded-xl font-bold hover:bg-green-50 dark:hover:bg-green-900/20 transition-all shadow-lg"><i class="bi bi-pencil-square mr-2"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះឥឡូវនេះ' : 'Register Now' %></a>
+      <a href="/auth/login" class="px-8 py-3 bg-white/20 text-white rounded-xl font-bold hover:bg-white/30 transition-all border border-white/30"><i class="bi bi-box-arrow-in-right mr-2"></i><%= currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Login' %></a>
+    </div>
+  </div>
+</section>
+
+<section class="mb-12">
+  <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'សេវាកម្មរបស់យើង' : 'Our Services' %></h2>
+  <p class="text-gray-500 dark:text-gray-400 text-center mb-8"><%= currentLang === 'km' ? 'សេវាកម្មពេញលេញសម្រាប់សិស្សនិស្សិត' : 'Complete services for students' %></p>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mb-4"><i class="bi bi-award text-green-600 dark:text-green-400 text-xl"></i></div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'អាហារូបករណ៍' : 'Scholarships' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍រួមមានអាហារូបករណ៍ថ្នាក់រដ្ឋ ១០០% អាហារូបករណ៍ NMU និង Mekong Scholarship។' : 'Apply for scholarships including 100% Ministry, NMU, and Mekong scholarships.' %></p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-4"><i class="bi bi-person-check text-blue-600 dark:text-blue-400 text-xl"></i></div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ការចុះឈ្មោះចូលរៀន' : 'Enrollment' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ចុះឈ្មោះចូលរៀនតាមអនឡាញ ជ្រើសរើសជំនាញ និងឆ្នាំសិក្សា។' : 'Register online, choose your major and academic year.' %></p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mb-4"><i class="bi bi-credit-card text-purple-600 dark:text-purple-400 text-xl"></i></div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សាតាម Bakong KHQR យ៉ាងងាយស្រួលនិងសុវត្ថិភាព។' : 'Pay tuition via Bakong KHQR easily and securely.' %></p>
+    </div>
+  </div>
+</section>
+
+<section class="mb-12">
+  <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ហេតុអ្វីជ្រើសរើសយើង?' : 'Why Choose Us?' %></h2>
+  <p class="text-gray-500 dark:text-gray-400 text-center mb-8"><%= currentLang === 'km' ? 'មូលហេតុដែលអ្នកគួរប្រើប្រាស់ប្រព័ន្ធរបស់យើង' : 'Reasons to use our system' %></p>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mb-4"><i class="bi bi-file-earmark-check text-green-600 dark:text-green-400 text-xl"></i></div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ងាយស្រួលប្រើប្រាស់' : 'Easy to Use' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំ និងចុះឈ្មោះតាមអនឡាញពីកន្លែងណាមួយ។' : 'Apply and enroll online from anywhere.' %></p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-4"><i class="bi bi-graph-up-arrow text-blue-600 dark:text-blue-400 text-xl"></i></div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'តាមដានពេលវេលាជាក់ស្តែង' : 'Real-time Tracking' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'តាមដានស្ថានភាពពាក្យសុំ ការចុះឈ្មោះ និងការទូទាត់របស់អ្នក។' : 'Track your application, enrollment, and payment status.' %></p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+      <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mb-4"><i class="bi bi-shield-lock text-purple-600 dark:text-purple-400 text-xl"></i></div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'សុវត្ថិភាព' : 'Secure' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ទិន្នន័យរបស់អ្នកត្រូវបានការពារដោយសុវត្ថិភាពកម្រិតអាជីវកម្ម។' : 'Your data is protected with enterprise-grade security.' %></p>
+    </div>
+  </div>
+</section>
+
+<section class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 mb-12">
+  <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ជំនាញដែលមាន' : 'Available Majors' %></h2>
+  <p class="text-gray-500 dark:text-gray-400 text-center mb-8"><%= currentLang === 'km' ? 'ជ្រើសរើសជំនាញដែលអ្នកចង់សិក្សានៅសាកលវិទ្យាល័យជាតិមានជ័យ' : 'Choose your desired major at NMU' %></p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <% majors.forEach(function(major) { %>
+      <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700 hover:border-green-300 hover:shadow-md transition-all">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-book text-green-600 dark:text-green-400"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? major.name_kh : major.name_en %></h4>
+            <p class="text-gray-400 dark:text-gray-500 text-xs"><%= currentLang === 'km' ? major.faculty_kh : major.faculty_en %></p>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</section>
+
+<section class="mb-12">
+  <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'របៀបប្រើប្រាស់ប្រព័ន្ធ' : 'How It Works' %></h2>
+  <p class="text-gray-500 dark:text-gray-400 text-center mb-8"><%= currentLang === 'km' ? 'ជំហានងាយៗដើម្បីចុះឈ្មោះនិងចូលរៀន' : 'Simple steps to register and enroll' %></p>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="text-center">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3">1</div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Register' %></h4>
+      <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'បង្កើតគណនី' : 'Create account' %></p>
+    </div>
+    <div class="text-center">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3">2</div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %></h4>
+      <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'ពាក្យសុំអាហារូបករណ៍' : 'Scholarship application' %></p>
+    </div>
+    <div class="text-center">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3">3</div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enroll' %></h4>
+      <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'ចុះឈ្មោះចូលរៀន' : 'Enroll in major' %></p>
+    </div>
+    <div class="text-center">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3">4</div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ទូទាត់' : 'Pay' %></h4>
+      <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'ថ្លៃសិក្សា' : 'Tuition fee' %></p>
+    </div>
+    <div class="text-center">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3">5</div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'រៀន' : 'Study' %></h4>
+      <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'ចាប់ផ្តើមសិក្សា' : 'Start learning' %></p>
+    </div>
+  </div>
+</section>
+
+<section class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 mb-12">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4"><%= currentLang === 'km' ? 'អំពីសាកលវិទ្យាល័យជាតិមានជ័យ' : 'About National Meanchey University' %></h2>
+      <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យជាតិមានជ័យ ជាគ្រឹះស្ថានអប់រំឧត្តមសិក្សាសាធារណៈមួយដែលស្ថិតនៅក្នុងទីរួមខេត្តបន្ទាយមានជ័យ។ សាកលវិទ្យាល័យបានផ្តួចផ្តើមស្ថាបនាដោយ ឯកឧត្តម កែ គឹមយ៉ាន ឧបនាយករដ្ឋមន្ត្រី និងលោកជំទាវ ម៉ៅម៉ាល័យ និងបានអនុញ្ញាតឱ្យដំណើរការដោយអនុក្រឹត្យលេខ ២០អនក្រ.បក ចុះថ្ងៃទី២០ ខែឧសភា ឆ្នាំ២០០៧។' : 'National Meanchey University is a public higher education institution located in Battambang province. It was founded by H.E. Ke Kim Yan, Deputy Prime Minister, and Madame Mao Maly, and approved by Sub-decree No. 20 ANK.BK dated May 20, 2007.' %></p>
+      <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-5"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យមានបំណងបណ្តុះបណ្តាលធនធានមនុស្សឱ្យមានចំណេះដឹងជំនាញការស្រាវជ្រាវនិងនវានុវត្តន៍ប្រកបដោយឧត្តមភាពឆ្លើយតបតម្រូវការទីផ្សារការងារជាតិនិងអន្តរជាតិ។' : 'The university aims to train human resources with knowledge, research expertise, and innovation that meets national and international labor market demands.' %></p>
+      <div class="flex flex-wrap gap-2">
+        <a href="https://nmu.edu.kh/" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-all"><i class="bi bi-globe"></i>nmu.edu.kh</a>
+        <a href="https://web.facebook.com/nmu.edu.kh" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all"><i class="bi bi-facebook"></i>Facebook</a>
+        <a href="https://www.youtube.com/@nmu-nationalmeancheyuniver5395/featured" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-all"><i class="bi bi-youtube"></i>YouTube</a>
+      </div>
+    </div>
+    <div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-4"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យទាំង ៥' : 'Our 5 Faculties' %></h3>
+      <div class="space-y-3">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all">
+          <div class="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-flower1 text-green-600 dark:text-green-400"></i></div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យកសិកម្ម និងកែច្នៃអាហារ' : 'Faculty of Agriculture & Food Processing' %></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all">
+          <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-cpu text-blue-600 dark:text-blue-400"></i></div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យវិទ្យាសាស្ត្រ និងបច្ចេកវិទ្យា' : 'Faculty of Science & Technology' %></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all">
+          <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-book text-purple-600 dark:text-purple-400"></i></div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យសិល្បៈ មនុស្សសាស្ត្រ និងភាសា' : 'Faculty of Arts, Humanities & Languages' %></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-all">
+          <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-briefcase text-orange-600 dark:text-orange-400"></i></div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យគ្រប់គ្រងពាណិជ្ជកម្ម និងទេសចរណ៍' : 'Faculty of Business Management & Tourism' %></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-pink-50 dark:bg-pink-900/20 hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-all">
+          <div class="w-10 h-10 bg-pink-100 dark:bg-pink-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-people text-pink-600 dark:text-pink-400"></i></div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យសង្គមសាស្ត្រ និងអភិវឌ្ឍន៍សហគមន៍' : 'Faculty of Social Sciences & Community Development' %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 mb-12">
+  <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ហេតុអ្វីត្រូវបង្កើតគណនី?' : 'Why Create an Account?' %></h2>
+  <p class="text-gray-500 dark:text-gray-400 text-center mb-8"><%= currentLang === 'km' ? 'ការបង្កើតគណនីជួយអ្នកក្នុងការគ្រប់គ្រងការសិក្សារបស់អ្នក' : 'Creating an account helps you manage your studies' %></p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="flex items-start gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-900/20">
+      <div class="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-award text-green-600 dark:text-green-400"></i></div>
+      <div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍' : 'Apply for Scholarship' %></h4>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍តាមអនឡាញ' : 'Apply for scholarships online' %></p>
+      </div>
+    </div>
+    <div class="flex items-start gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+      <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-person-check text-blue-600 dark:text-blue-400"></i></div>
+      <div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ចុះឈ្មោះចូលរៀន' : 'Enroll Online' %></h4>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ចុះឈ្មោះជំនាញនិងឆ្នាំសិក្សា' : 'Choose major and academic year' %></p>
+      </div>
+    </div>
+    <div class="flex items-start gap-3 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20">
+      <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-credit-card text-orange-600 dark:text-orange-400"></i></div>
+      <div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សា' : 'Pay Tuition' %></h4>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទូទាត់តាម Bakong KHQR' : 'Pay via Bakong KHQR' %></p>
+      </div>
+    </div>
+    <div class="flex items-start gap-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20">
+      <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center flex-shrink-0"><i class="bi bi-bell text-purple-600 dark:text-purple-400"></i></div>
+      <div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ទទួលដំណឹង' : 'Get Notified' %></h4>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទទួលដំណឹងពីស្ថានភាពពាក្យសុំនិងការចុះឈ្មោះ' : 'Updates on application and enrollment' %></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-12">
+  <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'របៀបចុះឈ្មោះ និងចូល' : 'How to Register & Login' %></h2>
+  <p class="text-gray-500 dark:text-gray-400 text-center mb-8"><%= currentLang === 'km' ? 'ជំហានងាយៗដើម្បីចុះឈ្មោះនិងចូលប្រើប្រាស់ប្រព័ន្ធ' : 'Simple steps to register and access the system' %></p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-person-plus-fill text-green-600 dark:text-green-400 text-lg"></i></div>
+        <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg"><%= currentLang === 'km' ? 'របៀបចុះឈ្មោះ' : 'How to Register' %></h3>
+      </div>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">1</div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ចុចប៊ូតុង "ចុះឈ្មោះ"' : 'Click the "Register" button' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'នៅលើម៉ឺនុយ ឬនៅលើទំព័រដើម' : 'On the menu or homepage' %></p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">2</div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'បំពេញព័ត៌មានគណនី' : 'Fill in account information' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'ឈ្មោះពេញ អ៊ីមែល និងពាក្យសម្ងាត់' : 'Full name, email, and password' %></p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ចុច "ចុះឈ្មោះ"' : 'Click "Register"' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'បន្ទាប់មកអ្នកអាចចូលបានភ្លាមៗ' : 'You can then login immediately' %></p>
+          </div>
+        </div>
+      </div>
+      <a href="/auth/register" class="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all text-sm"><i class="bi bi-pencil-square"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះឥឡូវនេះ' : 'Register Now' %></a>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-box-arrow-in-right text-blue-600 dark:text-blue-400 text-lg"></i></div>
+        <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg"><%= currentLang === 'km' ? 'របៀបចូល' : 'How to Login' %></h3>
+      </div>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">1</div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ចុចប៊ូតុង "ចូល"' : 'Click the "Login" button' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'នៅលើម៉ឺនុយ ឬនៅលើទំព័រដើម' : 'On the menu or homepage' %></p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">2</div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល និងពាក្យសម្ងាត់' : 'Enter your email and password' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'ប្រើអ៊ីមែលដែលអ្នកបានចុះឈ្មោះ' : 'Use the email you registered with' %></p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ចុច "ចូល" ហើយចាប់ផ្តើមដាក់ពាក្យ' : 'Click "Login" and start' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍ ឬចុះឈ្មោះចូលរៀន' : 'Apply for scholarship or enroll' %></p>
+          </div>
+        </div>
+      </div>
+      <a href="/auth/login" class="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-all text-sm"><i class="bi bi-box-arrow-in-right"></i><%= currentLang === 'km' ? 'ចូលឥឡូវនេះ' : 'Login Now' %></a>
+    </div>
+  </div>
+</section>
+
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1"><%= majors.length %>+</div>
+    <div class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ជំនាញ' : 'Majors' %></div>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1"><%= scholarshipTypes.length %></div>
+    <div class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ប្រភេទអាហារូបករណ៍' : 'Scholarship Types' %></div>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1"><%= provinces.length %></div>
+    <div class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'ខេត្ត' : 'Provinces' %></div>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">5</div>
+    <div class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculties' %></div>
+  </div>
+</section>
+
+<section class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-8 text-center text-white mb-12">
+  <h2 class="text-2xl font-bold mb-3"><%= currentLang === 'km' ? 'ត្រៀមខ្លួនដើម្បីចុះឈ្មោះហើយឬនៅ?' : 'Ready to Get Started?' %></h2>
+  <p class="text-green-100 mb-6"><%= currentLang === 'km' ? 'កុំខកខានឱកាសសិក្សានៅសាកលវិទ្យាល័យជាតិមានជ័យ។ ចុះឈ្មោះឥឡូវនេះដើម្បីដាក់ពាក្យសុំអាហារូបករណ៍និងចុះឈ្មោះចូលរៀន។' : "Don't miss the opportunity to study at NMU. Register now to apply for scholarships and enroll." %></p>
+  <div class="flex flex-col sm:flex-row gap-3 justify-center">
+    <a href="/auth/register" class="px-8 py-3 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 rounded-xl font-bold hover:bg-green-50 dark:hover:bg-green-900/20 transition-all shadow-lg inline-block"><i class="bi bi-pencil-square mr-2"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះឥឡូវនេះ' : 'Register Now' %></a>
+    <a href="/auth/login" class="px-8 py-3 bg-white/20 text-white rounded-xl font-bold hover:bg-white/30 transition-all border border-white/30 inline-block"><i class="bi bi-box-arrow-in-right mr-2"></i><%= currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Login' %></a>
+  </div>
+</section>

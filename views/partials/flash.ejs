@@ -1,0 +1,35 @@
+<% if (typeof messages !== 'undefined') { %>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    <% if (messages.success && messages.success.length > 0) { %>
+      Swal.fire({
+        title: '<%= currentLang === "km" ? "ជោគជ័យ" : "Success" %>',
+        text: '<%= messages.success[0].replace(/'/g, "\\'") %>',
+        icon: 'success',
+        confirmButtonText: '<%= currentLang === "km" ? "យល់ព្រម" : "OK" %>',
+        showCloseButton: true,
+        timer: 5000,
+        timerProgressBar: true
+      });
+    <% } %>
+    <% if (messages.error && messages.error.length > 0) { %>
+      Swal.fire({
+        title: '<%= currentLang === "km" ? "កំហុស" : "Error" %>',
+        text: '<%= messages.error[0].replace(/'/g, "\\'") %>',
+        icon: 'error',
+        confirmButtonText: '<%= currentLang === "km" ? "យល់ព្រម" : "OK" %>',
+        showCloseButton: true
+      });
+    <% } %>
+    <% if (messages.warning && messages.warning.length > 0) { %>
+      Swal.fire({
+        title: '<%= currentLang === "km" ? "ការព្រមាន" : "Warning" %>',
+        text: '<%= messages.warning[0].replace(/'/g, "\\'") %>',
+        icon: 'warning',
+        confirmButtonText: '<%= currentLang === "km" ? "យល់ព្រម" : "OK" %>',
+        showCloseButton: true
+      });
+    <% } %>
+  });
+  </script>
+<% } %>

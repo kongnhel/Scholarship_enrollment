@@ -1,0 +1,43 @@
+<div class="min-h-[80vh] flex items-center justify-center py-8">
+  <div class="w-full max-w-lg">
+    <div class="text-center mb-6">
+      <img src="/images/nmu-logo.jpg" alt="NMU" class="w-16 h-16 rounded-full mx-auto mb-4 ring-4 ring-green-100 shadow-lg">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់គណនី' : 'Verify Account' %></h1>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល ឬលេខទូរស័ព្ទដើម្បីស្វែងរកគណនីរបស់អ្នក' : 'Enter your email or phone number to find your account' %></p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+      <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 mb-6">
+        <div class="flex items-center gap-3">
+          <i class="bi bi-info-circle text-orange-500 text-xl"></i>
+          <div>
+            <p class="text-sm font-semibold text-orange-800 dark:text-orange-200"><%= currentLang === 'km' ? 'ស្វែងរកគណនីរបស់អ្នក' : 'Find Your Account' %></p>
+            <p class="text-xs text-orange-600 dark:text-orange-300 mt-1">
+              <%= currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល ឬលេខទូរស័ព្ទដែលបានចុះឈ្មោះ។ អ្នកនឹងត្រូវបញ្ជូនទៅទំព័រផ្ទៀងផ្ទាត់។' : 'Enter the email or phone you registered with. You will be redirected to the verification page.' %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form method="POST" action="/auth/verify-account" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល ឬលេខទូរស័ព្ទ' : 'Email or Phone' %> *</label>
+          <div class="relative">
+            <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="text" name="identifier" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឬលេខទូរស័ព្ទ' : 'email or phone number' %>" required>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm">
+          <i class="bi bi-search mr-1"></i><%= currentLang === 'km' ? 'ស្វែងរក' : 'Find Account' %>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
+        <a href="/auth/login" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+          <i class="bi bi-arrow-left mr-1"></i><%= currentLang === 'km' ? 'ត្រឡប់ទៅចូល' : 'Back to Login' %>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

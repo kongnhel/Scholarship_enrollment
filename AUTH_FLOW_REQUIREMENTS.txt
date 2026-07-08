@@ -1,0 +1,194 @@
+================================================================================
+AUTH SYSTEM REQUIREMENTS - Scholarship & Enroll Online
+================================================================================
+This document describes the authentication flow and behavior.
+Use this to build an identical auth system in any framework.
+
+================================================================================
+GENERAL
+================================================================================
+
+- Users table with roles: student, admin, committee
+- All passwords are hashed with bcrypt (12 rounds)
+- Session-based authentication (cookie, 24 hours expiry)
+- CSRF protection on all POST/PUT/DELETE/PATCH forms
+- Rate limiting on auth routes (50 requests per 15 minutes, GET excluded)
+- Registration can be enabled/disabled by admin via settings table
+  (registration_open, registration_start date, registration_end date)
+- Flash messages for success/error feedback (redirect-based)
+- Bilingual support (Khmer + English) on all pages
+
+================================================================================
+LOGIN
+================================================================================
+
+- Single login field accepts email, username, OR phone number (any one of the three)
+- User submits login_identifier + password
+- System looks up user WHERE email = ? OR username = ? OR phone = ?
+- Compare password with bcrypt
+- If password wrong: show "Invalid credentials"
+- If user is not verified (is_verified = 0): redirect to OTP verification page
+- If verified: store user info in session (id, email, phone, role, names, username, profile_pic)
+- Redirect based on role: admin -> /admin/dashboard, committee -> /committee/dashboard, student -> /student/dashboard
+
+================================================================================
+REGISTRATION
+================================================================================
+
+- Fields: Khmer name, English name, username, email, phone, password, confirm password
+- Username: 3-50 characters, letters/numbers/underscore only, must be unique
+- Email: valid format, must be unique
+- Phone: must be unique
+- Password: minimum 6 characters, must match confirm password
+- User chooses verification method: Email OR Telegram
+
+Before registering:
+1. Check if registration is open (settings table)
+2. Check if current date is within registration_start and registration_end
+3. Check for duplicate username, email, and phone
+
+After validation:
+1. Hash password with bcrypt (12 rounds)
+2. Insert user with is_verified = 0
+3. Send verification based on chosen method
+
+================================================================================
+VERIFICATION METHOD: EMAIL
+================================================================================
+
+1. Generate a UUID token
+2. Set token expiry to 1 hour from now
+3. Store token and expiry in users table (verification_token, token_expires_at)
+4. Send email with verification link: /auth/verify-email/:token
+5. User clicks link in email
+6. System finds user WHERE verification_token = ? AND token_expires_at > NOW()
+7. If found: set is_verified = 1, clear token and expiry
+8. If not found or expired: show error message
+9. User can now login
+
+Resend email verification:
+- User can request a new verification email from the login page
+- System generates new token, sends new email, redirects back to login with info panel
+
+================================================================================
+VERIFICATION METHOD: TELEGRAM
+================================================================================
+
+1. After registration, redirect to /auth/verify-otp page
+2. System sends a Telegram login code to the user's phone number
+   (uses Telegram Client API SendCode method - appears as a Telegram login notification)
+3. User enters 5-digit code on the verification page
+4. System verifies the code via Telegram Client API SignIn method
+5. If correct: set is_verified = 1
+6. If wrong: show error, increment attempt counter
+7. If expired: show error, user must request new code
+8. Max 5 attempts before code is invalidated
+
+Resend OTP:
+- 60-second cooldown between resend attempts
+- System sends new code via Telegram
+- Timer shown on page until resend is allowed
+
+================================================================================
+OTP VERIFICATION (shared for both email OTP and Telegram)
+================================================================================
+
+- 5-digit numeric code
+- Stored in users table: otp_code, otp_expires_at, otp_attempts, otp_last_sent_at
+- Default expiry: 10 minutes (configurable via OTP_EXPIRY_MINUTES env)
+- Max attempts: 5 (configurable via OTP_MAX_ATTEMPTS env)
+- Resend cooldown: 60 seconds (configurable via OTP_RESEND_COOLDOWN env)
+- Each failed attempt increments otp_attempts counter
+- On successful verify: clear otp_code, otp_expires_at, otp_attempts, set is_verified = 1
+- Page shows masked phone number (e.g., +85512***456)
+- Cooldown timer counts down on client side, then reloads page
+
+================================================================================
+VERIFY ACCOUNT (lookup)
+================================================================================
+
+- If user forgot whether they verified, they can look up their account
+- User enters email or phone number
+- System finds user WHERE email = ? OR phone = ?
+- If found and already verified: "Account is already verified. You can login."
+- If found and not verified: redirect to /auth/verify-otp?userId=X
+- If not found: show error
+
+================================================================================
+LOGOUT
+================================================================================
+
+- Destroy session
+- Redirect to home page
+
+================================================================================
+FORGOT PASSWORD
+================================================================================
+
+1. User enters email on /auth/forgot-password
+2. System finds user by email
+3. Generate UUID token, store with 1-hour expiry in users table (reset_token, reset_token_expires)
+4. Send email with reset link: /auth/reset-password/:token
+5. Always show same message regardless of email exists: "If the email exists, a reset link has been sent"
+   (prevents email enumeration)
+
+RESET PASSWORD:
+1. User clicks link from email
+2. System finds user WHERE reset_token = ? AND reset_token_expires > NOW()
+3. If not found: "Invalid or expired reset token"
+4. If found: show password reset form (new password + confirm password)
+5. Validate: min 6 chars, passwords match
+6. Hash new password, update in database
+7. Clear reset_token and reset_token_expires
+8. Redirect to login with success message
+
+================================================================================
+PROFILE
+================================================================================
+
+- View profile: shows profile picture, names, role, username, email, phone
+- Edit profile: update khmer_name, english_name, email, phone, profile picture
+  - Username is readonly
+  - Photo upload: JPG/PNG only, max 5MB, stored with UUID filename
+  - Updates session data after save
+- Change password: requires current password verification first
+  - New password + confirm password (min 6 chars)
+  - Compares current password with bcrypt
+  - If correct: hash new password, update in database
+  - If wrong: "Current password is incorrect"
+
+================================================================================
+SESSION BEHAVIOR
+================================================================================
+
+- Session stored in server memory (or can be configured to use DB/Redis)
+- Cookie: httpOnly, sameSite: lax, maxAge: 24 hours
+- On login: store id, email, phone, role, khmer_name, english_name, username, profile_pic
+- On each request: attach user to res.locals for templates
+- Flash messages: success, error, warning (cleared after display)
+- CSRF token: generated per session, validated on all non-multipart POST/PUT/DELETE/PATCH
+
+================================================================================
+ROLE-BASED ACCESS
+================================================================================
+
+- isAuthenticated: checks if session exists, redirects to /auth/login if not
+- isAdmin: checks session exists AND role = 'admin', redirects to / if not
+- isCommittee: checks session exists AND role = 'committee', redirects to / if not
+- isStudent: checks session exists AND role = 'student', redirects to / if not
+- Routes use these as middleware: router.use(isAuthenticated, isAdmin) for all admin routes
+- Role determines dashboard redirect after login
+
+================================================================================
+SECURITY NOTES
+================================================================================
+
+- Passwords hashed with bcrypt, 12 salt rounds
+- CSRF token required on all state-changing requests (except file uploads)
+- Rate limiting on auth routes to prevent brute force
+- OTP max attempts prevents unlimited guessing
+- OTP resend cooldown prevents spam
+- Registration open/close dates enforced
+- Token expiry on email verification and password reset (1 hour)
+- File upload limited to 5MB, specific MIME types only
+- Helmet.js headers enabled (CSP and cross-origin disabled for simplicity)

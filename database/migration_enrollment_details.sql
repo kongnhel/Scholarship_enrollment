@@ -1,0 +1,30 @@
+-- Migration: Add enrollment detail fields for registration form
+-- Adds personal info, parent info, address, payment details to enrollments
+
+ALTER TABLE enrollments
+  ADD COLUMN IF NOT EXISTS khmer_first_name VARCHAR(255) AFTER semester,
+  ADD COLUMN IF NOT EXISTS khmer_last_name VARCHAR(255) AFTER khmer_first_name,
+  ADD COLUMN IF NOT EXISTS english_first_name VARCHAR(255) AFTER khmer_last_name,
+  ADD COLUMN IF NOT EXISTS english_last_name VARCHAR(255) AFTER english_first_name,
+  ADD COLUMN IF NOT EXISTS gender ENUM('male','female') AFTER english_last_name,
+  ADD COLUMN IF NOT EXISTS date_of_birth DATE AFTER gender,
+  ADD COLUMN IF NOT EXISTS place_of_birth VARCHAR(255) AFTER date_of_birth,
+  ADD COLUMN IF NOT EXISTS phone VARCHAR(20) AFTER place_of_birth,
+  ADD COLUMN IF NOT EXISTS current_address TEXT AFTER phone,
+  ADD COLUMN IF NOT EXISTS province VARCHAR(100) AFTER current_address,
+  ADD COLUMN IF NOT EXISTS district VARCHAR(100) AFTER province,
+  ADD COLUMN IF NOT EXISTS commune VARCHAR(100) AFTER district,
+  ADD COLUMN IF NOT EXISTS parent_name VARCHAR(255) AFTER commune,
+  ADD COLUMN IF NOT EXISTS parent_phone VARCHAR(20) AFTER parent_name,
+  ADD COLUMN IF NOT EXISTS parent_relationship VARCHAR(50) AFTER parent_phone,
+  ADD COLUMN IF NOT EXISTS previous_school VARCHAR(255) AFTER parent_relationship,
+  ADD COLUMN IF NOT EXISTS previous_diploma VARCHAR(255) AFTER previous_school,
+  ADD COLUMN IF NOT EXISTS diploma_year INT AFTER previous_diploma,
+  ADD COLUMN IF NOT EXISTS major VARCHAR(255) AFTER diploma_year,
+  ADD COLUMN IF NOT EXISTS major_choice VARCHAR(255) AFTER major,
+  ADD COLUMN IF NOT EXISTS bank_name VARCHAR(100) AFTER major_choice,
+  ADD COLUMN IF NOT EXISTS bank_account_number VARCHAR(100) AFTER bank_name,
+  ADD COLUMN IF NOT EXISTS bank_account_name VARCHAR(255) AFTER bank_account_number,
+  ADD COLUMN IF NOT EXISTS photo_path VARCHAR(500) AFTER bank_account_name,
+  ADD COLUMN IF NOT EXISTS student_signature_date DATE AFTER photo_path,
+  ADD COLUMN IF NOT EXISTS parent_signature_date DATE AFTER student_signature_date;

@@ -1,0 +1,87 @@
+<div class="max-w-4xl mx-auto space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
+        <i class="bi bi-bell text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានជូនដំណឹងពីប្រព័ន្ធអាហារូបករណ៍' : 'Updates from the scholarship system' %></p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <% if (notifications.some(n => !n.is_read)) { %>
+        <form action="/student/notifications/read-all" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-all"></i><%= currentLang === 'km' ? 'អានទាំងអស់' : 'Mark All Read' %></button>
+        </form>
+      <% } %>
+      <a href="/student/dashboard" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
+    </div>
+  </div>
+
+  <%
+    var notifTranslations = {
+      status: {
+        title: { km: 'ស្ថានភាពពាក្យសុំ', en: 'Application Status' },
+        msg: { km: 'ពាក្យសុំរបស់អ្នកកំពុងស្ថិតក្រោមការពិនិត្យ។', en: 'Your application is now under review.' }
+      },
+      approval: {
+        title: { km: 'ពាក្យសុំបានអនុម័ត', en: 'Application Approved' },
+        msg: { km: 'សូមអបអរសាទរ! ពាក្យសុំអាហារូបករណ៍របស់អ្នកបានអនុម័ត។', en: 'Congratulations! Your scholarship application has been approved.' }
+      },
+      rejection: {
+        title: { km: 'ពាក្យសុំបានបដិសេធ', en: 'Application Rejected' },
+        msg: { km: 'ពាក្យសុំអាហារូបករណ៍របស់អ្នកបានបដិសេធ។', en: 'Your scholarship application has been rejected.' }
+      },
+      correction: {
+        title: { km: 'ស្នើកែប្រែពាក្យសុំ', en: 'Correction Requested' },
+        msg: { km: 'ពាក្យសុំរបស់អ្នកត្រូវការកែប្រែ។ សូមពិនិត្យមើលកំណត់សម្គាល់និងដាក់ស្នើឡើងវិញ។', en: 'Your application requires corrections. Please review the notes and resubmit.' }
+      },
+      exam_notification: {
+        title: { km: 'ព័ត៌មានប្រឡង', en: 'Exam Schedule Notification' },
+        msg: { km: 'មានព័ត៌មានប្រឡងថ្មី។ សូមពិនិត្យមើលព័ត៌មានលម្អិត។', en: 'New exam schedule information. Please check the details.' }
+      }
+    };
+  %>
+
+  <div class="space-y-3">
+    <% if (notifications.length === 0) { %>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-4">
+          <i class="bi bi-bell-slash text-3xl text-gray-300 dark:text-gray-600"></i>
+        </div>
+        <p class="text-gray-500 dark:text-gray-400 font-medium"><%= currentLang === 'km' ? 'គ្មានសារជូនដំណឹង' : 'No notifications' %></p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'សារជូនដំណឹងនឹងបង្ហាញនៅទីនេះនៅពេលមានព័ត៌មានថ្មី។' : 'Notifications will appear here when there are updates.' %></p>
+      </div>
+    <% } else { %>
+      <% notifications.forEach(function(n) { %>
+        <% var t = notifTranslations[n.type] || null; %>
+        <% var titleText = t ? (currentLang === 'km' ? t.title.km : t.title.en) : n.title; %>
+        <% var msgText = t ? (currentLang === 'km' ? t.msg.km : t.msg.en) : n.message; %>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 <%= n.is_read ? '' : 'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-900/10' %>">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <% var typeIcon = n.type === 'approval' ? 'bi-check-circle-fill text-green-500' : n.type === 'rejection' ? 'bi-x-circle-fill text-red-500' : n.type === 'correction' ? 'bi-pencil-fill text-orange-500' : n.type === 'exam_notification' ? 'bi-calendar-event-fill text-purple-500' : 'bi-info-circle-fill text-blue-500'; %>
+                <i class="bi <%= typeIcon %> text-sm"></i>
+                <span class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= titleText %></span>
+                <% if (!n.is_read) { %>
+                  <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <% } %>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap ml-6"><%= msgText %></p>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-2 ml-6"><i class="bi bi-clock mr-1"></i><%= new Date(n.created_at).toLocaleString() %></p>
+            </div>
+            <% if (!n.is_read) { %>
+              <form action="/student/notification/<%= n.id %>/read" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="p-2 rounded-lg text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="<%= currentLang === 'km' ? 'អានแล้ว' : 'Mark read' %>"><i class="bi bi-check-circle"></i></button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</div>

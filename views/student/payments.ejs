@@ -1,0 +1,328 @@
+﻿<div class="max-w-4xl mx-auto space-y-6">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+      <i class="bi bi-credit-card text-white text-lg"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ទូទាត់តាមរយៈ Bakong KHQR' : 'Pay via Bakong KHQR' %></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-wallet2 text-red-600 dark:text-red-400 text-xl"></i></div>
+        <div><p class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= Number(totalDue).toLocaleString() %>៛</p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុបថ្លៃដែលត្រូវបង់' : 'Total Due' %></p></div>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-check-circle text-green-600 dark:text-green-400 text-xl"></i></div>
+        <div><p class="text-xl font-bold text-green-600 dark:text-green-400"><%= Number(totalPaid).toLocaleString() %>៛</p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុបបានបង់' : 'Total Paid' %></p></div>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-clock-history text-amber-600 dark:text-amber-400 text-xl"></i></div>
+        <div><p class="text-xl font-bold text-amber-600 dark:text-amber-400"><%= Number(totalDue - totalPaid).toLocaleString() %>៛</p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'នៅសល់' : 'Remaining' %></p></div>
+      </div>
+    </div>
+  </div>
+
+  <% if (totalDue > 0) { %>
+    <div class="relative h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all" style="width: <%= Math.min(100, (totalPaid / totalDue) * 100) %>%"></div>
+    </div>
+  <% } %>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600">
+      <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-qr-code"></i><%= currentLang === 'km' ? 'បង់ប្រាក់តាម Bakong KHQR' : 'Pay with Bakong KHQR' %></h3>
+    </div>
+    <div class="p-6">
+      <% if (enrollments.length === 0) { %>
+        <div class="text-center py-8">
+          <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4"><i class="bi bi-exclamation-triangle text-amber-500 text-3xl"></i></div>
+          <p class="text-gray-600 dark:text-gray-300 mb-3"><%= currentLang === 'km' ? 'សូមចុះឈ្មោះជាមុនសិន' : 'Please enroll first before making a payment' %></p>
+          <a href="/student/enroll" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all font-medium text-sm"><i class="bi bi-person-check"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enroll' %></a>
+        </div>
+      <% } else if (yearlyTuition === 0) { %>
+        <div class="text-center py-8">
+          <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4"><i class="bi bi-exclamation-circle text-gray-400 text-3xl"></i></div>
+          <p class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានតម្លៃសិក្សាសម្រាប់ជំនាញរបស់អ្នកទេ។ សូមទាក់ទងការិយាល័យ។' : 'No tuition set for your major. Please contact the office.' %></p>
+        </div>
+      <% } else { %>
+        <% var semesterTuition = Math.round(yearlyTuition / 2); %>
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 mb-4">
+          <div class="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-300">
+            <i class="bi bi-mortarboard"></i>
+            <span><%= currentLang === 'km' ? 'ជំនាញ៖ ' : 'Major: ' %><b><%= majorName %></b></span>
+            <% if (scholarshipName) { %>
+              <span class="text-gray-400">|</span>
+              <span><%= currentLang === 'km' ? 'អាហារូបករណ៍៖ ' : 'Scholarship: ' %><b class="text-green-700 dark:text-green-400"><%= scholarshipName %></b></span>
+            <% } %>
+          </div>
+        </div>
+        <form id="paymentForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollment' %> *</label>
+              <select id="enrollment_id" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើស' : 'Select' %></option>
+                <% enrollments.forEach(function(e) { %>
+                  <option value="<%= e.id %>"><%= currentLang === 'km' ? 'ឆ្នាំទី ' + e.semester : 'Year ' + e.semester %> - <%= e.academic_year %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ប្រភេទការបង់' : 'Payment Type' %> *</label>
+              <select id="payment_type" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onchange="updateAmount()">
+                <option value="semester"><%= currentLang === 'km' ? '១ឆមាស (៥០%) - ' + semesterTuition.toLocaleString() + '៛' : '1 Semester (50%) - ' + semesterTuition.toLocaleString() + ' KHR' %></option>
+                <option value="year"><%= currentLang === 'km' ? '១ឆ្នាំ (១០០%) - ' + yearlyTuition.toLocaleString() + '៛' : '1 Year (100%) - ' + yearlyTuition.toLocaleString() + ' KHR' %></option>
+              </select>
+            </div>
+          </div>
+          <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 flex items-center justify-between">
+            <p class="text-sm text-emerald-800 dark:text-emerald-300"><i class="bi bi-cash-stack mr-1"></i><%= currentLang === 'km' ? 'ចំនួនត្រូវបង់៖ ' : 'Amount to pay: ' %></p>
+            <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400" id="displayAmount"><%= semesterTuition.toLocaleString() %>៛</p>
+          </div>
+          <input type="hidden" id="payment_amount" value="<%= semesterTuition %>">
+          <button type="button" id="payBtn" onclick="generateQR()" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all font-medium shadow-md hover:shadow-lg text-sm flex items-center gap-2">
+            <i class="bi bi-qr-code"></i><%= currentLang === 'km' ? 'បង្កើតកូដ QR' : 'Generate QR Code' %>
+          </button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (payments.length > 0) { %>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500">
+        <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-clock-history"></i><%= currentLang === 'km' ? 'ប្រវត្តិនៃការទូទាត់' : 'Payment History' %></h3>
+      </div>
+      <div class="p-6">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">#</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ប្រភេទថ្លៃ' : 'Fee Type' %></th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Amount' %></th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'វិធីសាស្ត្រ' : 'Method' %></th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+              <% payments.forEach(function(p) { %>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <td class="px-4 py-3">
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= p.id %></span>
+                  </td>
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100"><%= p.fee_name_kh %></td>
+                  <td class="px-4 py-3">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"><%= Number(p.amount).toLocaleString() %>៛</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"><i class="bi bi-qr-code"></i>KHQR</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <% if (p.status === 'verified') { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verified' %></span>
+                    <% } else if (p.status === 'rejected') { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><%= currentLang === 'km' ? 'បដិសេធ' : 'Rejected' %></span>
+                    <% } else { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span><%= currentLang === 'km' ? 'រង់ចាំ' : 'Pending' %></span>
+                    <% } %>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400"><%= new Date(p.created_at).toLocaleDateString() %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<div id="qrModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-between">
+      <h5 class="font-bold text-white flex items-center gap-2"><i class="bi bi-qr-code"></i><%= currentLang === 'km' ? 'ស្កេនកូដ QR ដើម្បីបង់ប្រាក់' : 'Scan QR Code to Pay' %></h5>
+      <button type="button" onclick="closeQRModal()" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="p-6 text-center">
+      <div id="qrLoading" class="py-8">
+        <div class="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? 'កំពុងបង្កើតកូដ QR...' : 'Generating QR code...' %></p>
+      </div>
+      <div id="qrContent" class="hidden">
+        <img id="qrImage" class="mx-auto mb-4 rounded-xl border border-gray-200 dark:border-gray-600" alt="KHQR Code">
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2"><%= currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' %>: <span id="qrAmount" class="font-bold text-emerald-600 dark:text-emerald-400"></span></p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4"><%= currentLang === 'km' ? 'កូដ QR នឹងផុតកំណត់ក្នុងរយៈពេល' : 'QR expires in' %> <span id="qrTimer" class="font-bold text-red-500">10:00</span></p>
+        <div id="pollingStatus" class="mb-4">
+          <div class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+            <span><%= currentLang === 'km' ? 'កំពុងពិនិត្យស្ថានភាព...' : 'Checking payment status...' %></span>
+          </div>
+        </div>
+        <div id="paymentSuccess" class="hidden">
+          <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"><i class="bi bi-check-lg text-4xl text-green-600 dark:text-green-400"></i></div>
+          <p class="text-lg font-semibold text-green-600 dark:text-green-400 mb-2"><%= currentLang === 'km' ? 'ការទូទាត់ជោគជ័យ!' : 'Payment Successful!' %></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"><%= currentLang === 'km' ? 'ការទូទាត់របស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់។' : 'Your payment has been verified.' %></p>
+          <button onclick="closeQRModal()" class="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all font-medium text-sm"><i class="bi bi-check-lg mr-1"></i><%= currentLang === 'km' ? 'បិទ' : 'Close' %></button>
+        </div>
+        <div id="paymentFailed" class="hidden">
+          <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4"><i class="bi bi-x-lg text-4xl text-red-600 dark:text-red-400"></i></div>
+          <p class="text-lg font-semibold text-red-600 dark:text-red-400 mb-2"><%= currentLang === 'km' ? 'ការទូទាត់បានបរាជ័យ' : 'Payment Failed' %></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4" id="failedReason"></p>
+          <button onclick="closeQRModal()" class="px-6 py-2.5 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all font-medium text-sm"><i class="bi bi-x-lg mr-1"></i><%= currentLang === 'km' ? 'បិទ' : 'Close' %></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let pollInterval = null;
+let timerInterval = null;
+let currentMd5 = null;
+
+var yearlyTuitionVal = <%= yearlyTuition || 0 %>;
+
+function updateAmount() {
+  var type = document.getElementById('payment_type').value;
+  var amount = type === 'semester' ? Math.round(yearlyTuitionVal / 2) : yearlyTuitionVal;
+  document.getElementById('payment_amount').value = amount;
+  document.getElementById('displayAmount').textContent = amount.toLocaleString() + '៛';
+}
+
+async function generateQR() {
+  var enrollmentId = document.getElementById('enrollment_id').value;
+  var paymentType = document.getElementById('payment_type').value;
+  var amount = document.getElementById('payment_amount').value;
+
+  if (!enrollmentId || !paymentType || !amount) {
+    Swal.fire({
+      title: '<%= currentLang === "km" ? "កំហុស" : "Error" %>',
+      text: '<%= currentLang === "km" ? "សូមបំពេញព័ត៌មានទាំងអស់" : "Please fill in all fields" %>',
+      icon: 'warning',
+      confirmButtonText: 'OK'
+    });
+    return;
+  }
+
+  var modal = document.getElementById('qrModal');
+  var loading = document.getElementById('qrLoading');
+  var content = document.getElementById('qrContent');
+  var success = document.getElementById('paymentSuccess');
+  var failed = document.getElementById('paymentFailed');
+
+  modal.classList.remove('hidden');
+  loading.classList.remove('hidden');
+  content.classList.add('hidden');
+  success.classList.add('hidden');
+  failed.classList.add('hidden');
+
+  try {
+    var response = await fetch('/student/payments/generate-qr', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-csrf-token': '<%= csrfToken %>'
+      },
+      body: JSON.stringify({
+        enrollment_id: enrollmentId,
+        payment_type: paymentType
+      })
+    });
+
+    var data = await response.json();
+
+    if (data.success) {
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+      document.getElementById('qrImage').src = data.qrImage;
+      document.getElementById('qrAmount').textContent = Number(data.amount).toLocaleString() + '៛';
+      currentMd5 = data.md5Hash;
+      startPolling(data.md5Hash);
+      startTimer(data.expiryMinutes * 60);
+    } else {
+      throw new Error(data.error || 'Failed to generate QR');
+    }
+  } catch (error) {
+    loading.classList.add('hidden');
+    content.classList.remove('hidden');
+    failed.classList.remove('hidden');
+    document.getElementById('failedReason').textContent = error.message;
+  }
+}
+
+function startPolling(md5) {
+  stopPolling();
+  pollInterval = setInterval(async () => {
+    try {
+      const response = await fetch('/student/payments/check-transaction/' + md5);
+      const data = await response.json();
+
+      if (data.status === 'verified') {
+        stopPolling();
+        stopTimer();
+        document.getElementById('pollingStatus').classList.add('hidden');
+        document.getElementById('paymentSuccess').classList.remove('hidden');
+        setTimeout(() => { window.location.reload(); }, 2000);
+      } else if (data.status === 'failed') {
+        stopPolling();
+        stopTimer();
+        document.getElementById('pollingStatus').classList.add('hidden');
+        document.getElementById('paymentFailed').classList.remove('hidden');
+        document.getElementById('failedReason').textContent = '<%= currentLang === "km" ? "ការទូទាត់បានបរាជ័យ។ សូមព្យាយាមម្តងទៀត។" : "Payment failed. Please try again." %>';
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  }, 5000);
+}
+
+function stopPolling() {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+}
+
+function startTimer(seconds) {
+  stopTimer();
+  let remaining = seconds;
+  const timerEl = document.getElementById('qrTimer');
+  timerInterval = setInterval(() => {
+    remaining--;
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    timerEl.textContent = mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+    if (remaining <= 0) {
+      stopTimer();
+      stopPolling();
+      document.getElementById('pollingStatus').classList.add('hidden');
+      document.getElementById('paymentFailed').classList.remove('hidden');
+      document.getElementById('failedReason').textContent = '<%= currentLang === "km" ? "កូដ QR បានផុតកំណត់។ សូមបង្កើតកូដថ្មី។" : "QR code expired. Please generate a new one." %>';
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function closeQRModal() {
+  stopPolling();
+  stopTimer();
+  document.getElementById('qrModal').classList.add('hidden');
+  window.location.reload();
+}
+</script>

@@ -1,0 +1,78 @@
+<%
+  var pName = typeof phoneName !== 'undefined' ? phoneName : 'phone';
+  var pValue = typeof phoneValue !== 'undefined' ? (phoneValue || '') : '';
+  var pRequired = typeof required !== 'undefined' ? required : false;
+  var pLabel = typeof label !== 'undefined' ? label : (currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone Number');
+  var pId = typeof inputId !== 'undefined' ? inputId : 'phone_' + Math.random().toString(36).substr(2, 5);
+  var pHelp = typeof helpText !== 'undefined' ? helpText : '';
+  var pShowLabel = typeof showLabel !== 'undefined' ? showLabel : true;
+
+  var countries = [
+    { code: '+855', flag: '🇰🇭', placeholder: '0XX XXX XXX', example: '012 345 678', maxLen: 9 },
+    { code: '+84', flag: '🇻🇳', placeholder: '0XX XXX XXXX', example: '091 234 5678', maxLen: 10 },
+    { code: '+86', flag: '🇨🇳', placeholder: '1XX XXXX XXXX', example: '138 0013 8000', maxLen: 11 },
+    { code: '+81', flag: '🇯🇵', placeholder: '0XX XXXX XXXX', example: '090 1234 5678', maxLen: 10 },
+    { code: '+82', flag: '🇰🇷', placeholder: '01X XXXX XXXX', example: '010 1234 5678', maxLen: 10 },
+    { code: '+1', flag: '🇺🇸', placeholder: '(XXX) XXX-XXXX', example: '(201) 555-0123', maxLen: 10 },
+    { code: '+44', flag: '🇬🇧', placeholder: '0XX XXXX XXXX', example: '07911 123456', maxLen: 10 },
+    { code: '+33', flag: '🇫🇷', placeholder: '0X XX XX XX XX', example: '06 12 34 56 78', maxLen: 9 },
+    { code: '+61', flag: '🇦🇺', placeholder: '0XXX XXX XXX', example: '0412 345 678', maxLen: 9 },
+    { code: '+66', flag: '🇹🇭', placeholder: '0XX XXX XXXX', example: '081 234 5678', maxLen: 9 },
+    { code: '+856', flag: '🇱🇦', placeholder: '0XX XXX XXX', example: '020 123 456', maxLen: 9 }
+  ];
+
+  var selectedCode = '+855';
+  var localNumber = '';
+  if (pValue) {
+    var cleaned = pValue.replace(/[^\d+]/g, '');
+    var matched = false;
+    for (var i = 0; i < countries.length; i++) {
+      if (cleaned.startsWith(countries[i].code)) {
+        selectedCode = countries[i].code;
+        localNumber = cleaned.substring(countries[i].code.length);
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) localNumber = pValue;
+  }
+
+  var selectedCountry = countries.find(function(c) { return c.code === selectedCode; }) || countries[0];
+%>
+<div>
+  <% if (pShowLabel) { %>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= pLabel %> <% if (pRequired) { %><span class="text-red-500">*</span><% } %></label>
+  <% } %>
+  <div class="flex phone-group">
+    <div class="relative flex-shrink-0">
+      <select class="phone-code-select h-full appearance-none cursor-pointer" data-phone-group="<%= pId %>" id="<%= pId %>_code">
+        <% countries.forEach(function(c) { %>
+          <option value="<%= c.code %>" data-placeholder="<%= c.placeholder %>" data-example="<%= c.example %>" data-maxlen="<%= c.maxLen %>" <%= c.code === selectedCode ? 'selected' : '' %>><%= c.flag %> <%= c.code %></option>
+        <% }); %>
+      </select>
+      <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs pointer-events-none"></i>
+    </div>
+    <input type="tel" id="<%= pId %>" value="<%= localNumber %>" class="phone-local-input flex-1 min-w-0" placeholder="<%= selectedCountry.placeholder %>" maxlength="<%= selectedCountry.maxLen %>" <%= pRequired ? 'required' : '' %>>
+  </div>
+  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" id="<%= pId %>_hint"><%= currentLang === 'km' ? 'ឧទាហរណ៍' : 'Example' %>: <%= selectedCountry.example %></p>
+  <input type="hidden" name="<%= pName %>" class="phone-full-value" data-phone-group="<%= pId %>" value="<%= selectedCode + localNumber.replace(/\s/g, '') %>">
+  <% if (pHelp) { %>
+    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= pHelp %></p>
+  <% } %>
+</div>
+<script>
+(function() {
+  var codeSelect = document.getElementById('<%= pId %>_code');
+  var input = document.getElementById('<%= pId %>');
+  var hint = document.getElementById('<%= pId %>_hint');
+  if (!codeSelect || !input) return;
+  var lang = '<%= currentLang %>';
+  codeSelect.addEventListener('change', function() {
+    var opt = codeSelect.options[codeSelect.selectedIndex];
+    input.placeholder = opt.getAttribute('data-placeholder');
+    input.maxLength = parseInt(opt.getAttribute('data-maxlen')) || 15;
+    var ex = opt.getAttribute('data-example');
+    hint.textContent = (lang === 'km' ? 'ឧទាហរណ៍: ' : 'Example: ') + ex;
+  });
+})();
+</script>

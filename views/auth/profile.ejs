@@ -1,0 +1,124 @@
+<div class="max-w-4xl mx-auto">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+      <div class="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4 overflow-hidden ring-4 ring-green-50">
+        <% if (profile.profile_pic) { %>
+          <img src="/uploads/<%= profile.profile_pic %>" alt="Profile" class="w-full h-full object-cover">
+        <% } else { %>
+          <i class="bi bi-person-fill text-4xl text-green-600 dark:text-green-400"></i>
+        <% } %>
+      </div>
+      <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg"><%= profile.english_name || 'N/A' %></h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm"><%= profile.khmer_name || '' %></p>
+      <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold <%= profile.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : profile.role === 'committee' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' %>">
+        <%= profile.role.charAt(0).toUpperCase() + profile.role.slice(1) %>
+      </span>
+      <div class="mt-4 space-y-2 text-sm text-gray-500 dark:text-gray-400">
+        <% if (profile.username) { %><p><i class="bi bi-at mr-2"></i><%= profile.username %></p><% } %>
+        <p><i class="bi bi-envelope mr-2"></i><%= profile.email %></p>
+        <% if (profile.phone) { %><p><i class="bi bi-phone mr-2"></i><%= profile.phone %></p><% } %>
+      </div>
+    </div>
+
+    <div class="md:col-span-2 space-y-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-green-500 text-white">
+          <h3 class="font-bold flex items-center gap-2"><i class="bi bi-person-gear"></i><%= currentLang === 'km' ? 'កែប្រែព័ត៌មានផ្ទាល់ខ្លួន' : 'Edit Profile' %></h3>
+        </div>
+        <div class="p-6">
+          <form action="/auth/profile" method="POST" enctype="multipart/form-data" class="space-y-4">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %></label>
+                <input type="text" name="khmer_name" value="<%= profile.khmer_name || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %></label>
+                <input type="text" name="english_name" value="<%= profile.english_name || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %></label>
+                <input type="text" value="<%= profile.username || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed" readonly>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %></label>
+                <input type="email" name="email" value="<%= profile.email %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></label>
+                <%- include('../partials/phone-input', { phoneName: 'phone', phoneValue: profile.phone || '', required: false, inputId: 'profilePhone', showLabel: false }) %>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រូបភាពផ្ទាល់ខ្លួន' : 'Profile Picture' %></label>
+              <div class="upload-area relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl px-6 py-8 cursor-pointer transition-all hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50/50 dark:hover:bg-green-900/10 text-center" style="min-height: 170px;">
+                <input type="file" name="photo" id="photoInput" accept=".jpg,.jpeg,.png" class="hidden">
+                <div id="uploadPlaceholder" class="preview-placeholder flex flex-col items-center gap-2">
+                  <i class="bi bi-cloud-upload text-4xl text-gray-400 dark:text-gray-500"></i>
+                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400"><%= currentLang === 'km' ? 'ទម្លាក់រូបភាពនៅទីនេះ ឬ ចុចដើម្បីជ្រើសរើស' : 'Drag & drop your image here or click to browse' %></p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'JPG ឬ PNG តែប៉ុណ្ណោះ' : 'JPG or PNG only' %></p>
+                </div>
+                <img id="photoPreview" class="image-preview hidden w-28 h-28 rounded-full object-cover shadow-lg ring-2 ring-green-200 dark:ring-green-800">
+              </div>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5"><%= currentLang === 'km' ? 'អតិបរមា 5MB (JPG, PNG)' : 'Max 5MB (JPG, PNG)' %></p>
+            </div>
+            <button type="submit" class="px-6 py-2.5 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all"><i class="bi bi-save mr-1"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save Changes' %></button>
+          </form>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 bg-yellow-500 text-white">
+          <h3 class="font-bold flex items-center gap-2"><i class="bi bi-key"></i><%= currentLang === 'km' ? 'ផ្លាស់ប្តូរពាក្យសម្ងាត់' : 'Change Password' %></h3>
+        </div>
+        <div class="p-6">
+          <form action="/auth/profile/password" method="POST" class="space-y-4">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពាក្យសម្ងាត់បច្ចុប្បន្ន' : 'Current Password' %></label>
+              <input type="password" name="current_password" placeholder="<%= currentLang === 'km' ? 'បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន' : 'Enter current password' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" required>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពាក្យសម្ងាត់ថ្មី' : 'New Password' %></label>
+                <input type="password" name="new_password" placeholder="<%= currentLang === 'km' ? 'ពាក្យសម្ងាត់យ៉ាងតិច ៦ អក្ខរា' : 'Min 6 characters' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" required minlength="6">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'បញ្ជាក់ពាក្យសម្ងាត់ថ្មី' : 'Confirm New Password' %></label>
+                <input type="password" name="confirm_password" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់ម្តងទៀត' : 'Re-enter new password' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" required minlength="6">
+              </div>
+            </div>
+            <button type="submit" class="px-6 py-2.5 bg-yellow-500 text-white rounded-xl font-medium hover:bg-yellow-600 transition-all"><i class="bi bi-key mr-1"></i><%= currentLang === 'km' ? 'ផ្លាស់ប្តូរពាក្យសម្ងាត់' : 'Change Password' %></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var input = document.getElementById('photoInput');
+  var area = document.querySelector('.upload-area');
+  var placeholder = document.getElementById('uploadPlaceholder');
+  var preview = document.getElementById('photoPreview');
+  if (!input || !area || !placeholder || !preview) return;
+
+  input.addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      preview.classList.remove('hidden');
+      area.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  });
+})();
+</script>

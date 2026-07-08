@@ -1,0 +1,71 @@
+<div class="min-h-[80vh] flex items-center justify-center py-8">
+  <div class="w-full max-w-lg">
+    <div class="text-center mb-6">
+      <img src="/images/nmu-logo.jpg" alt="NMU" class="w-16 h-16 rounded-full mx-auto mb-4 ring-4 ring-green-100 shadow-lg">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ចូលគណនី' : 'Login' %></h1>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'ចូលដើម្បីដាក់ពាក្យសុំអាហារូបករណ៍' : 'Login to your scholarship application' %></p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+
+      <% if (showResendPanel) { %>
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
+          <div class="flex items-center gap-3">
+            <i class="bi bi-info-circle text-amber-500 text-xl"></i>
+            <div>
+              <p class="text-sm font-semibold text-amber-800 dark:text-amber-200"><%= currentLang === 'km' ? 'គណនីមិនទាន់ត្រូវបានផ្ទៀតផ្ទាត់' : 'Account Not Verified' %></p>
+              <p class="text-xs text-amber-600 dark:text-amber-300 mt-1">
+                <%= currentLang === 'km' ? 'គណនីមិនទាន់ត្រូវបានផ្ទៀតផ្ទាត់។ សូមពិនិត្យមើលអ៊ីមែល ឬ Telegram របស់អ្នក។' : 'Account not verified yet. Please check your email or Telegram.' %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <form method="POST" action="/auth/login" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល / ឈ្មោះអ្នកប្រើប្រាស់ / ទូរស័ព្ទ' : 'Email / Username / Phone' %> *</label>
+          <div class="relative">
+            <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="text" name="login_identifier" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឈ្មោះអ្នកប្រើប្រាស់ ឬទូរស័ព្ទ' : 'email, username, or phone' %>" value="<%= resendEmail %>" required>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Password' %> *</label>
+          <div class="relative">
+            <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="password" name="password" id="loginPassword" class="w-full pl-10 pr-12 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Enter your password' %>" required>
+            <button type="button" onclick="togglePassword('loginPassword','eyeIconLogin')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><i class="bi bi-eye" id="eyeIconLogin"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm"><i class="bi bi-box-arrow-in-right mr-1"></i><%= currentLang === 'km' ? 'ចូល' : 'Sign In' %></button>
+      </form>
+
+      <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+          <%= currentLang === 'km' ? 'មិនមានគណនី?' : 'No account?' %> <a href="/auth/register" class="text-green-600 dark:text-green-400 font-semibold hover:text-green-700"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Sign Up' %></a>
+        </p>
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <%= currentLang === 'km' ? 'គណនីមិនទាន់ផ្ទៀងផ្ទាត់?' : 'Not verified yet?' %> <a href="/auth/verify-account" class="text-orange-600 dark:text-orange-400 font-semibold hover:text-orange-700"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verify Account' %></a>
+        </p>
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <%= currentLang === 'km' ? 'ភ្លេចពាក្យសម្ងាត់?' : 'Forgot password?' %> <a href="/auth/forgot-password" class="text-blue-600 dark:text-blue-400 hover:text-blue-700"><%= currentLang === 'km' ? 'កំណត់ឡើងវិញ' : 'Reset' %></a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function togglePassword(inputId, iconId) {
+  var x = document.getElementById(inputId),
+      i = document.getElementById(iconId);
+  if (x.type === "password") {
+    x.type = "text";
+    i.className = "bi bi-eye-slash";
+  } else {
+    x.type = "password";
+    i.className = "bi bi-eye";
+  }
+}
+</script>

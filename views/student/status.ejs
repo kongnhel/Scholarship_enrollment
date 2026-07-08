@@ -1,0 +1,45 @@
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><i class="bi bi-clipboard-check text-green-600 dark:text-green-400"></i><%= currentLang === 'km' ? 'ស្ថានភាពពាក្យសុំ' : 'Application Status' %></h1>
+</div>
+
+<% if (applications.length === 0) { %>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+    <i class="bi bi-inbox text-5xl text-gray-300 mb-4 block"></i>
+    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'មិនរកឃើញពាក្យសុំ' : 'No Applications Found' %></h3>
+    <p class="text-gray-500 dark:text-gray-400 mb-6"><%= currentLang === 'km' ? 'អ្នកមិនទាន់បានដាក់ពាក្យសុំណាមួយនៅឡើយទេ។' : "You haven't submitted any applications yet." %></p>
+    <a href="/student/application/new" class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all inline-flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បង្កើតពាក្យសុំ' : 'Create Application' %></a>
+  </div>
+<% } else { %>
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
+          <tr>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">ID</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">.</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <% applications.forEach(function(app) { %>
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.id %></td>
+              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.major_name_kh : (app.major_name_en || 'N/A') %></td>
+              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.category_name_kh : (app.category_name_en || 'N/A') %></td>
+              <td class="px-5 py-4"><span class="px-2 py-1 text-xs font-bold rounded-full <%= app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : app.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : app.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= app.status.replace('_', ' ').toUpperCase() %></span></td>
+              <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : 'N/A' %></td>
+              <td class="px-5 py-4"><a href="/student/application/<%= app.id %>" class="text-green-600 dark:text-green-400 hover:text-green-700 text-sm font-medium"><%= currentLang === 'km' ? 'មើល' : 'View' %> →</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<div class="mt-4">
+  <a href="/student/dashboard" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 text-sm"><i class="bi bi-arrow-left mr-1"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back to Dashboard' %></a>
+</div>

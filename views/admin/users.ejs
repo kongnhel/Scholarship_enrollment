@@ -1,0 +1,171 @@
+<div class="max-w-7xl mx-auto space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+        <i class="bi bi-people text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងអ្នកប្រើប្រាស់' : 'User Management' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់ទាំងអស់' : 'Manage all system users' %></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+      <i class="bi bi-people text-gray-400"></i>
+      <span class="text-sm text-gray-600 dark:text-gray-300"><%= totalRecords %> <%= currentLang === 'km' ? 'អ្នកប្រើ' : 'users' %></span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 flex items-center gap-2">
+      <i class="bi bi-sliders text-white/80 text-sm"></i>
+      <span class="text-sm font-semibold text-white"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
+    </div>
+    <form action="/admin/users" method="GET" class="p-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="relative">
+          <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
+          <input type="text" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" name="search" placeholder="<%= currentLang === 'km' ? 'ស្វែងរកតាមឈ្មោះ អ៊ីមែល ទូរស័ព្ទ...' : 'Search by name, email, phone...' %>" value="<%= filters.search || '' %>">
+        </div>
+        <div>
+          <select class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" name="role">
+            <option value=""><%= currentLang === 'km' ? 'តួនាទីទាំងអស់' : 'All Roles' %></option>
+            <option value="student" <%= filters.role === 'student' ? 'selected' : '' %>><%= currentLang === 'km' ? 'សិស្ស' : 'Student' %></option>
+            <option value="committee" <%= filters.role === 'committee' ? 'selected' : '' %>><%= currentLang === 'km' ? 'គណៈកម្មការ' : 'Committee' %></option>
+            <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>><%= currentLang === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Admin' %></option>
+          </select>
+        </div>
+        <div class="flex gap-2 items-end sm:col-span-2 lg:col-span-2">
+          <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
+            <i class="bi bi-search"></i><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %>
+          </button>
+          <a href="/admin/users" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
+            <i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %>
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'តួនាទី' : 'Role' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ថ្ងៃបង្កើត' : 'Created' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <% if (users.length === 0) { %>
+            <tr>
+              <td colspan="8" class="px-5 py-12 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <i class="bi bi-people text-4xl text-gray-300 dark:text-gray-600"></i>
+                  <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានអ្នកប្រើទេ' : 'No users found' %></p>
+                </div>
+              </td>
+            </tr>
+          <% } else { %>
+            <% users.forEach(function(u) { %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= u.id %></span>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <% if (u.profile_pic) { %>
+                      <img src="/uploads/<%= u.profile_pic %>" alt="" class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+                    <% } else { %>
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm">
+                        <%= (u.english_name || 'U').charAt(0).toUpperCase() %>
+                      </div>
+                    <% } %>
+                    <div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= u.english_name || 'N/A' %></div>
+                      <div class="text-xs text-gray-400 dark:text-gray-500"><%= u.khmer_name || '' %></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= u.username ? '@' + u.username : '—' %></td>
+                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= u.email %></td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : u.role === 'committee' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' %>">
+                    <span class="w-1.5 h-1.5 rounded-full <%= u.role === 'admin' ? 'bg-red-500' : u.role === 'committee' ? 'bg-blue-500' : 'bg-green-500' %>"></span>
+                    <%= u.role.charAt(0).toUpperCase() + u.role.slice(1) %>
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= u.phone || '—' %></td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div class="flex items-center gap-1.5">
+                    <i class="bi bi-calendar3 text-xs"></i>
+                    <%= u.created_at ? new Date(u.created_at).toLocaleDateString() : '—' %>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex gap-1.5">
+                    <form action="/admin/users/<%= u.id %>/reset-password" method="POST" data-confirm="<%= currentLang === 'km' ? 'តើអ្នកពិតជាចង់កំណត់ពាក្យសម្ងាត់ថ្មីមែនទេ?' : 'Reset this user password?' %>" data-confirm-title="<%= currentLang === 'km' ? 'កំណត់ពាក្យសម្ងាត់ថ្មី' : 'Reset Password' %>">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="p-2 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="Reset Password"><i class="bi bi-key"></i></button>
+                    </form>
+                    <% if (u.role !== 'admin') { %>
+                      <form action="/admin/users/<%= u.id %>/delete" method="POST" data-confirm="<%= currentLang === 'km' ? 'តើអ្នកពិតជាចង់លុបអ្នកប្រើប្រាស់នេះមែនទេ?' : 'Delete this user?' %>" data-confirm-title="<%= currentLang === 'km' ? 'លុបអ្នកប្រើប្រាស់' : 'Delete User' %>">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="p-2 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Delete"><i class="bi bi-trash"></i></button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (totalPages > 1) { %>
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <%= currentLang === 'km' ? 'ទំព័រ' : 'Page' %> <%= currentPage %> <%= currentLang === 'km' ? 'នៃ' : 'of' %> <%= totalPages %>
+        </p>
+        <div class="flex gap-1">
+          <% const userQs = 'search=' + encodeURIComponent(filters.search || '') + '&role=' + encodeURIComponent(filters.role || ''); %>
+          <a href="?page=<%= currentPage - 1 %>&<%= userQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+            <i class="bi bi-chevron-left"></i>
+            <span class="hidden sm:inline ml-1"><%= currentLang === 'km' ? 'មុន' : 'Previous' %></span>
+          </a>
+          <%
+            let userPages = [];
+            if (totalPages <= 7) {
+              for (let i = 1; i <= totalPages; i++) userPages.push(i);
+            } else {
+              userPages.push(1);
+              if (currentPage > 3) userPages.push('...');
+              for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                userPages.push(i);
+              }
+              if (currentPage < totalPages - 2) userPages.push('...');
+              userPages.push(totalPages);
+            }
+          %>
+          <% userPages.forEach(function(p) { %>
+            <% if (p === '...') { %>
+              <span class="px-2 py-2 text-sm text-gray-400 dark:text-gray-500">...</span>
+            <% } else { %>
+              <a href="?page=<%= p %>&<%= userQs %>" class="px-3.5 py-2 rounded-xl text-sm font-bold transition-all <%= currentPage === p ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>"><%= p %></a>
+            <% } %>
+          <% }); %>
+          <a href="?page=<%= currentPage + 1 %>&<%= userQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+            <span class="hidden sm:inline mr-1"><%= currentLang === 'km' ? 'បន្ទាប់' : 'Next' %></span>
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>

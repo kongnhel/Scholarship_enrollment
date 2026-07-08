@@ -1,0 +1,215 @@
+<% if (user) { %>
+<aside id="sidebar" class="fixed top-0 left-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40 transition-all duration-300 flex flex-col -translate-x-full lg:translate-x-0 overflow-hidden" style="width: 260px;">
+  <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-700 min-w-0 cursor-default">
+    <img src="/images/nmu-logo.jpg" alt="NMU" class="h-9 w-9 rounded-full ring-2 ring-green-100 dark:ring-green-900 flex-shrink-0">
+    <span class="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate" title="NMU Scholarship & Enroll Online">NMU <span class="text-green-600 dark:text-green-400">Scholarship & Enroll Online</span></span>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+    <% if (user.role === 'student') { %>
+      <a href="/student/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Student Dashboard' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-grid text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'តារាងព័ត៌មាន' : 'Dashboard' %></span>
+      </a>
+      <a href="/student/application/new" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'New Application' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-plus-circle text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %></span>
+      </a>
+      <a href="/student/status" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Application Status' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-clipboard-check text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></span>
+      </a>
+      <a href="/student/notifications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Notifications' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-bell text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></span>
+      </a>
+
+      <div class="pt-3 pb-1 px-3">
+        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"><%= currentLang === 'km' ? 'ការចុះឈ្មោះនិងទូទាត់' : 'Enrollment & Payment' %></p>
+      </div>
+      <a href="/student/enroll" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Enrollment' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-person-check text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enrollment' %></span>
+      </a>
+      <a href="/student/payments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'My Payments' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-credit-card text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></span>
+      </a>
+    <% } else if (user.role === 'admin') { %>
+      <a href="/admin/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Admin Dashboard' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-grid text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'តារាងព័ត៌មាន' : 'Dashboard' %></span>
+      </a>
+      <a href="/admin/applications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && (title === 'Applications' || title === 'Application Detail') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-file-text text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ពាក្យសុំ' : 'Applications' %></span>
+      </a>
+
+      <div class="pt-3 pb-1 px-3">
+        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"><%= currentLang === 'km' ? 'ការកំណត់' : 'Manage' %></p>
+      </div>
+      <a href="/admin/majors" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Majors' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-book text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ជំនាញ' : 'Majors' %></span>
+      </a>
+      <a href="/admin/scholarship-types" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Scholarship Types' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-award text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ប្រភេទអាហារូបករណ៍' : 'Scholarship Types' %></span>
+      </a>
+      <a href="/admin/provinces" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Provinces' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-geo-alt text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ខេត្ត' : 'Provinces' %></span>
+      </a>
+      <a href="/admin/users" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Users' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-people text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'អ្នកប្រើ' : 'Users' %></span>
+      </a>
+      <a href="/admin/major-tuition" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Major Tuition' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-cash-stack text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ថ្លៃសិក្សា' : 'Tuition' %></span>
+      </a>
+
+      <div class="pt-3 pb-1 px-3">
+        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"><%= currentLang === 'km' ? 'ការចុះឈ្មោះនិងទូទាត់' : 'Enrollment & Payment' %></p>
+      </div>
+      <a href="/admin/enrollments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Enrollments' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-person-check text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollments' %></span>
+      </a>
+      <a href="/admin/payments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Payments' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-credit-card text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></span>
+      </a>
+
+      <div class="pt-3 pb-1 px-3">
+        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"><%= currentLang === 'km' ? 'ការងារផ្សេងៗ' : 'Analytics' %></p>
+      </div>
+      <a href="/admin/reports" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Reports' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-graph-up text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'របាយការណ៍' : 'Reports' %></span>
+      </a>
+      <a href="/admin/settings" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'System Settings' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-gear text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ការកំណត់' : 'Settings' %></span>
+      </a>
+    <% } else if (user.role === 'committee') { %>
+      <a href="/committee/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Committee Dashboard' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-grid text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'តារាងព័ត៌មាន' : 'Dashboard' %></span>
+      </a>
+      <a href="/committee/applications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && (title === 'Approved Applications' || title === 'Application Detail') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-file-text text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ពាក្យសុំ' : 'Applications' %></span>
+      </a>
+      <a href="/committee/reports" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Reports' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-graph-up text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'របាយការណ៍' : 'Reports' %></span>
+      </a>
+    <% } %>
+  </nav>
+
+  <div class="border-t border-gray-200 dark:border-gray-700 px-3 py-3">
+    <div class="flex items-center gap-3 px-3 py-2">
+      <div class="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm flex-shrink-0 overflow-hidden ring-2 ring-green-200 dark:ring-green-800">
+        <% if (user.profile_pic) { %>
+          <img src="/uploads/<%= user.profile_pic %>" alt="Profile" class="w-full h-full object-cover">
+        <% } else { %>
+          <%= user.english_name ? user.english_name.charAt(0) : 'U' %>
+        <% } %>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate"><%= user.english_name || 'User' %></p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 truncate capitalize"><%= user.role %></p>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-200 dark:border-gray-600 my-3"></div>
+
+    <a href="/auth/profile" class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white transition-all">
+      <i class="bi bi-person-circle text-base w-5 text-center"></i>
+      <span><%= currentLang === 'km' ? 'គណនី' : 'Profile' %></span>
+    </a>
+
+    <button id="themeToggleSidebar" class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white transition-all">
+      <i class="bi bi-moon-fill dark:hidden text-base w-5 text-center"></i>
+      <i class="bi bi-sun-fill hidden dark:inline text-base w-5 text-center"></i>
+      <span class="flex-1 text-left"><%= currentLang === 'km' ? 'របៀបងងឹត' : 'Dark Mode' %></span>
+      <div class="w-9 h-5 bg-gray-300 dark:bg-green-600 rounded-full relative transition-colors">
+        <div id="themeDot" class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform dark:translate-x-4"></div>
+      </div>
+    </button>
+
+    <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
+
+    <div class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400">
+      <i class="bi bi-translate text-base w-5 text-center"></i>
+      <span class="flex-1"><%= currentLang === 'km' ? 'ភាសា' : 'Language' %></span>
+      <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
+        <a href="?lang=km" class="px-3 py-1 rounded-md text-xs font-bold transition-all <%= currentLang === 'km' ? 'bg-white dark:bg-gray-600 text-green-600 dark:text-green-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300' %>">KM</a>
+        <a href="?lang=en" class="px-3 py-1 rounded-md text-xs font-bold transition-all <%= currentLang === 'en' ? 'bg-white dark:bg-gray-600 text-green-600 dark:text-green-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300' %>">EN</a>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-200 dark:border-gray-600 my-3"></div>
+
+    <a href="/auth/logout" class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all">
+      <i class="bi bi-box-arrow-right text-base w-5 text-center"></i>
+      <span><%= currentLang === 'km' ? 'ចេញ' : 'Logout' %></span>
+    </a>
+  </div>
+</aside>
+
+<button id="sidebarToggle" class="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all lg:hidden">
+  <i class="bi bi-list text-xl"></i>
+</button>
+
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-30 hidden lg:hidden"></div>
+
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  if (toggle && sidebar && overlay) {
+    toggle.addEventListener('click', function() {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+      toggle.classList.toggle('hidden');
+    });
+    overlay.addEventListener('click', function() {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+      toggle.classList.remove('hidden');
+    });
+  }
+
+  function updateThemeUI() {
+    const isDark = document.documentElement.classList.contains('dark');
+    const dot = document.getElementById('themeDot');
+    if (dot) {
+      if (isDark) {
+        dot.classList.add('translate-x-4');
+      } else {
+        dot.classList.remove('translate-x-4');
+      }
+    }
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+      html.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    } else {
+      html.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+    updateThemeUI();
+  }
+
+  document.getElementById('themeToggleSidebar')?.addEventListener('click', toggleTheme);
+  updateThemeUI();
+})();
+</script>
+<% } %>

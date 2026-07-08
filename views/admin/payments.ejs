@@ -1,0 +1,269 @@
+<div class="max-w-7xl mx-auto space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+        <i class="bi bi-credit-card text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងការទូទាត់និងផ្ទៀងផ្ទាត់' : 'Manage and verify payments' %></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+      <i class="bi bi-database text-gray-400"></i>
+      <span class="text-sm text-gray-600 dark:text-gray-300"><%= totalRecords %> <%= currentLang === 'km' ? 'កំណត់ត្រា' : 'records' %></span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-list-ul text-blue-600 dark:text-blue-400 text-xl"></i></div>
+        <div><p class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= stats.total || 0 %></p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុប' : 'Total' %></p></div>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-hourglass-split text-yellow-600 dark:text-yellow-400 text-xl"></i></div>
+        <div><p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400"><%= stats.pending || 0 %></p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'រង់ចាំ' : 'Pending' %></p></div>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-check-circle text-green-600 dark:text-green-400 text-xl"></i></div>
+        <div><p class="text-2xl font-bold text-green-600 dark:text-green-400"><%= stats.verified || 0 %></p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verified' %></p></div>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center"><i class="bi bi-cash-stack text-emerald-600 dark:text-emerald-400 text-xl"></i></div>
+        <div><p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= Number(stats.total_verified || 0).toLocaleString() %>៛</p><p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុបផ្ទៀងផ្ទាត់' : 'Total Verified' %></p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 flex items-center gap-2">
+      <i class="bi bi-funnel text-white/80 text-sm"></i>
+      <span class="text-sm font-semibold text-white"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
+    </div>
+    <form action="/admin/payments" method="GET" class="p-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="relative sm:col-span-2 lg:col-span-2">
+          <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
+          <input type="text" name="search" value="<%= filters.search || '' %>" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'ស្វែងរកដោយឈ្មោះ...' : 'Search by name...' %>">
+        </div>
+        <div>
+          <select name="status" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+            <option value=""><%= currentLang === 'km' ? 'ស្ថានភាពទាំងអស់' : 'All Status' %></option>
+            <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>><%= currentLang === 'km' ? 'រង់ចាំ' : 'Pending' %></option>
+            <option value="verified" <%= filters.status === 'verified' ? 'selected' : '' %>><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verified' %></option>
+            <option value="rejected" <%= filters.status === 'rejected' ? 'selected' : '' %>><%= currentLang === 'km' ? 'បដិសេធ' : 'Rejected' %></option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-sm flex items-center gap-2">
+          <i class="bi bi-search"></i><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %>
+        </button>
+        <a href="/admin/payments" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
+          <i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'និស្សិត' : 'Student' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ប្រភេទថ្លៃ' : 'Fee Type' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'វិធីសាស្ត្រ' : 'Method' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <% if (payments.length === 0) { %>
+            <tr>
+              <td colspan="7" class="px-5 py-12 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <i class="bi bi-inbox text-4xl text-gray-300 dark:text-gray-600"></i>
+                  <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានការទូទាត់ទេ' : 'No payments found' %></p>
+                </div>
+              </td>
+            </tr>
+          <% } else { %>
+            <% payments.forEach(function(p) { %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= p.id %></span>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <% if (p.profile_pic) { %>
+                      <img src="/uploads/<%= p.profile_pic %>" alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+                    <% } else { %>
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm">
+                        <%= (p.english_name || 'U').charAt(0).toUpperCase() %>
+                      </div>
+                    <% } %>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= p.english_name || 'N/A' %></p>
+                      <p class="text-xs text-gray-400 dark:text-gray-500"><%= p.academic_year %> · <%= currentLang === 'km' ? 'ឆ្នាំទី ' + p.semester : 'Year ' + p.semester %></p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <div>
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= p.fee_name_kh %></p>
+                    <% if (p.fee_name_en) { %><p class="text-xs text-gray-400 dark:text-gray-500"><%= p.fee_name_en %></p><% } %>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                    <i class="bi bi-cash"></i><%= Number(p.amount).toLocaleString() %>៛
+                  </span>
+                </td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                    <% if (p.payment_method === 'bakong_khqr') { %>
+                      <i class="bi bi-qr-code"></i>KHQR
+                    <% } else if (p.payment_method === 'aba') { %>
+                      <i class="bi bi-bank"></i>ABA
+                    <% } else if (p.payment_method === 'wing') { %>
+                      <i class="bi bi-phone"></i>Wing
+                    <% } else { %>
+                      <i class="bi bi-bank"></i><%= p.payment_method %>
+                    <% } %>
+                  </span>
+                </td>
+                <td class="px-5 py-4">
+                  <% if (p.status === 'verified') { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                      <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verified' %>
+                    </span>
+                  <% } else if (p.status === 'rejected') { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><%= currentLang === 'km' ? 'បដិសេធ' : 'Rejected' %>
+                    </span>
+                  <% } else { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
+                      <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span><%= currentLang === 'km' ? 'រង់ចាំ' : 'Pending' %>
+                    </span>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-1.5">
+                    <% if (p.status === 'pending') { %>
+                      <button onclick="verifyPayment(<%= p.id %>)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verify' %></button>
+                      <button onclick="rejectPayment(<%= p.id %>)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'បដិសេធ' : 'Reject' %></button>
+                    <% } %>
+                    <% if (p.proof_path) { %>
+                      <a href="/uploads/<%= p.proof_path %>" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center gap-1"><i class="bi bi-eye"></i><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (totalPages > 1) { %>
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <%= currentLang === 'km' ? 'ទំព័រ' : 'Page' %> <%= currentPage %> <%= currentLang === 'km' ? 'នៃ' : 'of' %> <%= totalPages %>
+        </p>
+        <div class="flex gap-1">
+          <% const payQs = 'search=' + encodeURIComponent(filters.search || '') + '&status=' + encodeURIComponent(filters.status || ''); %>
+          <a href="?page=<%= currentPage - 1 %>&<%= payQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+            <i class="bi bi-chevron-left"></i>
+            <span class="hidden sm:inline ml-1"><%= currentLang === 'km' ? 'មុន' : 'Previous' %></span>
+          </a>
+          <%
+            let payPages = [];
+            if (totalPages <= 7) {
+              for (let i = 1; i <= totalPages; i++) payPages.push(i);
+            } else {
+              payPages.push(1);
+              if (currentPage > 3) payPages.push('...');
+              for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                payPages.push(i);
+              }
+              if (currentPage < totalPages - 2) payPages.push('...');
+              payPages.push(totalPages);
+            }
+          %>
+          <% payPages.forEach(function(p) { %>
+            <% if (p === '...') { %>
+              <span class="px-2 py-2 text-sm text-gray-400 dark:text-gray-500">...</span>
+            <% } else { %>
+              <a href="?page=<%= p %>&<%= payQs %>" class="px-3.5 py-2 rounded-xl text-sm font-bold transition-all <%= currentPage === p ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>"><%= p %></a>
+            <% } %>
+          <% }); %>
+          <a href="?page=<%= currentPage + 1 %>&<%= payQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+            <span class="hidden sm:inline mr-1"><%= currentLang === 'km' ? 'បន្ទាប់' : 'Next' %></span>
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div id="verifyModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center justify-between rounded-t-2xl">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-check-circle"></i><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ការទូទាត់' : 'Verify Payment' %></h5>
+      <button type="button" onclick="document.getElementById('verifyModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form id="verifyForm" method="POST" class="p-6 space-y-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'កំណត់សម្គាល់' : 'Notes' %></label>
+        <textarea name="notes" rows="3" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none" placeholder="<%= currentLang === 'km' ? 'មតិយោបល់...' : 'Optional notes...' %>"></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="document.getElementById('verifyModal').classList.add('hidden')" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl text-sm font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-sm"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verify' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="rejectModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white flex items-center justify-between rounded-t-2xl">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-x-circle"></i><%= currentLang === 'km' ? 'បដិសេ�ការទូទាត់' : 'Reject Payment' %></h5>
+      <button type="button" onclick="document.getElementById('rejectModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form id="rejectForm" method="POST" class="p-6 space-y-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ហេតុផល' : 'Reason' %> <span class="text-red-500">*</span></label>
+        <textarea name="notes" rows="3" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none" placeholder="<%= currentLang === 'km' ? 'ហេតុផលបដិសេធ...' : 'Rejection reason...' %>"></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="document.getElementById('rejectModal').classList.add('hidden')" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl text-sm font-semibold hover:from-red-600 hover:to-rose-700 transition-all shadow-sm"><%= currentLang === 'km' ? 'បដិសេធ' : 'Reject' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function verifyPayment(id) {
+  document.getElementById('verifyForm').action = '/admin/payments/' + id + '/verify';
+  document.getElementById('verifyModal').classList.remove('hidden');
+}
+function rejectPayment(id) {
+  document.getElementById('rejectForm').action = '/admin/payments/' + id + '/reject';
+  document.getElementById('rejectModal').classList.remove('hidden');
+}
+</script>
