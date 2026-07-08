@@ -29,8 +29,8 @@ router.post('/login', [
     }
     const { login_identifier, password } = req.body;
     const [users] = await req.db.query(
-      'SELECT * FROM users WHERE email = ?',
-      [login_identifier]
+      'SELECT * FROM users WHERE email = ? OR username = ? OR phone = ?',
+      [login_identifier, login_identifier, login_identifier]
     );
     if (users.length === 0) {
       req.flash('error', 'Invalid credentials');
