@@ -115,8 +115,8 @@
                 <% if (docPath) { %>
                   <% var isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(docPath); %>
                   <% if (isImg) { %>
-                    <div class="doc-thumb relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer hover:shadow-lg hover:scale-110 hover:border-green-400 dark:hover:border-green-500 transition-all duration-200 flex-shrink-0" onclick="openDocPreview('/uploads/<%= docPath %>', '<%= label %>')">
-                      <img src="/uploads/<%= docPath %>" alt="<%= label %>" class="w-full h-full object-cover">
+                    <div class="doc-thumb relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer hover:shadow-lg hover:scale-110 hover:border-green-400 dark:hover:border-green-500 transition-all duration-200 flex-shrink-0" onclick="openDocPreview('<%= docPath %>', '<%= label %>')">
+                      <img src="<%= docPath %>" alt="<%= label %>" class="w-full h-full object-cover">
                     </div>
                   <% } else { %>
                     <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 flex items-center justify-center flex-shrink-0">
@@ -128,9 +128,9 @@
                     <p class="text-xs text-gray-400 dark:text-gray-500 truncate"><%= docPath.split('/').pop() %></p>
                   </div>
                   <% if (isImg) { %>
-                    <button onclick="openDocPreview('/uploads/<%= docPath %>', '<%= label %>')" class="p-2 rounded-lg text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex-shrink-0 no-print" title="<%= currentLang === 'km' ? 'មើល' : 'Preview' %>"><i class="bi bi-eye-fill text-lg"></i></button>
+                    <button onclick="openDocPreview('<%= docPath %>', '<%= label %>')" class="p-2 rounded-lg text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex-shrink-0 no-print" title="<%= currentLang === 'km' ? 'មើល' : 'Preview' %>"><i class="bi bi-eye-fill text-lg"></i></button>
                   <% } else { %>
-                    <a href="/uploads/<%= docPath %>" target="_blank" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex-shrink-0 no-print" title="<%= currentLang === 'km' ? 'បើក' : 'Open' %>"><i class="bi bi-box-arrow-up-right text-lg"></i></a>
+                    <a href="<%= docPath %>" target="_blank" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex-shrink-0 no-print" title="<%= currentLang === 'km' ? 'បើក' : 'Open' %>"><i class="bi bi-box-arrow-up-right text-lg"></i></a>
                   <% } %>
                 <% } else { %>
                   <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700/30 border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">

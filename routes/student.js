@@ -1,38 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isStudent } = require('../middleware/auth');
-const { uploadMultiple } = require('../middleware/upload');
+const { uploadMultiple, upload } = require('../middleware/upload');
 const { sendEmail } = require('../config/mailer');
 const { generateKHQR, checkTransaction } = require('../config/bakong');
-const multer = require('multer');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const { uploadToImageKit } = require('../utils/imagekit');
 
-const proofStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
-  filename: (req, file, cb) => cb(null, `proof-${uuidv4()}${path.extname(file.originalname)}`)
-});
-const proofUpload = multer({
-  storage: proofStorage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    cb(null, allowedTypes.includes(file.mimetype));
-  },
-  limits: { fileSize: 5 * 1024 * 1024 }
-}).single('proof');
-
-const enrollPhotoStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
-  filename: (req, file, cb) => cb(null, `enroll-photo-${uuidv4()}${path.extname(file.originalname)}`)
-});
-const enrollPhotoUpload = multer({
-  storage: enrollPhotoStorage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png'];
-    cb(null, allowedTypes.includes(file.mimetype));
-  },
-  limits: { fileSize: 5 * 1024 * 1024 }
-}).single('enroll_photo');
+const proofUpload = upload.single('proof');
+const enrollPhotoUpload = upload.single('enroll_photo');
 
 router.use(isAuthenticated, isStudent);
 
@@ -158,12 +133,28 @@ router.post('/application', uploadMultiple, async (req, res) => {
 
     const finalNationality = (nationality === 'Other' && nationality_other) ? nationality_other.trim().substring(0, 50) : (nationality || 'Cambodian');
 
-    const photo = req.files && req.files.photo ? req.files.photo[0].filename : null;
-    const transcript = req.files && req.files.transcript ? req.files.transcript[0].filename : null;
-    const nationalIdFile = req.files && req.files.nationalId ? req.files.nationalId[0].filename : null;
-    const additionalDocuments = req.files && req.files.additionalDocuments
-      ? req.files.additionalDocuments.map(f => f.filename).join(',')
-      : null;
+    let photo = null, transcript = null, nationalIdFile = null, additionalDocuments = null;
+
+    if (req.files && req.files.photo && req.files.photo[0]) {
+      const r = await uploadToImageKit(req.files.photo[0], 'application');
+      photo = r.url;
+    }
+    if (req.files && req.files.transcript && req.files.transcript[0]) {
+      const r = await uploadToImageKit(req.files.transcript[0], 'application');
+      transcript = r.url;
+    }
+    if (req.files && req.files.nationalId && req.files.nationalId[0]) {
+      const r = await uploadToImageKit(req.files.nationalId[0], 'application');
+      nationalIdFile = r.url;
+    }
+    if (req.files && req.files.additionalDocuments) {
+      const urls = [];
+      for (const f of req.files.additionalDocuments) {
+        const r = await uploadToImageKit(f, 'application');
+        urls.push(r.url);
+      }
+      additionalDocuments = urls.join(',');
+    }
 
     const [result] = await req.db.query(
       `INSERT INTO applications (
@@ -276,11 +267,25 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
     let nationalIdFile = existing[0].national_id_path;
     let additionalDocuments = existing[0].additional_documents_path;
 
-    if (req.files && req.files.photo) photo = req.files.photo[0].filename;
-    if (req.files && req.files.transcript) transcript = req.files.transcript[0].filename;
-    if (req.files && req.files.nationalId) nationalIdFile = req.files.nationalId[0].filename;
+    if (req.files && req.files.photo && req.files.photo[0]) {
+      const r = await uploadToImageKit(req.files.photo[0], 'application');
+      photo = r.url;
+    }
+    if (req.files && req.files.transcript && req.files.transcript[0]) {
+      const r = await uploadToImageKit(req.files.transcript[0], 'application');
+      transcript = r.url;
+    }
+    if (req.files && req.files.nationalId && req.files.nationalId[0]) {
+      const r = await uploadToImageKit(req.files.nationalId[0], 'application');
+      nationalIdFile = r.url;
+    }
     if (req.files && req.files.additionalDocuments) {
-      additionalDocuments = req.files.additionalDocuments.map(f => f.filename).join(',');
+      const urls = [];
+      for (const f of req.files.additionalDocuments) {
+        const r = await uploadToImageKit(f, 'application');
+        urls.push(r.url);
+      }
+      additionalDocuments = urls.join(',');
     }
 
     await req.db.query(
@@ -477,7 +482,11 @@ router.post('/enroll', (req, res) => {
         return res.redirect('/student/enroll');
       }
 
-      const photoPath = req.file ? req.file.filename : null;
+      let photoPath = null;
+      if (req.file) {
+        const r = await uploadToImageKit(req.file, 'enrollment');
+        photoPath = r.url;
+      }
 
       await req.db.query(
         `INSERT INTO enrollments (
@@ -694,7 +703,11 @@ router.post('/payments', (req, res) => {
       }
       const userId = req.session.user.id;
       const { enrollment_id, fee_type_id, amount, payment_method, transaction_ref } = req.body;
-      const proofPath = req.file ? req.file.filename : null;
+      let proofPath = null;
+      if (req.file) {
+        const r = await uploadToImageKit(req.file, 'payment');
+        proofPath = r.url;
+      }
 
       await req.db.query(
         'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?)',

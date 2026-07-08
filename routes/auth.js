@@ -7,6 +7,7 @@ const { body, validationResult } = require('express-validator');
 const { generateToken } = require('../utils/helpers');
 const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend, clearOTP } = require('../utils/otp');
 const telegramOtp = require('../services/otpSender');
+const { uploadToImageKit } = require('../utils/imagekit');
 
 // ==================== LOGIN ====================
 
@@ -571,7 +572,11 @@ router.post('/profile', uploadPhoto, async (req, res) => {
   }
   try {
     const { khmer_name, english_name, email, phone } = req.body;
-    const profilePic = req.file ? req.file.filename : null;
+    let profilePic = null;
+    if (req.file) {
+      const r = await uploadToImageKit(req.file, 'profile');
+      profilePic = r.url;
+    }
     
     if (profilePic) {
       await req.db.query(

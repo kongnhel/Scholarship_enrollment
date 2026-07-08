@@ -1,16 +1,6 @@
 const multer = require('multer');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', 'uploads'));
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
-  }
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
@@ -28,10 +18,6 @@ const upload = multer({
 });
 
 const uploadPhoto = upload.single('photo');
-const uploadTranscript = upload.single('transcript');
-const uploadNationalId = upload.single('nationalId');
-const uploadAdditionalDocuments = upload.single('additionalDocuments');
-
 const uploadMultiple = upload.fields([
   { name: 'photo', maxCount: 1 },
   { name: 'transcript', maxCount: 1 },
@@ -40,6 +26,7 @@ const uploadMultiple = upload.fields([
 ]);
 
 module.exports = {
+  upload,
   uploadPhoto,
   uploadMultiple
 };

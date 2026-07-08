@@ -115,7 +115,7 @@
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
                     <% if (en.profile_pic) { %>
-                      <img src="/uploads/<%= en.profile_pic %>" alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+                      <img src="<%= en.profile_pic %>" alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
                     <% } else { %>
                       <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm">
                         <%= (en.english_name || 'U').charAt(0).toUpperCase() %>

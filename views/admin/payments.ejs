@@ -106,7 +106,7 @@
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
                     <% if (p.profile_pic) { %>
-                      <img src="/uploads/<%= p.profile_pic %>" alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+                      <img src="<%= p.profile_pic %>" alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
                     <% } else { %>
                       <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm">
                         <%= (p.english_name || 'U').charAt(0).toUpperCase() %>
@@ -164,7 +164,7 @@
                       <button onclick="rejectPayment(<%= p.id %>)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'បដិសេធ' : 'Reject' %></button>
                     <% } %>
                     <% if (p.proof_path) { %>
-                      <a href="/uploads/<%= p.proof_path %>" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center gap-1"><i class="bi bi-eye"></i><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+                      <a href="<%= p.proof_path %>" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center gap-1"><i class="bi bi-eye"></i><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
                     <% } %>
                   </div>
                 </td>
