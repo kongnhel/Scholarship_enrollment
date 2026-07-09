@@ -1,33 +1,28 @@
 const nodemailer = require('nodemailer');
 
-let transporter = null;
+const sendEmail = async (to, subject, html) => {
+  // Try Resend API first (works on Render — no SMTP needed)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { Resend } = require('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        to,
+        subject,
+        html
+      });
+      return true;
+    } catch (error) {
+      console.error('Resend email error:', error.message);
+      // Fall through to SMTP
+    }
+  }
 
-function getTransporter() {
-  if (transporter) return transporter;
-
-  if (process.env.EMAIL_SERVICE === 'gmail') {
-    transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000
-    });
-  } else if (process.env.EMAIL_API_KEY && process.env.EMAIL_API_URL) {
-    transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_API_URL,
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'apikey',
-        pass: process.env.EMAIL_API_KEY
-      },
-      connectionTimeout: 10000
-    });
-  } else {
-    transporter = nodemailer.createTransport({
+  // Fallback to SMTP (works locally)
+  try {
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || undefined,
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT) || 465,
       secure: true,
@@ -38,14 +33,7 @@ function getTransporter() {
       connectionTimeout: 10000,
       greetingTimeout: 10000
     });
-  }
-  return transporter;
-}
-
-const sendEmail = async (to, subject, html) => {
-  try {
-    const t = getTransporter();
-    await t.sendMail({
+    await transporter.sendMail({
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to,
       subject,
@@ -53,7 +41,7 @@ const sendEmail = async (to, subject, html) => {
     });
     return true;
   } catch (error) {
-    console.error('Email send error:', error.message);
+    console.error('SMTP email error:', error.message);
     return false;
   }
 };
