@@ -428,7 +428,7 @@ router.get('/enroll', async (req, res) => {
       payments,
       enrollClosed,
       majors: (await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1 ORDER BY name_kh ASC'))[0],
-      majorTuition: (await req.db.query('SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = "2025-2026"'))[0],
+      majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = '2025-2026'"))[0],
       scholarshipTypes: (await req.db.query('SELECT id, name_kh, name_en, coverage_percentage, ministry_fee, duration_years, provider_name FROM scholarship_types WHERE is_active = 1 ORDER BY coverage_percentage ASC'))[0]
     });
   } catch (error) {
