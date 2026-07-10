@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const sendEmail = async (to, subject, html) => {
   // Try Resend API first (works on Render — no SMTP needed)
   if (process.env.RESEND_API_KEY) {
+    console.log('Email: Using Resend API');
     try {
       const { Resend } = require('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
