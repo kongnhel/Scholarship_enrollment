@@ -6,6 +6,10 @@ const { sendEmail } = require('../config/mailer');
 const { generateKHQR, checkTransaction } = require('../config/bakong');
 const { uploadToImageKit } = require('../utils/imagekit');
 
+function t(req, km, en) {
+  return req.session.lang === 'km' ? km : en;
+}
+
 const proofUpload = upload.single('proof');
 const enrollPhotoUpload = upload.single('enroll_photo');
 
@@ -64,7 +68,7 @@ router.get('/dashboard', async (req, res) => {
     });
   } catch (error) {
     console.error('Dashboard error:', error);
-    req.flash('error', 'An error occurred while loading dashboard');
+    req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកតារាងព័ត៌មាន', 'An error occurred while loading dashboard'));
     res.redirect('/');
   }
 });
@@ -78,7 +82,13 @@ router.get('/application/new', async (req, res) => {
     if (settings.registration_open === '0' ||
       (settings.registration_start && new Date(settings.registration_start) > now) ||
       (settings.registration_end && new Date(settings.registration_end) < now)) {
-      req.flash('error', 'Registration is currently closed.');
+      req.flash('error', t(req, 'ការចុះឈ្មោះបច្ចុប្បន្នបិទ។', 'Registration is currently closed.'));
+      return res.redirect('/student/dashboard');
+    }
+    if (settings.scholarship_open === '0' ||
+      (settings.scholarship_start && new Date(settings.scholarship_start) > now) ||
+      (settings.scholarship_end && new Date(settings.scholarship_end) < now)) {
+      req.flash('error', t(req, 'ការដាក់ពាក្យអាហារូបករណ៍បច្ចុប្បន្នបិទ។', 'Scholarship applications are currently closed.'));
       return res.redirect('/student/dashboard');
     }
     const [majors] = await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1');
@@ -92,7 +102,7 @@ router.get('/application/new', async (req, res) => {
     });
   } catch (error) {
     console.error('New application page error:', error);
-    req.flash('error', 'An error occurred');
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -100,7 +110,7 @@ router.get('/application/new', async (req, res) => {
 router.post('/application', uploadMultiple, async (req, res) => {
   try {
     if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
-      req.flash('error', 'Invalid or missing CSRF token. Please try again.');
+      req.flash('error', t(req, 'តិតុក្កត់ CSRF មិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។', 'Invalid or missing CSRF token. Please try again.'));
       return res.redirect('/student/application/new');
     }
     const [settingsRows] = await req.db.query('SELECT * FROM settings');
@@ -108,16 +118,22 @@ router.post('/application', uploadMultiple, async (req, res) => {
     settingsRows.forEach(row => { settings[row.setting_key] = row.setting_value; });
 
     if (settings.registration_open === '0') {
-      req.flash('error', 'Registration is currently closed.');
+      req.flash('error', t(req, 'ការចុះឈ្មោះបច្ចុប្បន្នបិទ។', 'Registration is currently closed.'));
       return res.redirect('/student/dashboard');
     }
     const now = new Date();
     if (settings.registration_start && new Date(settings.registration_start) > now) {
-      req.flash('error', 'Registration has not opened yet.');
+      req.flash('error', t(req, 'ការចុះឈ្មោះមិនទាន់ចាប់ផ្តើមនៅឡើយទេ។', 'Registration has not opened yet.'));
       return res.redirect('/student/dashboard');
     }
     if (settings.registration_end && new Date(settings.registration_end) < now) {
-      req.flash('error', 'Registration deadline has passed.');
+      req.flash('error', t(req, 'ការចុះឈ្មោះបានផុតកំណត់ហើយ។', 'Registration deadline has passed.'));
+      return res.redirect('/student/dashboard');
+    }
+    if (settings.scholarship_open === '0' ||
+      (settings.scholarship_start && new Date(settings.scholarship_start) > now) ||
+      (settings.scholarship_end && new Date(settings.scholarship_end) < now)) {
+      req.flash('error', t(req, 'ការដាក់ពាក្យអាហារូបករណ៍បច្ចុប្បន្នបិទ។', 'Scholarship applications are currently closed.'));
       return res.redirect('/student/dashboard');
     }
 
@@ -188,11 +204,11 @@ router.post('/application', uploadMultiple, async (req, res) => {
       '<p>Dear <strong>' + (req.session.user.khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application has been submitted successfully. We will review your application and notify you of any updates.</p><p>Application ID: <strong>' + result.insertId + '</strong></p><br><p>Best regards,<br>Scholarship Committee</p>'
     );
 
-    req.flash('success', 'Application submitted successfully');
+    req.flash('success', t(req, 'ពាក្យសុំត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Application submitted successfully'));
     res.redirect('/student/dashboard');
   } catch (error) {
     console.error('Submit application error:', error);
-    req.flash('error', 'An error occurred while submitting application');
+    req.flash('error', t(req, 'មានកំហុសក្នុងការដាក់ពាក្យសុំ', 'An error occurred while submitting application'));
     res.redirect('/student/application/new');
   }
 });
@@ -213,7 +229,7 @@ router.get('/application/:id', async (req, res) => {
       [req.params.id, req.session.user.id]
     );
     if (applications.length === 0) {
-      req.flash('error', 'Application not found');
+      req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំ', 'Application not found'));
       return res.redirect('/student/dashboard');
     }
     const [history] = await req.db.query(
@@ -230,7 +246,7 @@ router.get('/application/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Application detail error:', error);
-    req.flash('error', 'An error occurred');
+    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -238,7 +254,7 @@ router.get('/application/:id', async (req, res) => {
 router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
   try {
     if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
-      req.flash('error', 'Invalid or missing CSRF token. Please try again.');
+      req.flash('error', t(req, 'តិតុក្កត់ CSRF មិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។', 'Invalid or missing CSRF token. Please try again.'));
       return res.redirect('back');
     }
     const [existing] = await req.db.query(
@@ -246,7 +262,7 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
       [req.params.id, req.session.user.id, 'correction_requested']
     );
     if (existing.length === 0) {
-      req.flash('error', 'Application not found or not eligible for correction');
+      req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំឬមិនមានសិទ្ធិកែប្រែ', 'Application not found or not eligible for correction'));
       return res.redirect('/student/dashboard');
     }
 
@@ -316,11 +332,11 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
       [req.params.id, 'pending', req.session.user.id, correction_notes || 'Application corrected and resubmitted']
     );
 
-    req.flash('success', 'Application corrected and resubmitted successfully');
+    req.flash('success', t(req, 'ពាក្យសុំត្រូវបានកែប្រែនិងដាក់ឡើងវិញដោយជោគជ័យ', 'Application corrected and resubmitted successfully'));
     res.redirect('/student/application/' + req.params.id);
   } catch (error) {
     console.error('Correct application error:', error);
-    req.flash('error', 'An error occurred while updating application');
+    req.flash('error', t(req, 'មានកំហុសក្នុងការកែប្រែពាក្យសុំ', 'An error occurred while updating application'));
     res.redirect('/student/dashboard');
   }
 });
@@ -343,7 +359,7 @@ router.get('/status', async (req, res) => {
     });
   } catch (error) {
     console.error('Status page error:', error);
-    req.flash('error', 'An error occurred');
+    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -357,7 +373,7 @@ router.get('/notifications', async (req, res) => {
     res.render('student/notifications', { title: 'Notifications', notifications });
   } catch (error) {
     console.error('Notifications error:', error);
-    req.flash('error', 'An error occurred');
+    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -433,7 +449,7 @@ router.get('/enroll', async (req, res) => {
     });
   } catch (error) {
     console.error('Enroll page error:', error);
-    req.flash('error', 'An error occurred');
+    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -459,7 +475,7 @@ router.post('/enroll', (req, res) => {
   enrollPhotoUpload(req, res, async (err) => {
     try {
       if (err) {
-        req.flash('error', err.message || 'Photo upload error');
+        req.flash('error', t(req, err.message || 'ការផ្ទុករូបភាព', err.message || 'Photo upload error'));
         return res.redirect('/student/enroll');
       }
       const userId = req.session.user.id;
@@ -478,7 +494,7 @@ router.post('/enroll', (req, res) => {
         [userId, academic_year, semester]
       );
       if (existing.length > 0) {
-        req.flash('error', 'Already enrolled for this semester');
+        req.flash('error', t(req, 'បានចុះឈ្មោះរួចហើយសម្រាប់ឆ្នាំសិក្សានេះ', 'Already enrolled for this semester'));
         return res.redirect('/student/enroll');
       }
 
@@ -514,11 +530,11 @@ router.post('/enroll', (req, res) => {
           scholarship_category_id || null, bank_name || null, photoPath
         ]
       );
-      req.flash('success', 'Enrollment submitted successfully');
+      req.flash('success', t(req, 'ការចុះឈ្មោះត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Enrollment submitted successfully'));
       res.redirect('/student/enroll');
     } catch (error) {
       console.error('Enroll error:', error);
-      req.flash('error', 'An error occurred');
+      req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
       res.redirect('/student/enroll');
     }
   });
@@ -584,7 +600,7 @@ router.get('/payments', async (req, res) => {
     });
   } catch (error) {
     console.error('Payments page error:', error);
-    req.flash('error', 'An error occurred');
+    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -698,7 +714,7 @@ router.post('/payments', (req, res) => {
   proofUpload(req, res, async (err) => {
     try {
       if (err) {
-        req.flash('error', err.message || 'File upload error');
+        req.flash('error', t(req, err.message || 'ការជោ្នាយប្ន់លង់ការ', err.message || 'File upload error'));
         return res.redirect('/student/payments');
       }
       const userId = req.session.user.id;
@@ -713,11 +729,11 @@ router.post('/payments', (req, res) => {
         'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [enrollment_id, userId, fee_type_id, parseFloat(amount), payment_method || 'bank_transfer', transaction_ref || '', proofPath]
       );
-      req.flash('success', 'Payment submitted successfully');
+      req.flash('success', t(req, 'ការទូទាត់ត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Payment submitted successfully'));
       res.redirect('/student/payments');
     } catch (error) {
       console.error('Payment submit error:', error);
-      req.flash('error', 'An error occurred');
+      req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
       res.redirect('/student/payments');
     }
   });

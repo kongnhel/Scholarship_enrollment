@@ -80,7 +80,7 @@
               </div>
             </label>
           </div>
-          <p id="verifyHint" class="text-xs text-gray-400 dark:text-gray-500 mt-2"><%= currentLang === 'km' ? 'អ្នកនឹងទទួលបានអ៊ីមែលផ្ទៀតផ្ទាត់នៅក្នុងกล่องសំបុត្ររបស់អ្នក។' : 'You will receive a verification email in your inbox.' %></p>
+          <p id="verifyHint" class="text-xs text-gray-400 dark:text-gray-500 mt-2"><%= currentLang === 'km' ? 'អ្នកនឹងទទួលបានអ៊ីមែលផ្ទៀតផ្ទាត់នៅក្នុងប្រអប់សំបុត្ររបស់អ្នក។' : 'You will receive a verification email in your inbox.' %></p>
         </div>
 
         <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm"><i class="bi bi-person-plus mr-1"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Create Account' %></button>
@@ -108,7 +108,7 @@ function updateVerifyMethod(method) {
   if (method === 'email') {
     emailLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-900/20 cursor-pointer transition-all';
     telegramLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-all';
-    hint.textContent = '<%= currentLang === "km" ? "អ្នកនឹងទទួលបានអ៊ីមែលផ្ទៀតផ្ទាត់នៅក្នុងกล่องសំបុត្ររបស់អ្នក។" : "You will receive a verification email in your inbox." %>';
+    hint.textContent = '<%= currentLang === "km" ? "អ្នកនឹងទទួលបានអ៊ីមែលផ្ទៀតផ្ទាត់នៅក្នុងប្រអប់សំបុត្ររបស់អ្នក។" : "You will receive a verification email in your inbox." %>';
   } else {
     telegramLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-pointer transition-all';
     emailLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-all';

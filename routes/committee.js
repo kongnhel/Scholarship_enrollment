@@ -4,6 +4,10 @@ const { isAuthenticated, isCommittee } = require('../middleware/auth');
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 
+function t(req, km, en) {
+  return req.session.lang === 'km' ? km : en;
+}
+
 router.use(isAuthenticated, isCommittee);
 
 router.get('/dashboard', async (req, res) => {
@@ -32,7 +36,7 @@ router.get('/dashboard', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/');
     }
 });
@@ -93,7 +97,7 @@ router.get('/applications', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/committee/dashboard');
     }
 });
@@ -115,11 +119,11 @@ router.get('/applications/:id', async (req, res) => {
              WHERE a.id = ?`, [req.params.id]
         );
         if (!application.length) {
-            req.flash('error', 'Application not found');
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំ', 'Application not found'));
             return res.redirect('/committee/applications');
         }
         if (application[0].status !== 'approved') {
-            req.flash('error', 'Only approved applications can be viewed');
+            req.flash('error', t(req, 'មានតែពាក្យសុំដែលបានអនុម័តទើបអាចមើលបាន', 'Only approved applications can be viewed'));
             return res.redirect('/committee/applications');
         }
         const [history] = await req.db.query(
@@ -135,7 +139,7 @@ router.get('/applications/:id', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/committee/applications');
     }
 });
@@ -171,7 +175,7 @@ router.get('/reports', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/committee/dashboard');
     }
 });

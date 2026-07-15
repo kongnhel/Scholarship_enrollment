@@ -3,6 +3,10 @@ const router = express.Router();
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
+
+function t(req, km, en) {
+  return req.session.lang === 'km' ? km : en;
+}
 const { sendEmail } = require('../config/mailer');
 
 router.use(isAuthenticated, isAdmin);
@@ -37,7 +41,7 @@ router.get('/dashboard', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/');
     }
 });
@@ -130,7 +134,7 @@ router.get('/applications', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -152,7 +156,7 @@ router.get('/applications/:id', async (req, res) => {
              WHERE a.id = ?`, [req.params.id]
         );
         if (!application.length) {
-            req.flash('error', 'Application not found');
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំ', 'Application not found'));
             return res.redirect('/admin/applications');
         }
         const [history] = await req.db.query(
@@ -168,7 +172,7 @@ router.get('/applications/:id', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications');
     }
 });
@@ -192,11 +196,11 @@ router.post('/applications/:id/under-review', async (req, res) => {
                 '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application is now under review. We will notify you once a decision has been made.</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', 'Application marked as under review');
+        req.flash('success', t(req, 'ពាក្យសុំត្រូវបានកំណត់ជាកំពុងពិនិត្យ', 'Application marked as under review'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -236,11 +240,11 @@ router.post('/applications/:id/approve', async (req, res) => {
                 '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>Congratulations! Your scholarship application has been approved.</p>' + examHtml + '<br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', 'Application approved successfully');
+        req.flash('success', t(req, 'ពាក្យសុំត្រូវបានអនុម័តដោយជោគជ័យ', 'Application approved successfully'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -265,11 +269,11 @@ router.post('/applications/:id/reject', async (req, res) => {
                 '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your scholarship application has been rejected.</p><p><strong>Reason:</strong> ' + (admin_remark || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', 'Application rejected');
+        req.flash('success', t(req, 'ពាក្យសុំត្រូវបានបដិសេធ', 'Application rejected'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -294,11 +298,11 @@ router.post('/applications/:id/correction', async (req, res) => {
                 '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application requires corrections. Please log in and review the notes below, then resubmit your application.</p><p><strong>Correction Notes:</strong> ' + (correction_notes || 'No specific notes') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', 'Correction requested');
+        req.flash('success', t(req, 'បានស្នើសុំការកែប្រែ', 'Correction requested'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -334,7 +338,7 @@ router.get('/majors', async (req, res) => {
         res.render('admin/majors', { title: 'Manage Majors', majors, currentPage: page, totalPages, totalRecords, filters: req.query });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -343,11 +347,11 @@ router.post('/majors', async (req, res) => {
     try {
         const { name_kh, name_en, faculty_kh, faculty_en } = req.body;
         await req.db.query('INSERT INTO majors (name_kh, name_en, faculty_kh, faculty_en) VALUES (?, ?, ?, ?)', [name_kh, name_en, faculty_kh, faculty_en]);
-        req.flash('success', 'Major added successfully');
+        req.flash('success', t(req, 'បានបន្ថែមជំនាញដោយជោគជ័យ', 'Major added successfully'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/majors');
     }
 });
@@ -356,11 +360,11 @@ router.post('/majors/:id/edit', async (req, res) => {
     try {
         const { name_kh, name_en, faculty_kh, faculty_en } = req.body;
         await req.db.query('UPDATE majors SET name_kh = ?, name_en = ?, faculty_kh = ?, faculty_en = ? WHERE id = ?', [name_kh, name_en, faculty_kh, faculty_en, req.params.id]);
-        req.flash('success', 'Major updated successfully');
+        req.flash('success', t(req, 'បានកែប្រែជំនាញដោយជោគជ័យ', 'Major updated successfully'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/majors');
     }
 });
@@ -368,11 +372,11 @@ router.post('/majors/:id/edit', async (req, res) => {
 router.post('/majors/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE majors SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Major status updated');
+        req.flash('success', t(req, 'បានកែប្រែស្ថានភាពជំនាញ', 'Major status updated'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/majors');
     }
 });
@@ -380,11 +384,11 @@ router.post('/majors/:id/toggle', async (req, res) => {
 router.post('/majors/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM majors WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Major deleted successfully');
+        req.flash('success', t(req, 'បានលុបជំនាញដោយជោគជ័យ', 'Major deleted successfully'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error deleting major');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការលុបជំនាញ', 'Error deleting major'));
         res.redirect('/admin/majors');
     }
 });
@@ -420,7 +424,7 @@ router.get('/provinces', async (req, res) => {
         res.render('admin/provinces', { title: 'Manage Provinces', provinces, currentPage: page, totalPages, totalRecords, filters: req.query });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -429,11 +433,11 @@ router.post('/provinces', async (req, res) => {
     try {
         const { name_kh, name_en } = req.body;
         await req.db.query('INSERT INTO provinces (name_kh, name_en) VALUES (?, ?)', [name_kh, name_en]);
-        req.flash('success', 'Province added successfully');
+        req.flash('success', t(req, 'បានបន្ថែមខេត្តដោយជោគជ័យ', 'Province added successfully'));
         res.redirect('/admin/provinces');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/provinces');
     }
 });
@@ -442,11 +446,11 @@ router.post('/provinces/:id/edit', async (req, res) => {
     try {
         const { name_kh, name_en } = req.body;
         await req.db.query('UPDATE provinces SET name_kh = ?, name_en = ? WHERE id = ?', [name_kh, name_en, req.params.id]);
-        req.flash('success', 'Province updated successfully');
+        req.flash('success', t(req, 'បានកែប្រែខេត្តដោយជោគជ័យ', 'Province updated successfully'));
         res.redirect('/admin/provinces');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/provinces');
     }
 });
@@ -454,11 +458,11 @@ router.post('/provinces/:id/edit', async (req, res) => {
 router.post('/provinces/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM provinces WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Province deleted successfully');
+        req.flash('success', t(req, 'បានលុបខេត្តដោយជោគជ័យ', 'Province deleted successfully'));
         res.redirect('/admin/provinces');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Cannot delete province that is being used');
+        req.flash('error', t(req, 'មិនអាចលុបខេត្តដែលកំពុងប្រើប្រាស់បានទេ', 'Cannot delete province that is being used'));
         res.redirect('/admin/provinces');
     }
 });
@@ -508,7 +512,7 @@ router.get('/users', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -520,11 +524,11 @@ router.post('/users/:id/reset-password', async (req, res) => {
         const newPassword = crypto.randomBytes(8).toString('hex');
         const hashedPassword = await bcrypt.hash(newPassword, 12);
         await req.db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.params.id]);
-        req.flash('success', 'Password has been reset. New password: ' + newPassword);
+        req.flash('success', t(req, 'ពាក្យសម្ងាត់បានកំណត់ឡើងវិញ។ ពាក្យសម្ងាត់ថ្មី៖ ' + newPassword, 'Password has been reset. New password: ' + newPassword));
         res.redirect('/admin/users');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/users');
     }
 });
@@ -533,15 +537,15 @@ router.post('/users/:id/delete', async (req, res) => {
     try {
         const [user] = await req.db.query('SELECT role FROM users WHERE id = ?', [req.params.id]);
         if (user[0] && user[0].role === 'admin') {
-            req.flash('error', 'Cannot delete admin user');
+            req.flash('error', t(req, 'មិនអាចលុបអ្នកគ្រប់គ្រងបានទេ', 'Cannot delete admin user'));
             return res.redirect('/admin/users');
         }
         await req.db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
-        req.flash('success', 'User deleted successfully');
+        req.flash('success', t(req, 'បានលុបអ្នកប្រើប្រាស់ដោយជោគជ័យ', 'User deleted successfully'));
         res.redirect('/admin/users');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/users');
     }
 });
@@ -577,7 +581,7 @@ router.get('/reports', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -615,7 +619,7 @@ router.get('/reports/export/excel', async (req, res) => {
         res.send(buf);
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Export error');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការនាំចេញ', 'Export error'));
         res.redirect('/admin/reports');
     }
 });
@@ -673,7 +677,7 @@ router.get('/reports/export/pdf', async (req, res) => {
         doc.end();
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Export error');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការនាំចេញ', 'Export error'));
         res.redirect('/admin/reports');
     }
 });
@@ -692,11 +696,11 @@ router.post('/notifications/send', async (req, res) => {
                 await req.db.query('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)', [app.user_id, 'Exam Schedule Notification', notificationMessage, 'exam_notification']);
             }
         }
-        req.flash('success', `Notification sent to ${approved.length} approved applicants`);
+        req.flash('success', t(req, `បានផ្ញើសារជូនដំណឹងដល់ ${approved.length} អ្នកដាក់ពាក្យដែលបានអនុម័ត`, `Notification sent to ${approved.length} approved applicants`));
         res.redirect('/admin/dashboard');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -709,38 +713,38 @@ router.get('/settings', async (req, res) => {
         res.render('admin/settings', { title: 'System Settings', settings });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
 
 router.post('/settings', async (req, res) => {
     try {
-        const { registration_open, registration_start, registration_end, enrollment_open, enrollment_start, enrollment_end } = req.body;
+        const { enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end } = req.body;
 
         const [rows] = await req.db.query('SELECT setting_key, setting_value FROM settings');
         const current = {};
         rows.forEach(row => { current[row.setting_key] = row.setting_value; });
 
-        const regOpen = registration_open !== undefined
-            ? (Array.isArray(registration_open) ? registration_open[registration_open.length - 1] : registration_open)
-            : current.registration_open || '0';
         const enrollOpen = enrollment_open !== undefined
             ? (Array.isArray(enrollment_open) ? enrollment_open[enrollment_open.length - 1] : enrollment_open)
             : current.enrollment_open || '0';
+        const scholOpen = scholarship_open !== undefined
+            ? (Array.isArray(scholarship_open) ? scholarship_open[scholarship_open.length - 1] : scholarship_open)
+            : current.scholarship_open || '0';
 
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [regOpen, 'registration_open']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_start !== undefined ? registration_start : (current.registration_start || ''), 'registration_start']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_end !== undefined ? registration_end : (current.registration_end || ''), 'registration_end']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollOpen, 'enrollment_open']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_start !== undefined ? enrollment_start : (current.enrollment_start || ''), 'enrollment_start']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_end !== undefined ? enrollment_end : (current.enrollment_end || ''), 'enrollment_end']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholOpen, 'scholarship_open']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_start !== undefined ? scholarship_start : (current.scholarship_start || ''), 'scholarship_start']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_end !== undefined ? scholarship_end : (current.scholarship_end || ''), 'scholarship_end']);
 
-        req.flash('success', 'Settings updated successfully');
+        req.flash('success', t(req, 'បានកែប្រែការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
         res.redirect('/admin/settings');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/settings');
     }
 });
@@ -792,7 +796,7 @@ router.get('/scholarship-types', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -804,11 +808,11 @@ router.post('/scholarship-types', async (req, res) => {
             'INSERT INTO scholarship_types (name_kh, name_en, coverage_percentage, duration_years, provider_name, description) VALUES (?, ?, ?, ?, ?, ?)',
             [name_kh, name_en || '', parseInt(coverage_percentage) || 0, parseInt(duration_years) || 1, provider_name, description || '']
         );
-        req.flash('success', 'Scholarship type added successfully');
+        req.flash('success', t(req, 'បានបន្ថែមប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type added successfully'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -820,11 +824,11 @@ router.post('/scholarship-types/:id/edit', async (req, res) => {
             'UPDATE scholarship_types SET name_kh = ?, name_en = ?, coverage_percentage = ?, duration_years = ?, provider_name = ?, description = ? WHERE id = ?',
             [name_kh, name_en || '', parseInt(coverage_percentage) || 0, parseInt(duration_years) || 1, provider_name, description || '', req.params.id]
         );
-        req.flash('success', 'Scholarship type updated successfully');
+        req.flash('success', t(req, 'បានកែប្រែប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type updated successfully'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -832,11 +836,11 @@ router.post('/scholarship-types/:id/edit', async (req, res) => {
 router.post('/scholarship-types/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE scholarship_types SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Scholarship type status updated');
+        req.flash('success', t(req, 'បានកែប្រែស្ថានភាពប្រភេទអាហារូបករណ៍', 'Scholarship type status updated'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Database error');
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -844,11 +848,11 @@ router.post('/scholarship-types/:id/toggle', async (req, res) => {
 router.post('/scholarship-types/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM scholarship_types WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Scholarship type deleted successfully');
+        req.flash('success', t(req, 'បានលុបប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type deleted successfully'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Cannot delete scholarship type that is being used');
+        req.flash('error', t(req, 'មិនអាចលុបប្រភេទអាហារូបករណ៍ដែលកំពុងប្រើប្រាស់បានទេ', 'Cannot delete scholarship type that is being used'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -900,7 +904,7 @@ router.get('/fee-types', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error loading fee types');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកប្រភេទថ្លៃ', 'Error loading fee types'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -912,11 +916,11 @@ router.post('/fee-types', async (req, res) => {
             'INSERT INTO fee_types (name_kh, name_en, amount, description) VALUES (?, ?, ?, ?)',
             [name_kh, name_en || '', parseFloat(amount) || 0, description || '']
         );
-        req.flash('success', 'Fee type added successfully');
+        req.flash('success', t(req, 'បានបន្ថែមប្រភេទថ្លៃដោយជោគជ័យ', 'Fee type added successfully'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error adding fee type');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបន្ថែមប្រភេទថ្លៃ', 'Error adding fee type'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -928,11 +932,11 @@ router.post('/fee-types/:id/edit', async (req, res) => {
             'UPDATE fee_types SET name_kh = ?, name_en = ?, amount = ?, description = ? WHERE id = ?',
             [name_kh, name_en || '', parseFloat(amount) || 0, description || '', req.params.id]
         );
-        req.flash('success', 'Fee type updated successfully');
+        req.flash('success', t(req, 'បានកែប្រែប្រភេទថ្លៃដោយជោគជ័យ', 'Fee type updated successfully'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error updating fee type');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែប្រែប្រភេទថ្លៃ', 'Error updating fee type'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -940,11 +944,11 @@ router.post('/fee-types/:id/edit', async (req, res) => {
 router.post('/fee-types/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE fee_types SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Fee type status updated');
+        req.flash('success', t(req, 'បានកែប្រែស្ថានភាពប្រភេទថ្លៃ', 'Fee type status updated'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error updating fee type');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែប្រែប្រភេទថ្លៃ', 'Error updating fee type'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -952,11 +956,11 @@ router.post('/fee-types/:id/toggle', async (req, res) => {
 router.post('/fee-types/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM fee_types WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Fee type deleted successfully');
+        req.flash('success', t(req, 'បានលុបប្រភេទថ្លៃដោយជោគជ័យ', 'Fee type deleted successfully'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Cannot delete fee type that is being used');
+        req.flash('error', t(req, 'មិនអាចលុបប្រភេទថ្លៃដែលកំពុងប្រើប្រាស់បានទេ', 'Cannot delete fee type that is being used'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -970,7 +974,7 @@ router.get('/enrollments', async (req, res) => {
         const offset = (page - 1) * limit;
         const { search, status, semester } = req.query;
 
-        let query = `SELECT e.*, u.username, u.email, u.khmer_name,
+        let query = `SELECT e.*, u.username, u.email, u.khmer_name, u.english_name, u.profile_pic,
             (SELECT COUNT(*) FROM payments WHERE enrollment_id = e.id AND status = 'verified') as verified_payments,
             (SELECT SUM(amount) FROM payments WHERE enrollment_id = e.id AND status = 'verified') as total_paid
             FROM enrollments e
@@ -982,11 +986,11 @@ router.get('/enrollments', async (req, res) => {
 
         if (search) {
             const s = '%' + search + '%';
-            const searchClause = ' AND (u.username LIKE ? OR u.email LIKE ? OR u.khmer_name LIKE ?)';
+            const searchClause = ' AND (u.username LIKE ? OR u.email LIKE ? OR u.khmer_name LIKE ? OR u.english_name LIKE ?)';
             query += searchClause;
             countQuery += searchClause;
-            params.push(s, s, s);
-            countParams.push(s, s, s);
+            params.push(s, s, s, s);
+            countParams.push(s, s, s, s);
         }
         if (status) {
             query += ' AND e.status = ?';
@@ -1029,8 +1033,47 @@ router.get('/enrollments', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error loading enrollments');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកការចុះឈ្មោះ', 'Error loading enrollments'));
         res.redirect('/admin/dashboard');
+    }
+});
+
+router.get('/enrollments/:id', async (req, res) => {
+    try {
+        const [rows] = await req.db.query(`
+            SELECT e.*, u.username, u.email, u.khmer_name, u.english_name, u.phone, u.profile_pic,
+                m.name_kh as major_name_kh, m.name_en as major_name_en,
+                sc.name_kh as category_name_kh, sc.name_en as category_name_en,
+                st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en, st.coverage_percentage as scholarship_percentage,
+                (SELECT SUM(amount) FROM payments WHERE enrollment_id = e.id AND status = 'verified') as total_paid
+            FROM enrollments e
+            JOIN users u ON e.user_id = u.id
+            LEFT JOIN applications a ON e.application_id = a.id
+            LEFT JOIN majors m ON a.major_first_choice_id = m.id
+            LEFT JOIN scholarship_categories sc ON a.scholarship_category_id = sc.id
+            LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
+            WHERE e.id = ?
+        `, [req.params.id]);
+
+        if (rows.length === 0) {
+            req.flash('error', t(req, 'រកមិនឃើញការចុះឈ្មោះ', 'Enrollment not found'));
+            return res.redirect('/admin/enrollments');
+        }
+
+        const [payments] = await req.db.query(
+            "SELECT p.*, ft.name_kh as fee_name_kh, ft.name_en as fee_name_en FROM payments p JOIN fee_types ft ON p.fee_type_id = ft.id WHERE p.enrollment_id = ? ORDER BY p.created_at DESC",
+            [req.params.id]
+        );
+
+        res.render('admin/enrollment-detail', {
+            title: 'Enrollment Detail',
+            enrollment: rows[0],
+            payments
+        });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកការចុះឈ្មោះ', 'Error loading enrollment'));
+        res.redirect('/admin/enrollments');
     }
 });
 
@@ -1040,11 +1083,11 @@ router.post('/enrollments/:id/approve', async (req, res) => {
             "UPDATE enrollments SET status = 'approved', admin_notes = ? WHERE id = ?",
             [req.body.notes || '', req.params.id]
         );
-        req.flash('success', 'Enrollment approved');
+        req.flash('success', t(req, 'ការចុះឈ្មោះត្រូវបានអនុម័ត', 'Enrollment approved'));
         res.redirect('/admin/enrollments');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error approving enrollment');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការអនុម័តការចុះឈ្មោះ', 'Error approving enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
@@ -1055,11 +1098,11 @@ router.post('/enrollments/:id/reject', async (req, res) => {
             "UPDATE enrollments SET status = 'rejected', admin_notes = ? WHERE id = ?",
             [req.body.notes || '', req.params.id]
         );
-        req.flash('success', 'Enrollment rejected');
+        req.flash('success', t(req, 'ការចុះឈ្មោះត្រូវបានបដិសេធ', 'Enrollment rejected'));
         res.redirect('/admin/enrollments');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error rejecting enrollment');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេ�ការចុះឈ្មោះ', 'Error rejecting enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
@@ -1073,7 +1116,7 @@ router.get('/payments', async (req, res) => {
         const offset = (page - 1) * limit;
         const { search, status } = req.query;
 
-        let query = `SELECT p.*, u.username, u.khmer_name, u.email, ft.name_kh as fee_name_kh, ft.name_en as fee_name_en,
+        let query = `SELECT p.*, u.username, u.khmer_name, u.english_name, u.profile_pic, u.email, ft.name_kh as fee_name_kh, ft.name_en as fee_name_en,
             e.academic_year, e.semester
             FROM payments p
             JOIN users u ON p.user_id = u.id
@@ -1089,11 +1132,11 @@ router.get('/payments', async (req, res) => {
 
         if (search) {
             const s = '%' + search + '%';
-            const searchClause = ' AND (u.username LIKE ? OR u.khmer_name LIKE ? OR p.transaction_ref LIKE ? OR ft.name_kh LIKE ?)';
+            const searchClause = ' AND (u.username LIKE ? OR u.khmer_name LIKE ? OR u.english_name LIKE ? OR p.transaction_ref LIKE ? OR ft.name_kh LIKE ?)';
             query += searchClause;
             countQuery += searchClause;
-            params.push(s, s, s, s);
-            countParams.push(s, s, s, s);
+            params.push(s, s, s, s, s);
+            countParams.push(s, s, s, s, s);
         }
         if (status) {
             query += ' AND p.status = ?';
@@ -1131,7 +1174,7 @@ router.get('/payments', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error loading payments');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកការទូទាត់', 'Error loading payments'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -1142,11 +1185,11 @@ router.post('/payments/:id/verify', async (req, res) => {
             "UPDATE payments SET status = 'verified', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
             [req.session.user.id, req.body.notes || '', req.params.id]
         );
-        req.flash('success', 'Payment verified');
+        req.flash('success', t(req, 'ការទូទាត់ត្រូវបានផ្ទៀងផ្ទាត់', 'Payment verified'));
         res.redirect('/admin/payments');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error verifying payment');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់ការទូទាត់', 'Error verifying payment'));
         res.redirect('/admin/payments');
     }
 });
@@ -1157,11 +1200,11 @@ router.post('/payments/:id/reject', async (req, res) => {
             "UPDATE payments SET status = 'rejected', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
             [req.session.user.id, req.body.notes || '', req.params.id]
         );
-        req.flash('success', 'Payment rejected');
+        req.flash('success', t(req, 'ការទូទាត់ត្រូវបានបដិសេធ', 'Payment rejected'));
         res.redirect('/admin/payments');
     } catch (err) {
         console.error(err);
-        req.flash('error', 'Error rejecting payment');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេ�ការទូទាត់', 'Error rejecting payment'));
         res.redirect('/admin/payments');
     }
 });
@@ -1186,7 +1229,7 @@ router.get('/major-tuition', async (req, res) => {
         });
     } catch (err) {
         console.error('Major tuition page error:', err);
-        req.flash('error', 'Error loading major tuition');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកថ្លៃសិក្សា', 'Error loading major tuition'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -1199,18 +1242,18 @@ router.post('/major-tuition', async (req, res) => {
             [major_id, academic_year]
         );
         if (existing.length > 0) {
-            req.flash('error', 'Tuition for this major and year already exists');
+            req.flash('error', t(req, 'ថ្លៃសិក្សាសម្រាប់ជំនាញនិងឆ្នាំនេះមានរួចហើយ', 'Tuition for this major and year already exists'));
             return res.redirect('/admin/major-tuition');
         }
         await req.db.query(
             'INSERT INTO major_tuition (major_id, academic_year, tuition_per_year) VALUES (?, ?, ?)',
             [major_id, academic_year, parseFloat(tuition_per_year) || 0]
         );
-        req.flash('success', 'Major tuition added successfully');
+        req.flash('success', t(req, 'បានបន្ថែមថ្លៃសិក្សាដោយជោគជ័យ', 'Major tuition added successfully'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Add major tuition error:', err);
-        req.flash('error', 'Error adding major tuition');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបន្ថែមថ្លៃសិក្សា', 'Error adding major tuition'));
         res.redirect('/admin/major-tuition');
     }
 });
@@ -1222,11 +1265,11 @@ router.post('/major-tuition/:id/edit', async (req, res) => {
             'UPDATE major_tuition SET tuition_per_year = ? WHERE id = ?',
             [parseFloat(tuition_per_year) || 0, req.params.id]
         );
-        req.flash('success', 'Major tuition updated successfully');
+        req.flash('success', t(req, 'បានកែប្រែថ្លៃសិក្សាដោយជោគជ័យ', 'Major tuition updated successfully'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Edit major tuition error:', err);
-        req.flash('error', 'Error updating major tuition');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែប្រែថ្លៃសិក្សា', 'Error updating major tuition'));
         res.redirect('/admin/major-tuition');
     }
 });
@@ -1234,11 +1277,11 @@ router.post('/major-tuition/:id/edit', async (req, res) => {
 router.post('/major-tuition/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE major_tuition SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Major tuition status updated');
+        req.flash('success', t(req, 'បានកែប្រែស្ថានភាពថ្លៃសិក្សា', 'Major tuition status updated'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Toggle major tuition error:', err);
-        req.flash('error', 'Error updating status');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែប្រែស្ថានភាព', 'Error updating status'));
         res.redirect('/admin/major-tuition');
     }
 });
@@ -1246,11 +1289,11 @@ router.post('/major-tuition/:id/toggle', async (req, res) => {
 router.post('/major-tuition/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM major_tuition WHERE id = ?', [req.params.id]);
-        req.flash('success', 'Major tuition deleted successfully');
+        req.flash('success', t(req, 'បានលុបថ្លៃសិក្សាដោយជោគជ័យ', 'Major tuition deleted successfully'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Delete major tuition error:', err);
-        req.flash('error', 'Error deleting major tuition');
+        req.flash('error', t(req, 'មានកំហុសក្នុងការលុបថ្លៃសិក្សា', 'Error deleting major tuition'));
         res.redirect('/admin/major-tuition');
     }
 });
