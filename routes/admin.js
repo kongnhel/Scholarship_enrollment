@@ -559,9 +559,10 @@ router.get('/reports', async (req, res) => {
              GROUP BY a.major_first_choice_id`
         );
         const [byCategory] = await req.db.query(
-            `SELECT c.name_kh, c.name_en, COUNT(a.id) as count
-             FROM applications a LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
-             GROUP BY a.scholarship_category_id`
+            `SELECT st.name_kh, st.name_en, COUNT(a.id) as count
+             FROM applications a LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
+             WHERE a.scholarship_type_id IS NOT NULL
+             GROUP BY a.scholarship_type_id`
         );
         const [byProvince] = await req.db.query(
             `SELECT p.name_kh, p.name_en, COUNT(a.id) as count
@@ -608,7 +609,7 @@ router.get('/reports/export/excel', async (req, res) => {
             Major: a.major || '',
             Category: a.category || '',
             Status: a.status,
-            'Submitted Date': a.submitted_at
+            'Submitted Date': a.submitted_at ? new Date(a.submitted_at).toLocaleDateString('en-GB') : ''
         }));
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(data);
