@@ -8,6 +8,7 @@ const { generateToken } = require('../utils/helpers');
 const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend, clearOTP } = require('../utils/otp');
 const telegramOtp = require('../services/otpSender');
 const { uploadToImageKit } = require('../utils/imagekit');
+const appConfig = require('../config/app');
 
 function t(req, km, en) {
   return req.session.lang === 'km' ? km : en;
@@ -138,7 +139,7 @@ router.post('/register', [
         'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
       );
-      const verificationUrl = `${req.protocol}://${req.get('host')}/auth/verify-email/${token}`;
+const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
       const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
         <p>Hello ${khmer_name || english_name},</p>
         <p>Thank you for registering with our scholarship system.</p>
@@ -221,7 +222,7 @@ router.post('/resend-email', [
       'UPDATE users SET verification_token = ?, token_expires_at = ? WHERE id = ?',
       [token, expires, user.id]
     );
-    const verificationUrl = `${req.protocol}://${req.get('host')}/auth/verify-email/${token}`;
+    const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
     await sendEmail(email, 'Resend Verification Link', `
       <p>Hello ${user.khmer_name || user.english_name},</p>
       <p>Here is your verification link:</p>
@@ -479,7 +480,7 @@ router.post('/forgot-password', async (req, res) => {
         pass: process.env.EMAIL_PASS
       }
     });
-    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
+    const resetUrl = `${appConfig.baseUrl}/auth/reset-password/${token}`;
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: user.email,
