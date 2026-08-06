@@ -1,7 +1,7 @@
 @echo off
 set MYSQL=C:\laragon\bin\mysql\mysql-9.7.0-winx64\bin\mysql.exe
 set DB=scholarship_system
-set DIR=E:\year 4\teacher_sovann\Scholarship_System\database
+set DIR=%~dp0database
 
 echo Creating database...
 %MYSQL% -u root -e "CREATE DATABASE IF NOT EXISTS scholarship_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"

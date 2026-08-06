@@ -8,7 +8,7 @@
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
 
-      <% if (showResendPanel) { %>
+      <% if (typeof showResendPanel !== 'undefined' && showResendPanel) { %>
         <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
           <div class="flex items-center gap-3">
             <i class="bi bi-info-circle text-amber-500 text-xl"></i>
@@ -28,7 +28,7 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល / ឈ្មោះអ្នកប្រើប្រាស់ / ទូរស័ព្ទ' : 'Email / Username / Phone' %> *</label>
           <div class="relative">
             <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="text" name="login_identifier" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឈ្មោះអ្នកប្រើប្រាស់ ឬទូរស័ព្ទ' : 'email, username, or phone' %>" value="<%= resendEmail %>" required>
+            <input type="text" name="login_identifier" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឈ្មោះអ្នកប្រើប្រាស់ ឬទូរស័ព្ទ' : 'email, username, or phone' %>" value="<%= typeof resendEmail !== 'undefined' ? resendEmail : '' %>" required>
           </div>
         </div>
         <div>

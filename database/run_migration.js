@@ -31,10 +31,6 @@ async function run() {
     await db.query("ALTER TABLE users ADD COLUMN otp_last_sent_at DATETIME NULL AFTER otp_attempts");
     console.log('- Added otp_last_sent_at column');
 
-    // Remove old email verification columns (ignore errors if columns don't exist)
-    try { await db.query("ALTER TABLE users DROP COLUMN verification_token"); console.log('- Dropped verification_token'); } catch(e) {}
-    try { await db.query("ALTER TABLE users DROP COLUMN token_expires_at"); console.log('- Dropped token_expires_at'); } catch(e) {}
-
     // Create pending Telegram sessions table
     await db.query(`
       CREATE TABLE IF NOT EXISTS telegram_pending (

@@ -5,6 +5,8 @@ const { uploadMultiple, upload } = require('../middleware/upload');
 const { sendEmail } = require('../config/mailer');
 const { generateKHQR, checkTransaction } = require('../config/bakong');
 const { uploadToImageKit } = require('../utils/imagekit');
+const { escapeHtml } = require('../utils/helpers');
+const rateLimit = require('express-rate-limit');
 
 function t(req, km, en) {
   return req.session.lang === 'km' ? km : en;
@@ -201,7 +203,7 @@ router.post('/application', uploadMultiple, async (req, res) => {
     await sendEmail(
       req.session.user.email,
       'Application Submitted - Scholarship Program',
-      '<p>Dear <strong>' + (req.session.user.khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application has been submitted successfully. We will review your application and notify you of any updates.</p><p>Application ID: <strong>' + result.insertId + '</strong></p><br><p>Best regards,<br>Scholarship Committee</p>'
+      '<p>Dear <strong>' + escapeHtml(req.session.user.khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application has been submitted successfully. We will review your application and notify you of any updates.</p><p>Application ID: <strong>' + result.insertId + '</strong></p><br><p>Best regards,<br>Scholarship Committee</p>'
     );
 
     req.flash('success', t(req, 'ពាក្យសុំត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Application submitted successfully'));
@@ -246,7 +248,7 @@ router.get('/application/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Application detail error:', error);
-    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -359,7 +361,7 @@ router.get('/status', async (req, res) => {
     });
   } catch (error) {
     console.error('Status page error:', error);
-    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -373,7 +375,7 @@ router.get('/notifications', async (req, res) => {
     res.render('student/notifications', { title: 'Notifications', notifications });
   } catch (error) {
     console.error('Notifications error:', error);
-    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -406,6 +408,16 @@ router.post('/notification/:id/read', async (req, res) => {
 
 // ==================== ENROLLMENT ====================
 
+function getCurrentAcademicYear() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  if (month >= 10) {
+    return `${year}-${year + 1}`;
+  }
+  return `${year - 1}-${year}`;
+}
+
 router.get('/enroll', async (req, res) => {
   try {
     const userId = req.session.user.id;
@@ -427,8 +439,8 @@ router.get('/enroll', async (req, res) => {
       [userId]
     );
     const [existingEnrollment] = await req.db.query(
-      "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = '2025-2026' ORDER BY id DESC LIMIT 1",
-      [userId]
+      "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = ? ORDER BY id DESC LIMIT 1",
+      [userId, getCurrentAcademicYear()]
     );
     const [feeTypes] = await req.db.query('SELECT * FROM fee_types WHERE is_active = 1 ORDER BY id ASC');
     const [payments] = await req.db.query(
@@ -444,12 +456,12 @@ router.get('/enroll', async (req, res) => {
       payments,
       enrollClosed,
       majors: (await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1 ORDER BY name_kh ASC'))[0],
-      majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = '2025-2026'"))[0],
+      majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = ?", [getCurrentAcademicYear()]))[0],
       scholarshipTypes: (await req.db.query('SELECT id, name_kh, name_en, coverage_percentage, ministry_fee, duration_years, provider_name FROM scholarship_types WHERE is_active = 1 ORDER BY coverage_percentage ASC'))[0]
     });
   } catch (error) {
     console.error('Enroll page error:', error);
-    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -476,6 +488,10 @@ router.post('/enroll', (req, res) => {
     try {
       if (err) {
         req.flash('error', t(req, err.message || 'ការផ្ទុករូបភាព', err.message || 'Photo upload error'));
+        return res.redirect('/student/enroll');
+      }
+      if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
+        req.flash('error', t(req, 'សិទ្ធិមិនត្រឹមត្រូវ', 'Invalid CSRF token'));
         return res.redirect('/student/enroll');
       }
       const userId = req.session.user.id;
@@ -600,7 +616,7 @@ router.get('/payments', async (req, res) => {
     });
   } catch (error) {
     console.error('Payments page error:', error);
-    req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }
 });
@@ -688,7 +704,15 @@ router.post('/payments/generate-qr', async (req, res) => {
   }
 });
 
-router.get('/payments/check-transaction/:md5', async (req, res) => {
+const transactionCheckLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 10,
+  message: 'Too many transaction checks, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+router.get('/payments/check-transaction/:md5', transactionCheckLimiter, async (req, res) => {
   try {
     const md5Hash = req.params.md5;
     const result = await checkTransaction(md5Hash);
@@ -717,6 +741,10 @@ router.post('/payments', (req, res) => {
         req.flash('error', t(req, err.message || 'ការជោ្នាយប្ន់លង់ការ', err.message || 'File upload error'));
         return res.redirect('/student/payments');
       }
+      if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
+        req.flash('error', t(req, 'សិទ្ធិមិនត្រឹមត្រូវ', 'Invalid CSRF token'));
+        return res.redirect('/student/payments');
+      }
       const userId = req.session.user.id;
       const { enrollment_id, fee_type_id, amount, payment_method, transaction_ref } = req.body;
       let proofPath = null;
@@ -733,7 +761,7 @@ router.post('/payments', (req, res) => {
       res.redirect('/student/payments');
     } catch (error) {
       console.error('Payment submit error:', error);
-      req.flash('error', t(req, 'ការប᝶្ដង់ង្មៃង', 'An error occurred'));
+      req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
       res.redirect('/student/payments');
     }
   });

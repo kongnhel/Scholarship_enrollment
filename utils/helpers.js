@@ -48,6 +48,16 @@ const truncate = (str, len = 50) => {
   return str.substring(0, len) + '...';
 };
 
+const escapeHtml = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 const generateToken = () => {
   return uuidv4();
 };
@@ -58,5 +68,6 @@ module.exports = {
   getStatusColor,
   getStatusText,
   truncate,
+  escapeHtml,
   generateToken
 };
