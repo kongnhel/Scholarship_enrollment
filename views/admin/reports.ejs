@@ -190,7 +190,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var statusLabels = [<% byStatus.forEach(function(s, i) { %>'<%= (s.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : s.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : s.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : s.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW') : (currentLang === 'km' ? 'កែប្រែ' : 'CORRECTION')).replace(/'/g, "\\'") %>'<%= i < byStatus.length - 1 ? ',' : '' %><% }); %>];
+  var statusLabels = [<% byStatus.forEach(function(s, i) { %>'<%= (s.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : s.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : s.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : s.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW') : (currentLang === 'km' ? 'កែប្រែ' : 'CORRECTION')) %>'<%= i < byStatus.length - 1 ? ',' : '' %><% }); %>];
   var statusCounts = [<% byStatus.forEach(function(s, i) { %><%= s.count %><%= i < byStatus.length - 1 ? ',' : '' %><% }); %>];
   new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusCounts, backgroundColor: ['#f59e0b', '#3b82f6', '#22c55e', '#ef4444', '#f97316'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '<%= currentLang === 'km' ? 'ស្ថានភាពពាក្យសុំ' : 'Application Status' %>', color: '#6b7280', font: { size: 14 } } } } });
 
@@ -198,11 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
   var genderCounts = [<% byGender.forEach(function(g, i) { %><%= g.count %><%= i < byGender.length - 1 ? ',' : '' %><% }); %>];
   new Chart(document.getElementById('genderChart'), { type: 'pie', data: { labels: genderLabels, datasets: [{ data: genderCounts, backgroundColor: ['#3b82f6', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '<%= currentLang === 'km' ? 'ពាក្យសុំតាមភេទ' : 'Applications by Gender' %>', color: '#6b7280', font: { size: 14 } } } } });
 
-  var majorLabels = [<% byMajor.forEach(function(m, i) { %>'<%= (currentLang === 'km' ? (m.name_kh || 'N/A') : (m.name_en || 'N/A')).replace(/'/g, "\\'") %>'<%= i < byMajor.length - 1 ? ',' : '' %><% }); %>];
+  var majorLabels = [<% byMajor.forEach(function(m, i) { %>'<%= (currentLang === 'km' ? (m.name_kh || 'N/A') : (m.name_en || 'N/A')) %>'<%= i < byMajor.length - 1 ? ',' : '' %><% }); %>];
   var majorCounts = [<% byMajor.forEach(function(m, i) { %><%= m.count %><%= i < byMajor.length - 1 ? ',' : '' %><% }); %>];
   new Chart(document.getElementById('majorChart'), { type: 'bar', data: { labels: majorLabels, datasets: [{ data: majorCounts, backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { display: false }, title: { display: true, text: '<%= currentLang === 'km' ? 'ពាក្យសុំតាមជំនាញ' : 'Applications by Major' %>', color: '#6b7280', font: { size: 14 } } }, scales: { y: { beginAtZero: true } } } });
 
-  var categoryLabels = [<% byCategory.forEach(function(c, i) { %>'<%= (currentLang === 'km' ? (c.name_kh || 'N/A') : (c.name_en || 'N/A')).replace(/'/g, "\\'") %>'<%= i < byCategory.length - 1 ? ',' : '' %><% }); %>];
+  var categoryLabels = [<% byCategory.forEach(function(c, i) { %>'<%= (currentLang === 'km' ? (c.name_kh || 'N/A') : (c.name_en || 'N/A')) %>'<%= i < byCategory.length - 1 ? ',' : '' %><% }); %>];
   var categoryCounts = [<% byCategory.forEach(function(c, i) { %><%= c.count %><%= i < byCategory.length - 1 ? ',' : '' %><% }); %>];
   new Chart(document.getElementById('categoryChart'), { type: 'bar', data: { labels: categoryLabels, datasets: [{ data: categoryCounts, backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { display: false }, title: { display: true, text: '<%= currentLang === 'km' ? 'ពាក្យសុំតាមប្រភេទ' : 'Applications by Category' %>', color: '#6b7280', font: { size: 14 } } }, scales: { y: { beginAtZero: true } } } });
 });

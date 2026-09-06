@@ -10,6 +10,7 @@ function t(req, km, en) {
   return req.session.lang === 'km' ? km : en;
 }
 const { sendEmail } = require('../config/mailer');
+const { escapeHtml } = require('../utils/helpers');
 
 router.use(isAuthenticated, isAdmin);
 
@@ -195,7 +196,7 @@ router.post('/applications/:id/under-review', async (req, res) => {
             await sendEmail(
                 current[0].email,
                 'Application Under Review - Scholarship Program',
-                '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application is now under review. We will notify you once a decision has been made.</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application is now under review. We will notify you once a decision has been made.</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ពាក្យសុំត្រូវបានកំណត់ជាកំពុងពិនិត្យ', 'Application marked as under review'));
@@ -231,15 +232,15 @@ router.post('/applications/:id/approve', async (req, res) => {
             let examHtml = '';
             if (exam_date || exam_time || exam_venue) {
                 examHtml = '<h3>Exam Details</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:10px">';
-                if (exam_date) examHtml += '<tr><td><strong>Date</strong></td><td>' + exam_date + '</td></tr>';
-                if (exam_time) examHtml += '<tr><td><strong>Time</strong></td><td>' + exam_time + '</td></tr>';
-                if (exam_venue) examHtml += '<tr><td><strong>Venue</strong></td><td>' + exam_venue + '</td></tr>';
+                if (exam_date) examHtml += '<tr><td><strong>Date</strong></td><td>' + escapeHtml(exam_date) + '</td></tr>';
+                if (exam_time) examHtml += '<tr><td><strong>Time</strong></td><td>' + escapeHtml(exam_time) + '</td></tr>';
+                if (exam_venue) examHtml += '<tr><td><strong>Venue</strong></td><td>' + escapeHtml(exam_venue) + '</td></tr>';
                 examHtml += '</table>';
             }
             await sendEmail(
                 current[0].email,
                 'Application Approved - Scholarship Program',
-                '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>Congratulations! Your scholarship application has been approved.</p>' + examHtml + '<br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Congratulations! Your scholarship application has been approved.</p>' + examHtml + '<br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ពាក្យសុំត្រូវបានអនុម័តដោយជោគជ័យ', 'Application approved successfully'));
@@ -268,7 +269,7 @@ router.post('/applications/:id/reject', async (req, res) => {
             await sendEmail(
                 current[0].email,
                 'Application Rejected - Scholarship Program',
-                '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your scholarship application has been rejected.</p><p><strong>Reason:</strong> ' + (admin_remark || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your scholarship application has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(admin_remark || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ពាក្យសុំត្រូវបានបដិសេធ', 'Application rejected'));
@@ -297,7 +298,7 @@ router.post('/applications/:id/correction', async (req, res) => {
             await sendEmail(
                 current[0].email,
                 'Correction Requested - Scholarship Application',
-                '<p>Dear <strong>' + (current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application requires corrections. Please log in and review the notes below, then resubmit your application.</p><p><strong>Correction Notes:</strong> ' + (correction_notes || 'No specific notes') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application requires corrections. Please log in and review the notes below, then resubmit your application.</p><p><strong>Correction Notes:</strong> ' + escapeHtml(correction_notes || 'No specific notes') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'បានស្នើសុំការកែប្រែ', 'Correction requested'));
@@ -723,23 +724,15 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
     try {
-        if (req.body.form_type === 'qr_upload') {
-            if (req.file) {
-                const r = await uploadToImageKit(req.file, 'settings');
-                await req.db.query("UPDATE settings SET setting_value = ? WHERE setting_key = ?", [r.url, 'payment_qr_path']);
-                req.flash('success', t(req, 'បានកែប្រែ QR Code ដោយជោគជ័យ', 'QR Code updated successfully'));
-            } else {
-                req.flash('error', t(req, 'សូមជ្រើសរើសរូបភាព', 'Please select an image'));
-            }
-            return res.redirect('/admin/settings');
-        }
-
-        const { enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end, registration_open, registration_start, registration_end } = req.body;
+        const { enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end } = req.body;
 
         const [rows] = await req.db.query('SELECT setting_key, setting_value FROM settings');
         const current = {};
         rows.forEach(row => { current[row.setting_key] = row.setting_value; });
 
+        const regOpen = registration_open !== undefined
+            ? (Array.isArray(registration_open) ? registration_open[registration_open.length - 1] : registration_open)
+            : current.registration_open || '0';
         const enrollOpen = enrollment_open !== undefined
             ? (Array.isArray(enrollment_open) ? enrollment_open[enrollment_open.length - 1] : enrollment_open)
             : current.enrollment_open || '0';
@@ -750,6 +743,9 @@ router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
             ? (Array.isArray(registration_open) ? registration_open[registration_open.length - 1] : registration_open)
             : current.registration_open || '0';
 
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [regOpen, 'registration_open']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_start !== undefined ? registration_start : (current.registration_start || ''), 'registration_start']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_end !== undefined ? registration_end : (current.registration_end || ''), 'registration_end']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollOpen, 'enrollment_open']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_start !== undefined ? enrollment_start : (current.enrollment_start || ''), 'enrollment_start']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_end !== undefined ? enrollment_end : (current.enrollment_end || ''), 'enrollment_end']);
@@ -1122,7 +1118,7 @@ router.post('/enrollments/:id/reject', async (req, res) => {
         res.redirect('/admin/enrollments');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេ�ការចុះឈ្មោះ', 'Error rejecting enrollment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេធការចុះឈ្មោះ', 'Error rejecting enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
@@ -1224,7 +1220,7 @@ router.post('/payments/:id/reject', async (req, res) => {
         res.redirect('/admin/payments');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេ�ការទូទាត់', 'Error rejecting payment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេធការទូទាត់', 'Error rejecting payment'));
         res.redirect('/admin/payments');
     }
 });

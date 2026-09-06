@@ -59,7 +59,7 @@
         <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3"><%= currentLang === 'km' ? 'វិធីសាស្ត្រផ្ទៀតផ្ទាត់' : 'Verification Method' %> *</label>
           <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all <%= currentLang === 'km' ? '' : '' %>verify-email-border" id="verifyEmailLabel">
+            <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all verify-email-border" id="verifyEmailLabel">
               <input type="radio" name="verify_method" value="email" checked class="w-4 h-4 text-green-600" onchange="updateVerifyMethod('email')">
               <div class="flex items-center gap-2">
                 <i class="bi bi-envelope text-green-600 dark:text-green-400 text-lg"></i>

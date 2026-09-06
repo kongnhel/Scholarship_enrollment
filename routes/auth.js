@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const { sendEmail } = require('../config/mailer');
 const { body, validationResult } = require('express-validator');
-const { generateToken } = require('../utils/helpers');
+const { generateToken, escapeHtml } = require('../utils/helpers');
 const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend, clearOTP } = require('../utils/otp');
 const telegramOtp = require('../services/otpSender');
 const { uploadToImageKit } = require('../utils/imagekit');
@@ -141,7 +140,7 @@ router.post('/register', [
       );
 const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
       const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
-        <p>Hello ${khmer_name || english_name},</p>
+        <p>Hello ${escapeHtml(khmer_name || english_name)},</p>
         <p>Thank you for registering with our scholarship system.</p>
         <p>Please click the link below to verify your email address:</p>
         <a href="${verificationUrl}">${verificationUrl}</a>
@@ -151,7 +150,7 @@ const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
       if (emailSent) {
         req.flash('success', t(req, 'ការចុះឈ្មោះជោគជ័យ! សូមពិនិត្យមើលអ៊ីមែលរបស់អ្នកដើម្បីផ្ទៀងផ្ទាត់។', 'Registration successful! Please check your email to verify your account.'));
       } else {
-        req.flash('error', t(req, 'ការចុះឈ្មោះជោគជ័យ ប៉ុន្ត�មិនអាចផ្ញើអ៊ីមែលផ្ទៀងផ្ទាត់បានទេ។', 'Registration successful but failed to send verification email.'));
+        req.flash('error', t(req, 'ការចុះឈ្មោះជោគជ័យ ប៉ុន្តែមិនអាចផ្ញើអ៊ីមែលផ្ទៀងផ្ទាត់បានទេ។', 'Registration successful but failed to send verification email.'));
       }
       return res.redirect('/auth/login');
     } else {
@@ -167,7 +166,7 @@ const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
         return res.redirect('/auth/verify-otp?userId=' + userId);
       } catch (otpError) {
         console.error('Telegram OTP send error:', otpError);
-        req.flash('error', t(req, 'ការចុះឈ្មោះជោគជ័យ ប៉ុន្ត�មិនអាចផ្ញើ OTP បានទេ។ សូមព្យាយាមផ្ញើឡើងវិញ។', 'Registration successful but failed to send OTP. Please try to resend from verification page.'));
+        req.flash('error', t(req, 'ការចុះឈ្មោះជោគជ័យ ប៉ុន្តែមិនអាចផ្ញើ OTP បានទេ។ សូមព្យាយាមផ្ញើឡើងវិញ។', 'Registration successful but failed to send OTP. Please try to resend from verification page.'));
         return res.redirect('/auth/verify-otp?userId=' + userId);
       }
     }
@@ -224,7 +223,7 @@ router.post('/resend-email', [
     );
     const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
     await sendEmail(email, 'Resend Verification Link', `
-      <p>Hello ${user.khmer_name || user.english_name},</p>
+      <p>Hello ${escapeHtml(user.khmer_name || user.english_name)},</p>
       <p>Here is your verification link:</p>
       <a href="${verificationUrl}">${verificationUrl}</a>
       <p>This link will expire in 1 hour.</p>
@@ -371,8 +370,6 @@ router.post('/resend-otp', async (req, res) => {
     if (method === 'telegram') {
       try {
         await telegramOtp.sendOTP(user.phone);
-        const code = telegramOtp.generateOTP();
-        await storeOTP(req.db, userId, code);
         req.flash('success', t(req, 'បានផ្ញើ OTP ថ្មីទៅ Telegram របស់អ្នក។', 'New OTP sent to your Telegram.'));
       } catch (otpError) {
         console.error('Telegram resend error:', otpError);
@@ -381,7 +378,7 @@ router.post('/resend-otp', async (req, res) => {
     } else {
       const code = generateOTP();
       await storeOTP(req.db, userId, code);
-      const emailUser = await req.db.query('SELECT email FROM users WHERE id = ?', [userId]);
+      const [emailUser] = await req.db.query('SELECT email FROM users WHERE id = ?', [userId]);
       if (emailUser.length > 0) {
         await sendEmail(emailUser[0].email, 'Your Verification Code', `
           <p>Your verification code is: <strong>${code}</strong></p>
@@ -471,22 +468,12 @@ router.post('/forgot-password', async (req, res) => {
       'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
       [token, expires, user.id]
     );
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
     const resetUrl = `${appConfig.baseUrl}/auth/reset-password/${token}`;
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: 'Password Reset Request',
-      html: `<p>Click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a><p>This link expires in 1 hour.</p>`
-    });
+    await sendEmail(user.email, 'Password Reset Request', `
+      <p>Click the link below to reset your password:</p>
+      <a href="${resetUrl}">${resetUrl}</a>
+      <p>This link expires in 1 hour.</p>
+    `);
     req.flash('success', t(req, 'ប្រសិនបើអ៊ីមែលមាន តំណកំណត់ឡើងវិញត្រូវបានផ្ញើហើយ', 'If the email exists, a reset link has been sent'));
     return res.redirect('/auth/forgot-password');
   } catch (error) {

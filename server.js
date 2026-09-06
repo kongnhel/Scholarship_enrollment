@@ -11,6 +11,13 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const { initBot } = require('./config/telegram');
 
+process.on('unhandledRejection', (err) => {
+  if (err && err.message === 'TIMEOUT' && err.stack && err.stack.includes('updates.js')) {
+    return;
+  }
+  console.error('Unhandled rejection:', err);
+});
+
 const app = express();
 
 app.set('trust proxy', 1);
@@ -41,7 +48,11 @@ app.use(helmet({
 app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!require('fs').existsSync(uploadsDir)) {
+  require('fs').mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 
 const db = require('./config/database');
 
@@ -93,9 +104,18 @@ const authLimiter = rateLimit({
 });
 
 app.use('/auth', authLimiter, authRoutes);
-app.use('/student', studentRoutes);
-app.use('/admin', adminRoutes);
-app.use('/committee', committeeRoutes);
+
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.method === 'GET'
+});
+
+app.use('/student', generalLimiter, studentRoutes);
+app.use('/admin', generalLimiter, adminRoutes);
+app.use('/committee', generalLimiter, committeeRoutes);
 
 app.get('/', async (req, res) => {
   try {
@@ -129,8 +149,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const autoSetup = require('./database/auto_setup');
 
-db.query('SELECT 1')
+autoSetup()
+  .then(() => db.query('SELECT 1'))
   .then(() => {
     console.log('Database connected successfully');
     app.listen(PORT, () => {
@@ -138,7 +160,7 @@ db.query('SELECT 1')
     });
   })
   .catch((err) => {
-    console.error('Database connection failed:', err.message);
+    console.error('Startup failed:', err.message);
     process.exit(1);
   });
 

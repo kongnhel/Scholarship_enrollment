@@ -27,17 +27,17 @@ const verifyOTP = async (db, userId, code) => {
   );
 
   if (users.length === 0) {
-    return { success: false, message: 'User not found' };
+    return { success: false, message: 'not_found', messageText: 'User not found' };
   }
 
   const user = users[0];
 
   if (user.is_verified) {
-    return { success: true, message: 'Already verified' };
+    return { success: true, message: 'already_verified', messageText: 'Already verified' };
   }
 
   if (!user.otp_code || !user.otp_expires_at) {
-    return { success: false, message: 'No verification code found. Please request a new one.' };
+    return { success: false, message: 'no_code', messageText: 'No verification code found. Please request a new one.' };
   }
 
   if (new Date(user.otp_expires_at) < new Date()) {
@@ -58,7 +58,7 @@ const verifyOTP = async (db, userId, code) => {
     'UPDATE users SET is_verified = 1, otp_code = NULL, otp_expires_at = NULL, otp_attempts = 0 WHERE id = ?',
     [userId]
   );
-  return { success: true, message: 'verified' };
+  return { success: true, message: 'verified', messageText: 'Verification successful' };
 };
 
 const canResend = async (db, userId) => {

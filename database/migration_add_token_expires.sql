@@ -1,5 +1,7 @@
 -- Email Verification: Add token_expires_at column
--- Run this if your database already exists and you need to add the new column
+-- Run this ONLY if your database already exists from a previous schema
+-- that did NOT include token_expires_at. Skip if using the latest schema.sql.
+-- NOTE: This will error if the column already exists, which is safe to ignore.
 
 ALTER TABLE users ADD COLUMN token_expires_at DATETIME AFTER verification_token;
 

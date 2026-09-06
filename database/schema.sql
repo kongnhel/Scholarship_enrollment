@@ -51,6 +51,22 @@ CREATE TABLE provinces (
     name_en VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE scholarship_types (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name_kh VARCHAR(500) NOT NULL,
+    name_en VARCHAR(500),
+    coverage_percentage INT NOT NULL DEFAULT 0,
+    duration_years INT NOT NULL DEFAULT 1,
+    provider_name VARCHAR(500) NOT NULL,
+    description TEXT,
+    ministry_fee DECIMAL(10,2) DEFAULT 0,
+    is_active TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_scholarship_types_active (is_active),
+    INDEX idx_scholarship_types_provider (provider_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE applications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -78,6 +94,7 @@ CREATE TABLE applications (
     major_first_choice_id INT,
     major_second_choice_id INT,
     scholarship_category_id INT,
+    scholarship_type_id INT,
     photo_path VARCHAR(500),
     transcript_path VARCHAR(500),
     national_id_path VARCHAR(500),
@@ -94,13 +111,15 @@ CREATE TABLE applications (
     FOREIGN KEY (major_first_choice_id) REFERENCES majors(id) ON DELETE SET NULL,
     FOREIGN KEY (major_second_choice_id) REFERENCES majors(id) ON DELETE SET NULL,
     FOREIGN KEY (scholarship_category_id) REFERENCES scholarship_categories(id) ON DELETE SET NULL,
+    FOREIGN KEY (scholarship_type_id) REFERENCES scholarship_types(id) ON DELETE SET NULL,
     INDEX idx_applications_user_id (user_id),
     INDEX idx_applications_status (status),
     INDEX idx_applications_submitted_at (submitted_at),
     INDEX idx_applications_school_province (school_province_id),
     INDEX idx_applications_major_first (major_first_choice_id),
     INDEX idx_applications_major_second (major_second_choice_id),
-    INDEX idx_applications_scholarship_category (scholarship_category_id)
+    INDEX idx_applications_scholarship_category (scholarship_category_id),
+    INDEX idx_applications_scholarship_type (scholarship_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE application_status_history (

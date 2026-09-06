@@ -56,13 +56,16 @@ const sendOTP = async (phoneNumber) => {
     autoReconnect: false,
   });
 
+  let connectTimeoutId;
   const connectTimeout = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Connection timeout')), 15000);
+    connectTimeoutId = setTimeout(() => reject(new Error('Connection timeout')), 15000);
   });
 
   try {
     await Promise.race([client.connect(), connectTimeout]);
+    clearTimeout(connectTimeoutId);
   } catch (e) {
+    clearTimeout(connectTimeoutId);
     console.error('Telegram connect error:', e.message);
     throw new Error('Cannot connect to Telegram servers. Please try again later.');
   }

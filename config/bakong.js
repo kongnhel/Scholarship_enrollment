@@ -1,5 +1,6 @@
 const { BakongKHQR, khqrData, MerchantInfo } = require('bakong-khqr');
 const QRCode = require('qrcode');
+const axios = require('axios');
 
 const BAKONG_API_URL = process.env.BAKONG_API_URL || 'https://sit-api-bakong.nbc.org.kh';
 const BAKONG_API_TOKEN = process.env.BAKONG_API_TOKEN || '';
@@ -63,16 +64,17 @@ async function generateKHQR({ amount, currency = 'khr', billNumber, mobileNumber
  */
 async function checkTransaction(md5Hash) {
   try {
-    const response = await fetch(`${BAKONG_API_URL}/v1/check_transaction_by_md5`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${BAKONG_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ md5: md5Hash })
-    });
+    const response = await axios.post(`${BAKONG_API_URL}/v1/check_transaction_by_md5`,
+      { md5: md5Hash },
+      {
+        headers: {
+          'Authorization': `Bearer ${BAKONG_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    const result = await response.json();
+    const result = response.data;
 
     if (result.responseCode === 0) {
       return { success: true, status: 'success', data: result.data || result };
