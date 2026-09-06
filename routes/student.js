@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isStudent } = require('../middleware/auth');
-const { uploadMultiple, upload } = require('../middleware/upload');
+const { uploadMultiple, upload, uploadEnrollmentDocs } = require('../middleware/upload');
 const { sendEmail } = require('../config/mailer');
 const { generateKHQR, checkTransaction } = require('../config/bakong');
 const { uploadToImageKit } = require('../utils/imagekit');
@@ -406,6 +406,12 @@ router.post('/notification/:id/read', async (req, res) => {
 
 // ==================== ENROLLMENT ====================
 
+router.get('/enroll-success', async (req, res) => {
+  const [rows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
+  const qrPath = rows.length > 0 ? rows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
+  res.render('student/enroll-success', { title: 'Enrollment Success', qrPath });
+});
+
 router.get('/enroll', async (req, res) => {
   try {
     const userId = req.session.user.id;
@@ -427,7 +433,7 @@ router.get('/enroll', async (req, res) => {
       [userId]
     );
     const [existingEnrollment] = await req.db.query(
-      "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = '2025-2026' ORDER BY id DESC LIMIT 1",
+      "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = '2026-2027' ORDER BY id DESC LIMIT 1",
       [userId]
     );
     const [feeTypes] = await req.db.query('SELECT * FROM fee_types WHERE is_active = 1 ORDER BY id ASC');
@@ -444,7 +450,7 @@ router.get('/enroll', async (req, res) => {
       payments,
       enrollClosed,
       majors: (await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1 ORDER BY name_kh ASC'))[0],
-      majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = '2025-2026'"))[0],
+      majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = '2026-2027'"))[0],
       scholarshipTypes: (await req.db.query('SELECT id, name_kh, name_en, coverage_percentage, ministry_fee, duration_years, provider_name FROM scholarship_types WHERE is_active = 1 ORDER BY coverage_percentage ASC'))[0]
     });
   } catch (error) {
@@ -471,73 +477,107 @@ router.get('/enroll/tuition/:majorId', async (req, res) => {
   }
 });
 
-router.post('/enroll', (req, res) => {
-  enrollPhotoUpload(req, res, async (err) => {
-    try {
-      if (err) {
-        req.flash('error', t(req, err.message || 'ការផ្ទុករូបភាព', err.message || 'Photo upload error'));
-        return res.redirect('/student/enroll');
+router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const {
+      khmer_name, english_name,
+      gender, date_of_birth, place_of_birth,
+      village, commune, district, province,
+      father_name, mother_name, occupation, education_level,
+      phone, guardian_phone,
+      exam_session, overall_grade, high_school, high_school_province, exam_center,
+      education_level_enroll, major_choice, study_schedule, study_shift,
+      doc_transcript, doc_birth_cert, doc_photo_4x6, doc_photo_3x4,
+      additional_info, confirmation
+    } = req.body;
+
+    const academic_year = '2026-2027';
+    const semester = '1';
+
+    const [existing] = await req.db.query(
+      "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = ? AND semester = ?",
+      [userId, academic_year, semester]
+    );
+    if (existing.length > 0) {
+      req.flash('error', t(req, 'បានចុះឈ្មោះរួចហើយសម្រាប់ឆ្នាំសិក្សានេះ', 'Already enrolled for this semester'));
+      return res.redirect('/student/enroll');
+    }
+
+    const documents = [];
+    let doc_transcript_path = null;
+    let doc_birth_cert_path = null;
+    let doc_photo_4x6_path = null;
+    let doc_photo_3x4_path = null;
+
+    if (doc_transcript) {
+      documents.push('transcript');
+      if (req.files && req.files.doc_transcript_file && req.files.doc_transcript_file[0]) {
+        const r = await uploadToImageKit(req.files.doc_transcript_file[0], 'enrollment');
+        doc_transcript_path = r.url;
       }
-      const userId = req.session.user.id;
-      const {
-        academic_year, semester,
+    }
+    if (doc_birth_cert) {
+      documents.push('birth_cert');
+      if (req.files && req.files.doc_birth_cert_file && req.files.doc_birth_cert_file[0]) {
+        const r = await uploadToImageKit(req.files.doc_birth_cert_file[0], 'enrollment');
+        doc_birth_cert_path = r.url;
+      }
+    }
+    if (doc_photo_4x6) {
+      documents.push('photo_4x6');
+      if (req.files && req.files.doc_photo_4x6_file && req.files.doc_photo_4x6_file[0]) {
+        const r = await uploadToImageKit(req.files.doc_photo_4x6_file[0], 'enrollment');
+        doc_photo_4x6_path = r.url;
+      }
+    }
+    if (doc_photo_3x4) {
+      documents.push('photo_3x4');
+      if (req.files && req.files.doc_photo_3x4_file && req.files.doc_photo_3x4_file[0]) {
+        const r = await uploadToImageKit(req.files.doc_photo_3x4_file[0], 'enrollment');
+        doc_photo_3x4_path = r.url;
+      }
+    }
+
+    await req.db.query(
+      `INSERT INTO enrollments (
+        user_id, academic_year, semester, status,
         khmer_first_name, khmer_last_name, english_first_name, english_last_name,
         gender, date_of_birth, place_of_birth, phone,
-        current_address, province, district, commune,
-        parent_name, parent_phone, parent_relationship,
-        previous_school, previous_diploma, diploma_year, major, major_choice,
-        bank_name, scholarship_category_id
-      } = req.body;
-
-      const [existing] = await req.db.query(
-        "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = ? AND semester = ?",
-        [userId, academic_year, semester]
-      );
-      if (existing.length > 0) {
-        req.flash('error', t(req, 'បានចុះឈ្មោះរួចហើយសម្រាប់ឆ្នាំសិក្សានេះ', 'Already enrolled for this semester'));
-        return res.redirect('/student/enroll');
-      }
-
-      let photoPath = null;
-      if (req.file) {
-        const r = await uploadToImageKit(req.file, 'enrollment');
-        photoPath = r.url;
-      }
-
-      await req.db.query(
-        `INSERT INTO enrollments (
-          user_id, academic_year, semester, status,
-          khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-          gender, date_of_birth, place_of_birth, phone,
-          current_address, province, district, commune,
-          parent_name, parent_phone, parent_relationship,
-          previous_school, previous_diploma, diploma_year, major, major_choice,
-          scholarship_category_id, bank_name, photo_path
-        ) VALUES (?, ?, ?, ?,
-          ?, ?, ?, ?,
-          ?, ?, ?, ?,
-          ?, ?, ?, ?,
-          ?, ?, ?,
-          ?, ?, ?, ?, ?,
-          ?, ?, ?)`,
-        [
-          userId, academic_year, semester, 'pending',
-          khmer_first_name || null, khmer_last_name || null, english_first_name || null, english_last_name || null,
-          gender || null, date_of_birth || null, place_of_birth || null, phone || null,
-          current_address || null, province || null, district || null, commune || null,
-          parent_name || null, parent_phone || null, parent_relationship || null,
-          previous_school || null, previous_diploma || null, diploma_year || null, major || null, major_choice || null,
-          scholarship_category_id || null, bank_name || null, photoPath
-        ]
-      );
+        village, current_address, province, district, commune,
+        father_name, mother_name, occupation, education_level, guardian_phone,
+        exam_session, overall_grade, high_school, high_school_province, exam_center,
+        education_level_enroll, major_choice, study_schedule, study_shift,
+        documents_checklist, additional_info, confirmation,
+        doc_transcript_path, doc_birth_cert_path, doc_photo_4x6_path, doc_photo_3x4_path
+      ) VALUES (?, ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, ?,
+        ?, ?, ?, ?)`,
+      [
+        userId, academic_year, semester, 'pending',
+        khmer_name || null, null, english_name || null, null,
+        gender || null, date_of_birth || null, place_of_birth || null, phone || null,
+        village || null, null, province || null, district || null, commune || null,
+        father_name || null, mother_name || null, occupation || null, education_level || null, guardian_phone || null,
+        exam_session || null, overall_grade || null, high_school || null, high_school_province || null, exam_center || null,
+        education_level_enroll || null, major_choice || null, study_schedule || null, study_shift || null,
+        documents.length > 0 ? documents.join(',') : null, additional_info || null, confirmation ? 1 : 0,
+        doc_transcript_path, doc_birth_cert_path, doc_photo_4x6_path, doc_photo_3x4_path
+      ]
+    );
       req.flash('success', t(req, 'ការចុះឈ្មោះត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Enrollment submitted successfully'));
-      res.redirect('/student/enroll');
-    } catch (error) {
-      console.error('Enroll error:', error);
-      req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
-      res.redirect('/student/enroll');
-    }
-  });
+      res.redirect('/student/enroll-success');
+  } catch (error) {
+    console.error('Enroll error:', error);
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+    res.redirect('/student/enroll');
+  }
 });
 
 // ==================== PAYMENTS ====================
@@ -566,8 +606,8 @@ router.get('/payments', async (req, res) => {
     const [enrollmentForTuition] = await req.db.query(
       `SELECT e.major_choice, e.scholarship_category_id, mt.tuition_per_year, m.name_kh as major_name_kh, m.name_en as major_name_en
        FROM enrollments e
-       LEFT JOIN major_tuition mt ON e.major_choice = mt.major_id AND mt.is_active = 1
-       LEFT JOIN majors m ON e.major_choice = m.id
+       LEFT JOIN majors m ON e.major_choice = m.name_kh
+       LEFT JOIN major_tuition mt ON mt.major_id = m.id AND mt.is_active = 1
        WHERE e.user_id = ? ORDER BY e.id DESC LIMIT 1`,
       [userId]
     );
@@ -587,6 +627,8 @@ router.get('/payments', async (req, res) => {
       }
     }
     const totalDue = tuition;
+    const [qrRows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
+    const qrPath = qrRows.length > 0 ? qrRows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
     res.render('student/payments', {
       title: 'My Payments',
       enrollments,
@@ -596,7 +638,8 @@ router.get('/payments', async (req, res) => {
       totalDue,
       yearlyTuition: tuition,
       majorName,
-      scholarshipName
+      scholarshipName,
+      qrPath
     });
   } catch (error) {
     console.error('Payments page error:', error);

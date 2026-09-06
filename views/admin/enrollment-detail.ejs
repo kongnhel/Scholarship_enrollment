@@ -5,8 +5,8 @@
         <i class="bi bi-arrow-left text-gray-600 dark:text-gray-300"></i>
       </a>
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានការចុះឈ្មោះ' : 'Enrollment Detail' %></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">#<%= enrollment.id %></p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះចូលរៀន' : 'Enrollment Application' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">#<%= enrollment.id %> - <%= currentLang === 'km' ? 'ជំនាន់ទី២០' : 'Generation 20' %></p>
       </div>
     </div>
     <button onclick="window.print()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all flex items-center gap-2">
@@ -19,39 +19,223 @@
       <h5 class="font-bold flex items-center gap-2"><i class="bi bi-person-badge"></i><%= currentLang === 'km' ? 'ព័ត៌មាននិស្សិត' : 'Student Information' %></h5>
     </div>
     <div class="p-6">
-      <div class="flex items-start gap-6">
-        <% if (enrollment.profile_pic) { %>
-          <img src="<%= enrollment.profile_pic %>" alt="" class="w-24 h-24 rounded-xl object-cover shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
-        <% } else { %>
-          <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-3xl shadow-sm">
-            <%= (enrollment.english_name || 'U').charAt(0).toUpperCase() %>
-          </div>
-        <% } %>
-        <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %></label>
-            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.khmer_name || 'N/A' %></p>
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %></label>
-            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.english_name || 'N/A' %></p>
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %></label>
-            <p class="text-sm text-gray-700 dark:text-gray-200"><%= enrollment.email || 'N/A' %></p>
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></label>
-            <p class="text-sm text-gray-700 dark:text-gray-200"><%= enrollment.phone || 'N/A' %></p>
-          </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២. គោត្តនាម និងនាម - ជាអក្សរខ្មែរ' : '2. Full Name in Khmer' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.khmer_first_name || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៣. Full Name in English / Latin' : '3. Full Name in English / Latin' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.english_first_name || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៤. ភេទ' : '4. Gender' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : enrollment.gender === 'female' ? (currentLang === 'km' ? 'ស្រី' : 'Female') : 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៥. ថ្ងៃ ខែ ឆ្នាំកំណើត' : '5. Date of Birth' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.date_of_birth ? new Date(enrollment.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A' %></p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៦. ទីកន្លែងកំណើត' : '6. Place of Birth' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.place_of_birth || 'N/A' %></p>
         </div>
       </div>
     </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-geo-alt"></i><%= currentLang === 'km' ? 'អាសយដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %></h5>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៧. ភូមិ' : '7. Village' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.village || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៨. ឃុំ / សង្កាត់' : '8. Commune / Sangkat' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.commune || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '៩. ស្រុក / ក្រុង / ខណ្ឌ' : '9. District / City / Khan' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.district || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១០. ខេត្ត / រាជធានី' : '10. Province / City' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.province || 'N/A' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-people"></i><%= currentLang === 'km' ? 'ព័ត៌មានគ្រួសារ' : 'Family Information' %></h5>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១១. ឈ្មោះឪពុក' : '11. Father\'s Name' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.father_name || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១២. ឈ្មោះម្តាយ' : '12. Mother\'s Name' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.mother_name || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៣. មុខរបរសព្វថ្ងៃរបស់បេក្ខជន' : '13. Current Occupation' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.occupation || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៤. កម្រិតវប្បធម៌' : '14. Education Level' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.education_level || 'N/A' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-amber-600 to-orange-500 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-telephone"></i><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></h5>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៥. លេខទូរស័ព្ទសាមីខ្លួន' : '15. Personal Phone Number' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.phone || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៦. លេខទូរស័ព្ទអាណាព្យាបាល' : '16. Guardian Phone Number' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.guardian_phone || 'N/A' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-book"></i><%= currentLang === 'km' ? 'II. ព័ត៌មានអំពីប្រវត្តិសិក្សា' : 'II. Education History' %></h5>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៧. សម័យប្រឡងមធ្យមសិក្សាទុតិយភូមិ' : '17. High School Exam Session' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.exam_session || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៨. និទ្ទេសរួម' : '18. Overall Grade' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.overall_grade || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '១៩. មកពីវិទ្យាល័យ' : '19. High School Name' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.high_school || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២០. ខេត្ត / រាជធានីរបស់វិទ្យាល័យ' : '20. High School Province / City' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.high_school_province || 'N/A' %></p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២១. មណ្ឌលប្រឡង' : '21. Exam Center' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.exam_center || 'N/A' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-indigo-500 to-violet-600 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-mortarboard"></i><%= currentLang === 'km' ? 'III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន' : 'III. Enrollment Information' %></h5>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២២. កម្រិតសិក្សា' : '22. Education Level' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.education_level_enroll || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២៣. មុខជំនាញដែលចង់សិក្សា' : '23. Major to Study' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.major_choice || 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២៤. ពេលសិក្សា' : '24. Study Schedule' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.study_schedule === 'mon_fri' ? (currentLang === 'km' ? 'ចន្ទ - សុក្រ' : 'Monday - Friday') : enrollment.study_schedule === 'sat_sun' ? (currentLang === 'km' ? 'សៅរ៍ - អាទិត្យ' : 'Saturday - Sunday') : 'N/A' %></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២៥. វេនសិក្សា' : '25. Study Shift' %></label>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.study_shift === 'morning' ? (currentLang === 'km' ? 'ព្រឹក' : 'Morning') : enrollment.study_shift === 'afternoon' ? (currentLang === 'km' ? 'រសៀល' : 'Afternoon') : enrollment.study_shift === 'weekend' ? (currentLang === 'km' ? 'សៅរ៍អាទិត្យ' : 'Weekend') : 'N/A' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-file-earmark-check"></i><%= currentLang === 'km' ? 'ឯកសារភ្ជាប់' : 'Attached Documents' %></h5>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឯកសារទី ១' : 'Document 1' %></label>
+          <% if (enrollment.doc_transcript_path) { %>
+            <a href="<%= enrollment.doc_transcript_path %>" target="_blank" class="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"><%= currentLang === 'km' ? 'មើលឯកសារ' : 'View Document' %> <i class="bi bi-box-arrow-up-right text-xs"></i></a>
+          <% } else { %>
+            <p class="text-sm text-gray-400">-</p>
+          <% } %>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឯកសារទី ២' : 'Document 2' %></label>
+          <% if (enrollment.doc_birth_cert_path) { %>
+            <a href="<%= enrollment.doc_birth_cert_path %>" target="_blank" class="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"><%= currentLang === 'km' ? 'មើលឯកសារ' : 'View Document' %> <i class="bi bi-box-arrow-up-right text-xs"></i></a>
+          <% } else { %>
+            <p class="text-sm text-gray-400">-</p>
+          <% } %>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'រូបភាពទី ១ (៤×៦)' : 'Photo 1 (4x6)' %></label>
+          <% if (enrollment.doc_photo_4x6_path) { %>
+            <a href="<%= enrollment.doc_photo_4x6_path %>" target="_blank" class="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"><%= currentLang === 'km' ? 'មើលរូបភាព' : 'View Photo' %> <i class="bi bi-box-arrow-up-right text-xs"></i></a>
+          <% } else { %>
+            <p class="text-sm text-gray-400">-</p>
+          <% } %>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'រូបភាពទី ២ (៣×៤)' : 'Photo 2 (3x4)' %></label>
+          <% if (enrollment.doc_photo_3x4_path) { %>
+            <a href="<%= enrollment.doc_photo_3x4_path %>" target="_blank" class="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"><%= currentLang === 'km' ? 'មើលរូបភាព' : 'View Photo' %> <i class="bi bi-box-arrow-up-right text-xs"></i></a>
+          <% } else { %>
+            <p class="text-sm text-gray-400">-</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-gray-600 to-gray-500 text-white">
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-shield-check"></i><%= currentLang === 'km' ? 'V. កិច្ចសន្យា និងការធានាទទួលខុសត្រូវ' : 'V. Agreement & Responsibility' %></h5>
+    </div>
+    <div class="p-6 space-y-4">
+      <% if (enrollment.additional_info) { %>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២៧. ព័ត៌មានបន្ថែម' : '27. Additional Information' %></label>
+          <p class="text-sm text-gray-700 dark:text-gray-200"><%= enrollment.additional_info %></p>
+        </div>
+      <% } %>
+      <div>
+        <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? '២៨. ការបញ្ជាក់ព័ត៌មាន' : '28. Information Confirmation' %></label>
+        <p class="text-sm font-semibold <%= enrollment.confirmation ? 'text-green-600' : 'text-red-500' %>">
+          <i class="bi bi-<%= enrollment.confirmation ? 'check-circle-fill' : 'x-circle-fill' %> mr-1"></i>
+          <%= enrollment.confirmation ? (currentLang === 'km' ? 'បានបញ្ជាក់' : 'Confirmed') : (currentLang === 'km' ? 'មិនទាន់បញ្ជាក់' : 'Not Confirmed') %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-500 text-white">
-      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-mortarboard"></i><%= currentLang === 'km' ? 'ព័ត៌មានការសិក្សា' : 'Academic Information' %></h5>
+      <h5 class="font-bold flex items-center gap-2"><i class="bi bi-info-circle"></i><%= currentLang === 'km' ? 'ព័ត៌មានការចុះឈ្មោះ' : 'Enrollment Information' %></h5>
     </div>
     <div class="p-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -62,18 +246,6 @@
         <div>
           <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឆ្នាំទី' : 'Year' %></label>
           <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ឆ្នាំទី ' + enrollment.semester : 'Year ' + enrollment.semester %></p>
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></label>
-          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? (enrollment.major_name_kh || 'N/A') : (enrollment.major_name_en || 'N/A') %></p>
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ប្រភេទអាហារូបត្ថម្ភ' : 'Scholarship Category' %></label>
-          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? (enrollment.category_name_kh || 'N/A') : (enrollment.category_name_en || 'N/A') %></p>
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ប្រភេទអាហារូបត្ថម្ភ' : 'Scholarship Type' %></label>
-          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? (enrollment.scholarship_name_kh || 'N/A') : (enrollment.scholarship_name_en || 'N/A') %> (<%= enrollment.scholarship_percentage || 0 %>%)</p>
         </div>
         <div>
           <label class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></label>

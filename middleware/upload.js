@@ -25,8 +25,16 @@ const uploadMultiple = upload.fields([
   { name: 'additionalDocuments', maxCount: 5 }
 ]);
 
+const uploadEnrollmentDocs = upload.fields([
+  { name: 'doc_transcript_file', maxCount: 1 },
+  { name: 'doc_birth_cert_file', maxCount: 1 },
+  { name: 'doc_photo_4x6_file', maxCount: 1 },
+  { name: 'doc_photo_3x4_file', maxCount: 1 }
+]);
+
 module.exports = {
   upload,
   uploadPhoto,
-  uploadMultiple
+  uploadMultiple,
+  uploadEnrollmentDocs
 };

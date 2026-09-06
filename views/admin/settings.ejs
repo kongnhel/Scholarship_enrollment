@@ -48,6 +48,81 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 flex items-center gap-3">
+      <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+        <i class="bi bi-person-plus text-white"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-white"><%= currentLang === 'km' ? 'ការកំណត់ការចុះឈ្មោះគណនី' : 'Registration Settings' %></h3>
+        <p class="text-green-100 text-xs"><%= currentLang === 'km' ? 'គ្រប់គ្រងការចុះឈ្មោះគណនីសិស្សថ្មី' : 'Control new student account registration' %></p>
+      </div>
+    </div>
+
+    <form action="/admin/settings" method="POST" class="p-6 space-y-6">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-toggle-on text-green-600 dark:text-green-400"></i>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'បើកការចុះឈ្មោះគណនី' : 'Registration Open' %></label>
+            <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'អនុញ្ញាតឱ្យសិស្សថ្មីចុះឈ្មោះគណនី' : 'Allow new students to register accounts' %></p>
+          </div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="hidden" name="registration_open" value="0">
+          <input type="checkbox" name="registration_open" value="1" class="sr-only peer" <%= settings.registration_open === '1' ? 'checked' : '' %>>
+          <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+        </label>
+      </div>
+
+      <hr class="border-gray-100 dark:border-gray-700">
+
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <i class="bi bi-calendar-range text-green-600 dark:text-green-400"></i>
+          <span class="font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'រយៈពេលចុះឈ្មោះគណនី' : 'Registration Period' %></span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+              <i class="bi bi-play-circle mr-1 text-green-500"></i><%= currentLang === 'km' ? 'ថ្ងៃចាប់ផ្តើម' : 'Start Date' %>
+            </label>
+            <div class="relative">
+              <i class="bi bi-calendar3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
+              <input type="datetime-local" name="registration_start" value="<%= settings.registration_start || '' %>" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+              <i class="bi bi-stop-circle mr-1 text-red-500"></i><%= currentLang === 'km' ? 'ថ្ងៃបិទ' : 'End Date' %>
+            </label>
+            <div class="relative">
+              <i class="bi bi-calendar3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
+              <input type="datetime-local" name="registration_end" value="<%= settings.registration_end || '' %>" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="border-gray-100 dark:border-gray-700">
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+          <i class="bi bi-info-circle"></i>
+          <span><%= currentLang === 'km' ? 'ការផ្លាស់ប្តូរត្រូវបានអនុវត្តភ្លាមៗ' : 'Changes are applied immediately' %></span>
+        </div>
+        <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-600 transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2">
+          <i class="bi bi-check-circle"></i>
+          <span><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save Settings' %></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-500 flex items-center gap-3">
       <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
         <i class="bi bi-person-check text-white"></i>
@@ -143,6 +218,49 @@
     </div>
   </div>
   <% } %>
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gradient-to-r from-rose-500 to-pink-600 flex items-center gap-3">
+      <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+        <i class="bi bi-qr-code text-white"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-white"><%= currentLang === 'km' ? 'ការកំណត់ QR Code ការទូទាត់' : 'Payment QR Code Settings' %></h3>
+        <p class="text-rose-100 text-xs"><%= currentLang === 'km' ? 'ផ្លាស់ប្តូររូបភាព QR Code សម្រាប់ការទូទាត់' : 'Change the QR code image for payments' %></p>
+      </div>
+    </div>
+    <div class="p-6">
+      <form action="/admin/settings" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="form_type" value="qr_upload">
+        <div class="flex items-start gap-6">
+          <div class="flex-shrink-0">
+            <% if (settings.payment_qr_path) { %>
+              <img src="<%= settings.payment_qr_path %>" alt="Current QR" class="w-40 h-40 object-cover rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm">
+            <% } else { %>
+              <div class="w-40 h-40 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                <i class="bi bi-qr-code text-gray-300 text-4xl"></i>
+              </div>
+            <% } %>
+          </div>
+          <div class="flex-1 space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រូបភាព QR Code បច្ចុប្បន្ន' : 'Current QR Code Image' %></label>
+              <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'រូបភាព QR Code ដែលសិស្សឃើញនៅពេលទូទាត់' : 'The QR code students see when making payment' %></p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ផ្ទុករូបភាព QR Code ថ្មី' : 'Upload New QR Code' %></label>
+              <input type="file" name="payment_qr_file" accept=".jpg,.jpeg,.png" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 dark:file:bg-rose-900/30 dark:file:text-rose-300 hover:file:bg-rose-100 dark:hover:file:bg-rose-900/50">
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'ទម្រង់៖ JPG, PNG។ រូបភាពថ្មីនឹងជំនួសរូបភាពបច្ចុប្បន្ន។' : 'Format: JPG, PNG. New image will replace the current one.' %></p>
+            </div>
+            <button type="submit" class="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl text-sm font-semibold hover:from-rose-600 hover:to-pink-700 transition-all shadow-sm flex items-center gap-2">
+              <i class="bi bi-upload"></i><%= currentLang === 'km' ? 'ផ្ទុករូបភាពថ្មី' : 'Upload New Image' %>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-violet-500 flex items-center gap-3">

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const { upload } = require('../middleware/upload');
+const { uploadToImageKit } = require('../utils/imagekit');
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 
@@ -719,9 +721,20 @@ router.get('/settings', async (req, res) => {
     }
 });
 
-router.post('/settings', async (req, res) => {
+router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
     try {
-        const { enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end } = req.body;
+        if (req.body.form_type === 'qr_upload') {
+            if (req.file) {
+                const r = await uploadToImageKit(req.file, 'settings');
+                await req.db.query("UPDATE settings SET setting_value = ? WHERE setting_key = ?", [r.url, 'payment_qr_path']);
+                req.flash('success', t(req, 'បានកែប្រែ QR Code ដោយជោគជ័យ', 'QR Code updated successfully'));
+            } else {
+                req.flash('error', t(req, 'សូមជ្រើសរើសរូបភាព', 'Please select an image'));
+            }
+            return res.redirect('/admin/settings');
+        }
+
+        const { enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end, registration_open, registration_start, registration_end } = req.body;
 
         const [rows] = await req.db.query('SELECT setting_key, setting_value FROM settings');
         const current = {};
@@ -733,6 +746,9 @@ router.post('/settings', async (req, res) => {
         const scholOpen = scholarship_open !== undefined
             ? (Array.isArray(scholarship_open) ? scholarship_open[scholarship_open.length - 1] : scholarship_open)
             : current.scholarship_open || '0';
+        const regOpen = registration_open !== undefined
+            ? (Array.isArray(registration_open) ? registration_open[registration_open.length - 1] : registration_open)
+            : current.registration_open || '0';
 
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollOpen, 'enrollment_open']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_start !== undefined ? enrollment_start : (current.enrollment_start || ''), 'enrollment_start']);
@@ -740,6 +756,9 @@ router.post('/settings', async (req, res) => {
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholOpen, 'scholarship_open']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_start !== undefined ? scholarship_start : (current.scholarship_start || ''), 'scholarship_start']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_end !== undefined ? scholarship_end : (current.scholarship_end || ''), 'scholarship_end']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [regOpen, 'registration_open']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_start !== undefined ? registration_start : (current.registration_start || ''), 'registration_start']);
+        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_end !== undefined ? registration_end : (current.registration_end || ''), 'registration_end']);
 
         req.flash('success', t(req, 'បានកែប្រែការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
         res.redirect('/admin/settings');
