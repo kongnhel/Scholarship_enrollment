@@ -1,35 +1,9 @@
 <% if (typeof messages !== 'undefined') { %>
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    <% if (messages.success && messages.success.length > 0) { %>
-      Swal.fire({
-        title: '<%= currentLang === "km" ? "ជោគជ័យ" : "Success" %>',
-        text: <%- JSON.stringify(messages.success[0]) %>,
-        icon: 'success',
-        confirmButtonText: '<%= currentLang === "km" ? "យល់ព្រម" : "OK" %>',
-        showCloseButton: true,
-        timer: 5000,
-        timerProgressBar: true
-      });
-    <% } %>
-    <% if (messages.error && messages.error.length > 0) { %>
-      Swal.fire({
-        title: '<%= currentLang === "km" ? "កំហុស" : "Error" %>',
-        text: <%- JSON.stringify(messages.error[0]) %>,
-        icon: 'error',
-        confirmButtonText: '<%= currentLang === "km" ? "យល់ព្រម" : "OK" %>',
-        showCloseButton: true
-      });
-    <% } %>
-    <% if (messages.warning && messages.warning.length > 0) { %>
-      Swal.fire({
-        title: '<%= currentLang === "km" ? "ការព្រមាន" : "Warning" %>',
-        text: <%- JSON.stringify(messages.warning[0]) %>,
-        icon: 'warning',
-        confirmButtonText: '<%= currentLang === "km" ? "យល់ព្រម" : "OK" %>',
-        showCloseButton: true
-      });
-    <% } %>
-  });
+  <script type="application/json" id="flash-data">
+  {
+    "success": <%- messages.success && messages.success.length > 0 ? JSON.stringify(messages.success[0]) : 'null' %>,
+    "error": <%- messages.error && messages.error.length > 0 ? JSON.stringify(messages.error[0]) : 'null' %>,
+    "warning": <%- messages.warning && messages.warning.length > 0 ? JSON.stringify(messages.warning[0]) : 'null' %>
+  }
   </script>
 <% } %>

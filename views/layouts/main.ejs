@@ -151,6 +151,33 @@
   <script src="/js/swal.js"></script>
   <script src="/js/main.js"></script>
   <script>
+  (function() {
+    var lang = '<%= typeof currentLang !== "undefined" ? currentLang : "en" %>';
+    var titles = { success: { km: 'ជោគជ័យ', en: 'Success' }, error: { km: 'កំហុស', en: 'Error' }, warning: { km: 'ការព្រមាន', en: 'Warning' } };
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof Swal === 'undefined') return;
+      var flashEl = document.getElementById('flash-data');
+      if (!flashEl) return;
+      try {
+        var data = JSON.parse(flashEl.textContent);
+        ['success', 'error', 'warning'].forEach(function(type) {
+          if (data[type]) {
+            Swal.fire({
+              title: titles[type][lang] || titles[type]['en'],
+              text: data[type],
+              icon: type,
+              confirmButtonText: lang === 'km' ? 'យល់ព្រម' : 'OK',
+              showCloseButton: true,
+              timer: type === 'success' ? 5000 : undefined,
+              timerProgressBar: type === 'success'
+            });
+          }
+        });
+      } catch(e) {}
+    });
+  })();
+  </script>
+  <script>
   document.querySelectorAll('form').forEach(function(form) {
     form.addEventListener('submit', function() {
       form.querySelectorAll('.phone-group').forEach(function(group) {
