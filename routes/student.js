@@ -408,13 +408,6 @@ router.post('/notification/:id/read', async (req, res) => {
 
 // ==================== ENROLLMENT ====================
 
-<<<<<<< HEAD
-router.get('/enroll-success', async (req, res) => {
-  const [rows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
-  const qrPath = rows.length > 0 ? rows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
-  res.render('student/enroll-success', { title: 'Enrollment Success', qrPath });
-});
-=======
 function getCurrentAcademicYear() {
   const now = new Date();
   const month = now.getMonth() + 1;
@@ -424,7 +417,12 @@ function getCurrentAcademicYear() {
   }
   return `${year - 1}-${year}`;
 }
->>>>>>> df0815e8929cd27b969725f3b8452c0f35518548
+
+router.get('/enroll-success', async (req, res) => {
+  const [rows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
+  const qrPath = rows.length > 0 ? rows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
+  res.render('student/enroll-success', { title: 'Enrollment Success', qrPath });
+});
 
 router.get('/enroll', async (req, res) => {
   try {
@@ -447,13 +445,8 @@ router.get('/enroll', async (req, res) => {
       [userId]
     );
     const [existingEnrollment] = await req.db.query(
-<<<<<<< HEAD
-      "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = '2026-2027' ORDER BY id DESC LIMIT 1",
-      [userId]
-=======
       "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = ? ORDER BY id DESC LIMIT 1",
       [userId, getCurrentAcademicYear()]
->>>>>>> df0815e8929cd27b969725f3b8452c0f35518548
     );
     const [feeTypes] = await req.db.query('SELECT * FROM fee_types WHERE is_active = 1 ORDER BY id ASC');
     const [payments] = await req.db.query(
@@ -469,11 +462,7 @@ router.get('/enroll', async (req, res) => {
       payments,
       enrollClosed,
       majors: (await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1 ORDER BY name_kh ASC'))[0],
-<<<<<<< HEAD
-      majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = '2026-2027'"))[0],
-=======
       majorTuition: (await req.db.query("SELECT mt.*, m.name_kh as major_name_kh, m.name_en as major_name_en FROM major_tuition mt JOIN majors m ON mt.major_id = m.id WHERE mt.is_active = 1 AND mt.academic_year = ?", [getCurrentAcademicYear()]))[0],
->>>>>>> df0815e8929cd27b969725f3b8452c0f35518548
       scholarshipTypes: (await req.db.query('SELECT id, name_kh, name_en, coverage_percentage, ministry_fee, duration_years, provider_name FROM scholarship_types WHERE is_active = 1 ORDER BY coverage_percentage ASC'))[0]
     });
   } catch (error) {
@@ -539,7 +528,6 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
         const r = await uploadToImageKit(req.files.doc_transcript_file[0], 'enrollment');
         doc_transcript_path = r.url;
       }
-<<<<<<< HEAD
     }
     if (doc_birth_cert) {
       documents.push('birth_cert');
@@ -566,15 +554,6 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
     await req.db.query(
       `INSERT INTO enrollments (
         user_id, academic_year, semester, status,
-=======
-      if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
-        req.flash('error', t(req, 'សិទ្ធិមិនត្រឹមត្រូវ', 'Invalid CSRF token'));
-        return res.redirect('/student/enroll');
-      }
-      const userId = req.session.user.id;
-      const {
-        academic_year, semester,
->>>>>>> df0815e8929cd27b969725f3b8452c0f35518548
         khmer_first_name, khmer_last_name, english_first_name, english_last_name,
         gender, date_of_birth, place_of_birth, phone,
         village, current_address, province, district, commune,

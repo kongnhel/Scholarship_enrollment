@@ -13,7 +13,11 @@
       </a>
       <a href="/student/application/new" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'New Application' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-plus-circle text-lg w-5 text-center"></i>
-        <span><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %></span>
+        <span><%= currentLang === 'km' ? 'ដាក់ពាក្យអ.រ' : 'Apply' %></span>
+      </a>
+      <a href="/student/enroll" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Enrollment' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-person-check text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ចុះឈ្មោះឆ្នាំមូលដ្ឋាន' : 'Enrollment' %></span>
       </a>
       <a href="/student/status" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Application Status' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-clipboard-check text-lg w-5 text-center"></i>
@@ -27,10 +31,6 @@
       <div class="pt-3 pb-1 px-3">
         <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"><%= currentLang === 'km' ? 'ការចុះឈ្មោះនិងទូទាត់' : 'Enrollment & Payment' %></p>
       </div>
-      <a href="/student/enroll" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Enrollment' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
-        <i class="bi bi-person-check text-lg w-5 text-center"></i>
-        <span><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enrollment' %></span>
-      </a>
       <a href="/student/payments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'My Payments' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-credit-card text-lg w-5 text-center"></i>
         <span><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></span>
@@ -72,7 +72,7 @@
       <div class="pt-3 pb-1 px-3">
         <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"><%= currentLang === 'km' ? 'ការចុះឈ្មោះនិងទូទាត់' : 'Enrollment & Payment' %></p>
       </div>
-      <a href="/admin/enrollments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Manage Enrollments' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+      <a href="/admin/enrollments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && (title === 'Manage Enrollments' || title === 'Enrollment Detail') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-person-check text-lg w-5 text-center"></i>
         <span><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollments' %></span>
       </a>
