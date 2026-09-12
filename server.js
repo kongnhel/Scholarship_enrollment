@@ -92,12 +92,19 @@ const studentRoutes = require('./routes/student');
 const adminRoutes = require('./routes/admin');
 const committeeRoutes = require('./routes/committee');
 
+// Helper to extract clean IP (strips port added by IIS reverse proxy)
+const getClientIp = (req) => {
+  const ip = req.ip || req.headers['x-forwarded-for'] || '';
+  return ip.split(':')[0] || ip;
+};
+
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 50,
     message: 'Too many requests, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: getClientIp,
     skip: (req) => {
         return req.method === 'GET';
     }
@@ -110,6 +117,7 @@ const generalLimiter = rateLimit({
     max: 200,
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: getClientIp,
     skip: (req) => req.method === 'GET'
 });
 
