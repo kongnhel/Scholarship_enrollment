@@ -45,7 +45,7 @@ router.get('/dashboard', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/');
     }
 });
@@ -138,7 +138,7 @@ router.get('/applications', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -160,7 +160,7 @@ router.get('/applications/:id', async (req, res) => {
              WHERE a.id = ?`, [req.params.id]
         );
         if (!application.length) {
-            req.flash('error', t(req, 'ážšáž€áž˜áž·áž“ážƒáž¾áž‰áž–áž¶áž€áŸ’áž™ážŸáž»áŸ†', 'Application not found'));
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំ', 'Application not found'));
             return res.redirect('/admin/applications');
         }
         const [history] = await req.db.query(
@@ -176,7 +176,7 @@ router.get('/applications/:id', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications');
     }
 });
@@ -200,11 +200,11 @@ router.post('/applications/:id/under-review', async (req, res) => {
                 '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application is now under review. We will notify you once a decision has been made.</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', t(req, 'áž–áž¶áž€áŸ’áž™ážŸáž»áŸ†ážáŸ’ážšáž¼ážœáž”áž¶áž“áž€áŸ†ážŽážáŸ‹áž‡áž¶áž€áŸ†áž–áž»áž„áž–áž·áž“áž·ážáŸ’áž™', 'Application marked as under review'));
+        req.flash('success', t(req, 'ពាក្យសុំត្រូវបានសម្គាល់ថាកំពុងពិនិត្យមើល', 'Application marked as under review'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -244,11 +244,11 @@ router.post('/applications/:id/approve', async (req, res) => {
                 '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Congratulations! Your scholarship application has been approved.</p>' + examHtml + '<br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', t(req, 'áž–áž¶áž€áŸ’áž™ážŸáž»áŸ†ážáŸ’ážšáž¼ážœáž”áž¶áž“áž¢áž“áž»áž˜áŸážážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Application approved successfully'));
+        req.flash('success', t(req, 'ពាក្យសុំត្រូវបានអនុម័តដោយជោគជ័យ', 'Application approved successfully'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -273,11 +273,11 @@ router.post('/applications/:id/reject', async (req, res) => {
                 '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your scholarship application has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(admin_remark || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', t(req, 'áž–áž¶áž€áŸ’áž™ážŸáž»áŸ†ážáŸ’ážšáž¼ážœáž”áž¶áž“áž”ážŠáž·ážŸáŸáž’', 'Application rejected'));
+        req.flash('success', t(req, 'ពាក្យសុំត្រូវបានបដិសេធ', 'Application rejected'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -302,11 +302,11 @@ router.post('/applications/:id/correction', async (req, res) => {
                 '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application requires corrections. Please log in and review the notes below, then resubmit your application.</p><p><strong>Correction Notes:</strong> ' + escapeHtml(correction_notes || 'No specific notes') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
-        req.flash('success', t(req, 'áž”áž¶áž“ážŸáŸ’áž“áž¾ážŸáž»áŸ†áž€áž¶ážšáž€áŸ‚áž”áŸ’ážšáŸ‚', 'Correction requested'));
+        req.flash('success', t(req, 'បានស្នើសុំកែតម្រូវ', 'Correction requested'));
         res.redirect('/admin/applications/' + req.params.id);
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/applications/' + req.params.id);
     }
 });
@@ -342,7 +342,7 @@ router.get('/majors', async (req, res) => {
         res.render('admin/majors', { title: 'Manage Majors', majors, currentPage: page, totalPages, totalRecords, filters: req.query });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -351,11 +351,11 @@ router.post('/majors', async (req, res) => {
     try {
         const { name_kh, name_en, faculty_kh, faculty_en } = req.body;
         await req.db.query('INSERT INTO majors (name_kh, name_en, faculty_kh, faculty_en) VALUES (?, ?, ?, ?)', [name_kh, name_en, faculty_kh, faculty_en]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž”áž“áŸ’ážáŸ‚áž˜áž‡áŸ†áž“áž¶áž‰ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Major added successfully'));
+        req.flash('success', t(req, 'បានបន្ថែមជំនាញដោយជោគជ័យ', 'Major added successfully'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/majors');
     }
 });
@@ -364,11 +364,11 @@ router.post('/majors/:id/edit', async (req, res) => {
     try {
         const { name_kh, name_en, faculty_kh, faculty_en } = req.body;
         await req.db.query('UPDATE majors SET name_kh = ?, name_en = ?, faculty_kh = ?, faculty_en = ? WHERE id = ?', [name_kh, name_en, faculty_kh, faculty_en, req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚áž‡áŸ†áž“áž¶áž‰ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Major updated successfully'));
+        req.flash('success', t(req, 'បានកែសម្រួលជំនាញដោយជោគជ័យ', 'Major updated successfully'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/majors');
     }
 });
@@ -376,11 +376,11 @@ router.post('/majors/:id/edit', async (req, res) => {
 router.post('/majors/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE majors SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚ážŸáŸ’ážáž¶áž“áž—áž¶áž–áž‡áŸ†áž“áž¶áž‰', 'Major status updated'));
+        req.flash('success', t(req, 'បានកែសម្រួលស្ថានភាពជំនាញ', 'Major status updated'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/majors');
     }
 });
@@ -388,11 +388,11 @@ router.post('/majors/:id/toggle', async (req, res) => {
 router.post('/majors/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM majors WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž›áž»áž”áž‡áŸ†áž“áž¶áž‰ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Major deleted successfully'));
+        req.flash('success', t(req, 'បានលុបជំនាញដោយជោគជ័យ', 'Major deleted successfully'));
         res.redirect('/admin/majors');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž›áž»áž”áž‡áŸ†áž“áž¶áž‰', 'Error deleting major'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការលុបជំនាញ', 'Error deleting major'));
         res.redirect('/admin/majors');
     }
 });
@@ -428,7 +428,7 @@ router.get('/provinces', async (req, res) => {
         res.render('admin/provinces', { title: 'Manage Provinces', provinces, currentPage: page, totalPages, totalRecords, filters: req.query });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -437,11 +437,11 @@ router.post('/provinces', async (req, res) => {
     try {
         const { name_kh, name_en } = req.body;
         await req.db.query('INSERT INTO provinces (name_kh, name_en) VALUES (?, ?)', [name_kh, name_en]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž”áž“áŸ’ážáŸ‚áž˜ážáŸážáŸ’ážážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Province added successfully'));
+        req.flash('success', t(req, 'ខេត្តត្រូវបានបន្ថែមដោយជោគជ័យ', 'Province added successfully'));
         res.redirect('/admin/provinces');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/provinces');
     }
 });
@@ -450,11 +450,11 @@ router.post('/provinces/:id/edit', async (req, res) => {
     try {
         const { name_kh, name_en } = req.body;
         await req.db.query('UPDATE provinces SET name_kh = ?, name_en = ? WHERE id = ?', [name_kh, name_en, req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚ážáŸážáŸ’ážážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Province updated successfully'));
+        req.flash('success', t(req, 'ខេត្តត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ', 'Province updated successfully'));
         res.redirect('/admin/provinces');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/provinces');
     }
 });
@@ -462,11 +462,11 @@ router.post('/provinces/:id/edit', async (req, res) => {
 router.post('/provinces/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM provinces WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž›áž»áž”ážáŸážáŸ’ážážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Province deleted successfully'));
+        req.flash('success', t(req, 'ខេត្តត្រូវបានលុបដោយជោគជ័យ', 'Province deleted successfully'));
         res.redirect('/admin/provinces');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž·áž“áž¢áž¶áž…áž›áž»áž”ážáŸážáŸ’ážážŠáŸ‚áž›áž€áŸ†áž–áž»áž„áž”áŸ’ážšáž¾áž”áŸ’ážšáž¶ážŸáŸ‹áž”áž¶áž“áž‘áŸ', 'Cannot delete province that is being used'));
+        req.flash('error', t(req, 'មិនអាចលុបខេត្តនោះបានទេ', 'Cannot delete province that is being used'));
         res.redirect('/admin/provinces');
     }
 });
@@ -516,7 +516,7 @@ router.get('/users', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -528,11 +528,11 @@ router.post('/users/:id/reset-password', async (req, res) => {
         const newPassword = crypto.randomBytes(8).toString('hex');
         const hashedPassword = await bcrypt.hash(newPassword, 12);
         await req.db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.params.id]);
-        req.flash('success', t(req, 'áž–áž¶áž€áŸ’áž™ážŸáž˜áŸ’áž„áž¶ážáŸ‹áž”áž¶áž“áž€áŸ†ážŽážáŸ‹áž¡áž¾áž„ážœáž·áž‰áŸ” áž–áž¶áž€áŸ’áž™ážŸáž˜áŸ’áž„áž¶ážáŸ‹ážáŸ’áž˜áž¸áŸ– ' + newPassword, 'Password has been reset. New password: ' + newPassword));
+        req.flash('success', t(req, 'ពាក្យសម្ងាត់ត្រូវបានកំណត់ឡើងវិញ', 'Password has been reset. New password: ' + newPassword));
         res.redirect('/admin/users');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/users');
     }
 });
@@ -541,15 +541,15 @@ router.post('/users/:id/delete', async (req, res) => {
     try {
         const [user] = await req.db.query('SELECT role FROM users WHERE id = ?', [req.params.id]);
         if (user[0] && user[0].role === 'admin') {
-            req.flash('error', t(req, 'áž˜áž·áž“áž¢áž¶áž…áž›áž»áž”áž¢áŸ’áž“áž€áž‚áŸ’ážšáž”áŸ‹áž‚áŸ’ážšáž„áž”áž¶áž“áž‘áŸ', 'Cannot delete admin user'));
+            req.flash('error', t(req, 'មិនអាចលុបអ្នកគ្រប់គ្រងបាន', 'Cannot delete admin user'));
             return res.redirect('/admin/users');
         }
         await req.db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž›áž»áž”áž¢áŸ’áž“áž€áž”áŸ’ážšáž¾áž”áŸ’ážšáž¶ážŸáŸ‹ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'User deleted successfully'));
+        req.flash('success', t(req, 'អ្នកប្រើប្រាស់ត្រូវបានលុបដោយជោគជ័យ', 'User deleted successfully'));
         res.redirect('/admin/users');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/users');
     }
 });
@@ -586,7 +586,7 @@ router.get('/reports', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -624,7 +624,7 @@ router.get('/reports/export/excel', async (req, res) => {
         res.send(buf);
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž“áž¶áŸ†áž…áŸáž‰', 'Export error'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការនាំចេញ', 'Export error'));
         res.redirect('/admin/reports');
     }
 });
@@ -682,7 +682,7 @@ router.get('/reports/export/pdf', async (req, res) => {
         doc.end();
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž“áž¶áŸ†áž…áŸáž‰', 'Export error'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការនាំចេញ', 'Export error'));
         res.redirect('/admin/reports');
     }
 });
@@ -701,11 +701,11 @@ router.post('/notifications/send', async (req, res) => {
                 await req.db.query('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)', [app.user_id, 'Exam Schedule Notification', notificationMessage, 'exam_notification']);
             }
         }
-        req.flash('success', t(req, `áž”áž¶áž“áž•áŸ’áž‰áž¾ážŸáž¶ážšáž‡áž¼áž“ážŠáŸ†ážŽáž¹áž„ážŠáž›áŸ‹ ${approved.length} áž¢áŸ’áž“áž€ážŠáž¶áž€áŸ‹áž–áž¶áž€áŸ’áž™ážŠáŸ‚áž›áž”áž¶áž“áž¢áž“áž»áž˜áŸáž`, `Notification sent to ${approved.length} approved applicants`));
+        req.flash('success', t(req, `បានផ្ញើសារជូនដំណឹងដល់ ${approved.length} អ្នកដាក់ពាក្យសុំដែលបានអនុម័ត`, `Notification sent to ${approved.length} approved applicants`));
         res.redirect('/admin/dashboard');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -718,7 +718,7 @@ router.get('/settings', async (req, res) => {
         res.render('admin/settings', { title: 'System Settings', settings });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -750,11 +750,11 @@ router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_start !== undefined ? scholarship_start : (current.scholarship_start || ''), 'scholarship_start']);
         await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_end !== undefined ? scholarship_end : (current.scholarship_end || ''), 'scholarship_end']);
 
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚áž€áž¶ážšáž€áŸ†ážŽážáŸ‹ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Settings updated successfully'));
+        req.flash('success', t(req, 'បានកែសម្រួលការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
         res.redirect('/admin/settings');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/settings');
     }
 });
@@ -806,7 +806,7 @@ router.get('/scholarship-types', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -818,11 +818,11 @@ router.post('/scholarship-types', async (req, res) => {
             'INSERT INTO scholarship_types (name_kh, name_en, coverage_percentage, duration_years, provider_name, description) VALUES (?, ?, ?, ?, ?, ?)',
             [name_kh, name_en || '', parseInt(coverage_percentage) || 0, parseInt(duration_years) || 1, provider_name, description || '']
         );
-        req.flash('success', t(req, 'áž”áž¶áž“áž”áž“áŸ’ážáŸ‚áž˜áž”áŸ’ážšáž—áŸáž‘áž¢áž¶áž áž¶ážšáž¼áž”áž€ážšážŽáŸážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Scholarship type added successfully'));
+        req.flash('success', t(req, 'បានបន្ថែមប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type added successfully'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -834,11 +834,11 @@ router.post('/scholarship-types/:id/edit', async (req, res) => {
             'UPDATE scholarship_types SET name_kh = ?, name_en = ?, coverage_percentage = ?, duration_years = ?, provider_name = ?, description = ? WHERE id = ?',
             [name_kh, name_en || '', parseInt(coverage_percentage) || 0, parseInt(duration_years) || 1, provider_name, description || '', req.params.id]
         );
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚áž”áŸ’ážšáž—áŸáž‘áž¢áž¶áž áž¶ážšáž¼áž”áž€ážšážŽáŸážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Scholarship type updated successfully'));
+        req.flash('success', t(req, 'បានកែសម្រួលប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type updated successfully'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -846,11 +846,11 @@ router.post('/scholarship-types/:id/edit', async (req, res) => {
 router.post('/scholarship-types/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE scholarship_types SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚ážŸáŸ’ážáž¶áž“áž—áž¶áž–áž”áŸ’ážšáž—áŸáž‘áž¢áž¶áž áž¶ážšáž¼áž”áž€ážšážŽáŸ', 'Scholarship type status updated'));
+        req.flash('success', t(req, 'បានកែសម្រួលស្ថានភាពប្រភេទអាហារូបករណ៍', 'Scholarship type status updated'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž˜áž¼áž›ážŠáŸ’áž‹áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™', 'Database error'));
+        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -858,11 +858,11 @@ router.post('/scholarship-types/:id/toggle', async (req, res) => {
 router.post('/scholarship-types/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM scholarship_types WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž›áž»áž”áž”áŸ’ážšáž—áŸáž‘áž¢áž¶áž áž¶ážšáž¼áž”áž€ážšážŽáŸážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Scholarship type deleted successfully'));
+        req.flash('success', t(req, 'បានលុបប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type deleted successfully'));
         res.redirect('/admin/scholarship-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž·áž“áž¢áž¶áž…áž›áž»áž”áž”áŸ’ážšáž—áŸáž‘áž¢áž¶áž áž¶ážšáž¼áž”áž€ážšážŽáŸážŠáŸ‚áž›áž€áŸ†áž–áž»áž„áž”áŸ’ážšáž¾áž”áŸ’ážšáž¶ážŸáŸ‹áž”áž¶áž“áž‘áŸ', 'Cannot delete scholarship type that is being used'));
+        req.flash('error', t(req, 'មិនអាចលុបប្រភេទអាហារូបករណ៍ដែលកំពុងប្រើប្រាស់បានទេ', 'Cannot delete scholarship type that is being used'));
         res.redirect('/admin/scholarship-types');
     }
 });
@@ -914,7 +914,7 @@ router.get('/fee-types', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž•áŸ’áž‘áž»áž€áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒ', 'Error loading fee types'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកប្រភេទថ្លៃសេវា', 'Error loading fee types'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -926,11 +926,11 @@ router.post('/fee-types', async (req, res) => {
             'INSERT INTO fee_types (name_kh, name_en, amount, description) VALUES (?, ?, ?, ?)',
             [name_kh, name_en || '', parseFloat(amount) || 0, description || '']
         );
-        req.flash('success', t(req, 'áž”áž¶áž“áž”áž“áŸ’ážáŸ‚áž˜áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Fee type added successfully'));
+        req.flash('success', t(req, 'បានបន្ថែមប្រភេទថ្លៃសេវាដោយជោគជ័យ', 'Fee type added successfully'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž”áž“áŸ’ážáŸ‚áž˜áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒ', 'Error adding fee type'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបន្ថែមប្រភេទថ្លៃសេវា', 'Error adding fee type'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -942,11 +942,11 @@ router.post('/fee-types/:id/edit', async (req, res) => {
             'UPDATE fee_types SET name_kh = ?, name_en = ?, amount = ?, description = ? WHERE id = ?',
             [name_kh, name_en || '', parseFloat(amount) || 0, description || '', req.params.id]
         );
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Fee type updated successfully'));
+        req.flash('success', t(req, 'បានកែសម្រួលប្រភេទថ្លៃសេវាដោយជោគជ័យ', 'Fee type updated successfully'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž€áŸ‚áž”áŸ’ážšáŸ‚áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒ', 'Error updating fee type'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែសម្រួលប្រភេទថ្លៃសេវា', 'Error updating fee type'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -954,11 +954,11 @@ router.post('/fee-types/:id/edit', async (req, res) => {
 router.post('/fee-types/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE fee_types SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚ážŸáŸ’ážáž¶áž“áž—áž¶áž–áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒ', 'Fee type status updated'));
+        req.flash('success', t(req, 'បានកែសម្រួលស្ថានភាពប្រភេទថ្លៃសេវា', 'Fee type status updated'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž€áŸ‚áž”áŸ’ážšáŸ‚áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒ', 'Error updating fee type'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែសម្រួលប្រភេទថ្លៃសេវា', 'Error updating fee type'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -966,11 +966,11 @@ router.post('/fee-types/:id/toggle', async (req, res) => {
 router.post('/fee-types/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM fee_types WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž›áž»áž”áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Fee type deleted successfully'));
+        req.flash('success', t(req, 'បានលុបប្រភេទថ្លៃសេវាដោយជោគជ័យ', 'Fee type deleted successfully'));
         res.redirect('/admin/fee-types');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž·áž“áž¢áž¶áž…áž›áž»áž”áž”áŸ’ážšáž—áŸáž‘ážáŸ’áž›áŸƒážŠáŸ‚áž›áž€áŸ†áž–áž»áž„áž”áŸ’ážšáž¾áž”áŸ’ážšáž¶ážŸáŸ‹áž”áž¶áž“áž‘áŸ', 'Cannot delete fee type that is being used'));
+        req.flash('error', t(req, 'មិនអាចលុបប្រភេទថ្លៃសេវាដែលកំពុងប្រើប្រាស់បានទេ', 'Cannot delete fee type that is being used'));
         res.redirect('/admin/fee-types');
     }
 });
@@ -1043,7 +1043,7 @@ router.get('/enrollments', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž•áŸ’áž‘áž»áž€áž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡', 'Error loading enrollments'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកព័ត៌មានចុះឈ្មោះ', 'Error loading enrollments'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -1066,7 +1066,7 @@ router.get('/enrollments/:id', async (req, res) => {
         `, [req.params.id]);
 
         if (rows.length === 0) {
-            req.flash('error', t(req, 'ážšáž€áž˜áž·áž“ážƒáž¾áž‰áž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡', 'Enrollment not found'));
+            req.flash('error', t(req, 'រកមិនឃើញព័ត៌មានចុះឈ្មោះ', 'Enrollment not found'));
             return res.redirect('/admin/enrollments');
         }
 
@@ -1082,7 +1082,7 @@ router.get('/enrollments/:id', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž•áŸ’áž‘áž»áž€áž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡', 'Error loading enrollment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកព័ត៌មានចុះឈ្មោះ', 'Error loading enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
@@ -1093,11 +1093,11 @@ router.post('/enrollments/:id/approve', async (req, res) => {
             "UPDATE enrollments SET status = 'approved', admin_notes = ? WHERE id = ?",
             [req.body.notes || '', req.params.id]
         );
-        req.flash('success', t(req, 'áž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡ážáŸ’ážšáž¼ážœáž”áž¶áž“áž¢áž“áž»áž˜áŸáž', 'Enrollment approved'));
+        req.flash('success', t(req, 'ព័ត៌មានចុះឈ្មោះត្រូវបានអនុម័ត', 'Enrollment approved'));
         res.redirect('/admin/enrollments');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž¢áž“áž»áž˜áŸážáž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡', 'Error approving enrollment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការអនុម័តព័ត៌មានចុះឈ្មោះ', 'Error approving enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
@@ -1108,11 +1108,11 @@ router.post('/enrollments/:id/reject', async (req, res) => {
             "UPDATE enrollments SET status = 'rejected', admin_notes = ? WHERE id = ?",
             [req.body.notes || '', req.params.id]
         );
-        req.flash('success', t(req, 'áž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡ážáŸ’ážšáž¼ážœáž”áž¶áž“áž”ážŠáž·ážŸáŸáž’', 'Enrollment rejected'));
+        req.flash('success', t(req, 'ព័ត៌មានចុះឈ្មោះត្រូវបានបដិសេធ', 'Enrollment rejected'));
         res.redirect('/admin/enrollments');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž”ážŠáž·ážŸáŸáž’áž€áž¶ážšáž…áž»áŸ‡ážˆáŸ’áž˜áŸ„áŸ‡', 'Error rejecting enrollment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេព័ត៌មានចុះឈ្មោះ', 'Error rejecting enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
@@ -1184,7 +1184,7 @@ router.get('/payments', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž•áŸ’áž‘áž»áž€áž€áž¶ážšáž‘áž¼áž‘áž¶ážáŸ‹', 'Error loading payments'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកព័ត៌មានការទូទាត់', 'Error loading payments'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -1195,11 +1195,11 @@ router.post('/payments/:id/verify', async (req, res) => {
             "UPDATE payments SET status = 'verified', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
             [req.session.user.id, req.body.notes || '', req.params.id]
         );
-        req.flash('success', t(req, 'áž€áž¶ážšáž‘áž¼áž‘áž¶ážáŸ‹ážáŸ’ážšáž¼ážœáž”áž¶áž“áž•áŸ’áž‘áŸ€áž„áž•áŸ’áž‘áž¶ážáŸ‹', 'Payment verified'));
+        req.flash('success', t(req, 'ព័ត៌មានការទូទាត់ត្រូវបានផ្ទៀងផ្ទាត់', 'Payment verified'));
         res.redirect('/admin/payments');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž•áŸ’áž‘áŸ€áž„áž•áŸ’áž‘áž¶ážáŸ‹áž€áž¶ážšáž‘áž¼áž‘áž¶ážáŸ‹', 'Error verifying payment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់ការទូទាត់', 'Error verifying payment'));
         res.redirect('/admin/payments');
     }
 });
@@ -1210,11 +1210,11 @@ router.post('/payments/:id/reject', async (req, res) => {
             "UPDATE payments SET status = 'rejected', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
             [req.session.user.id, req.body.notes || '', req.params.id]
         );
-        req.flash('success', t(req, 'áž€áž¶ážšáž‘áž¼áž‘áž¶ážáŸ‹ážáŸ’ážšáž¼ážœáž”áž¶áž“áž”ážŠáž·ážŸáŸáž’', 'Payment rejected'));
+        req.flash('success', t(req, 'ព័ត៌មានការទូទាត់ត្រូវបានបដិសេធ', 'Payment rejected'));
         res.redirect('/admin/payments');
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž”ážŠáž·ážŸáŸáž’áž€áž¶ážšáž‘áž¼áž‘áž¶ážáŸ‹', 'Error rejecting payment'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេការទូទាត់', 'Error rejecting payment'));
         res.redirect('/admin/payments');
     }
 });
@@ -1239,7 +1239,7 @@ router.get('/major-tuition', async (req, res) => {
         });
     } catch (err) {
         console.error('Major tuition page error:', err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž•áŸ’áž‘áž»áž€ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶', 'Error loading major tuition'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកថ្លៃសិក្សាជំនាញ', 'Error loading major tuition'));
         res.redirect('/admin/dashboard');
     }
 });
@@ -1252,18 +1252,18 @@ router.post('/major-tuition', async (req, res) => {
             [major_id, academic_year]
         );
         if (existing.length > 0) {
-            req.flash('error', t(req, 'ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶ážŸáž˜áŸ’ážšáž¶áž”áŸ‹áž‡áŸ†áž“áž¶áž‰áž“áž·áž„áž†áŸ’áž“áž¶áŸ†áž“áŸáŸ‡áž˜áž¶áž“ážšáž½áž…áž áž¾áž™', 'Tuition for this major and year already exists'));
+            req.flash('error', t(req, 'ថ្លៃសិក្សាសម្រាប់ជំនាញនិងឆ្នាំនេះមានរួចហើយ', 'Tuition for this major and year already exists'));
             return res.redirect('/admin/major-tuition');
         }
         await req.db.query(
             'INSERT INTO major_tuition (major_id, academic_year, tuition_per_year) VALUES (?, ?, ?)',
             [major_id, academic_year, parseFloat(tuition_per_year) || 0]
         );
-        req.flash('success', t(req, 'áž”áž¶áž“áž”áž“áŸ’ážáŸ‚áž˜ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Major tuition added successfully'));
+        req.flash('success', t(req, 'បានបន្ថែមថ្លៃសិក្សាជំនាញដោយជោគជ័យ', 'Major tuition added successfully'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Add major tuition error:', err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž”áž“áŸ’ážáŸ‚áž˜ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶', 'Error adding major tuition'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការបន្ថែមថ្លៃសិក្សាជំនាញ', 'Error adding major tuition'));
         res.redirect('/admin/major-tuition');
     }
 });
@@ -1275,11 +1275,11 @@ router.post('/major-tuition/:id/edit', async (req, res) => {
             'UPDATE major_tuition SET tuition_per_year = ? WHERE id = ?',
             [parseFloat(tuition_per_year) || 0, req.params.id]
         );
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Major tuition updated successfully'));
+        req.flash('success', t(req, 'បានកែសម្រួលថ្លៃសិក្សាជំនាញដោយជោគជ័យ', 'Major tuition updated successfully'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Edit major tuition error:', err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž€áŸ‚áž”áŸ’ážšáŸ‚ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶', 'Error updating major tuition'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែសម្រួលថ្លៃសិក្សាជំនាញ', 'Error updating major tuition'));
         res.redirect('/admin/major-tuition');
     }
 });
@@ -1287,11 +1287,11 @@ router.post('/major-tuition/:id/edit', async (req, res) => {
 router.post('/major-tuition/:id/toggle', async (req, res) => {
     try {
         await req.db.query('UPDATE major_tuition SET is_active = NOT is_active WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž€áŸ‚áž”áŸ’ážšáŸ‚ážŸáŸ’ážáž¶áž“áž—áž¶áž–ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶', 'Major tuition status updated'));
+        req.flash('success', t(req, 'បានកែសម្រួលស្ថានភាពថ្លៃសិក្សាជំនាញ', 'Major tuition status updated'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Toggle major tuition error:', err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž€áŸ‚áž”áŸ’ážšáŸ‚ážŸáŸ’ážáž¶áž“áž—áž¶áž–', 'Error updating status'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការកែសម្រួលស្ថានភាព', 'Error updating status'));
         res.redirect('/admin/major-tuition');
     }
 });
@@ -1299,11 +1299,11 @@ router.post('/major-tuition/:id/toggle', async (req, res) => {
 router.post('/major-tuition/:id/delete', async (req, res) => {
     try {
         await req.db.query('DELETE FROM major_tuition WHERE id = ?', [req.params.id]);
-        req.flash('success', t(req, 'áž”áž¶áž“áž›áž»áž”ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶ážŠáŸ„áž™áž‡áŸ„áž‚áž‡áŸáž™', 'Major tuition deleted successfully'));
+        req.flash('success', t(req, 'បានលុបថ្លៃសិក្សាជំនាញដោយជោគជ័យ', 'Major tuition deleted successfully'));
         res.redirect('/admin/major-tuition');
     } catch (err) {
         console.error('Delete major tuition error:', err);
-        req.flash('error', t(req, 'áž˜áž¶áž“áž€áŸ†áž áž»ážŸáž€áŸ’áž“áž»áž„áž€áž¶ážšáž›áž»áž”ážáŸ’áž›áŸƒážŸáž·áž€áŸ’ážŸáž¶', 'Error deleting major tuition'));
+        req.flash('error', t(req, 'មានកំហុសក្នុងការលុបថ្លៃសិក្សាជំនាញ', 'Error deleting major tuition'));
         res.redirect('/admin/major-tuition');
     }
 });
