@@ -8,3 +8,5 @@ database/migrate_aiven.js
 database/fix_*.js
 database/reseed.js
 database/_cleanup_*.js
+node_modules/
+tmp/

@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/nmuehxii/repositories/Scholarship_enrollment/
+    - /bin/cp -R * $DEPLOYPATH
