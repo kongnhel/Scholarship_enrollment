@@ -725,7 +725,7 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
     try {
-        const { enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end } = req.body;
+        const { registration_open, registration_start, registration_end, enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end } = req.body;
 
         const [rows] = await req.db.query('SELECT setting_key, setting_value FROM settings');
         const current = {};
