@@ -1,41 +1,64 @@
+﻿================================================================================
+SYSTEM REQUIREMENTS - Scholarship & Enroll Online (NMU)
 ================================================================================
-AUTH SYSTEM REQUIREMENTS - Scholarship & Enroll Online
-================================================================================
-This document describes the authentication flow and behavior.
-Use this to build an identical auth system in any framework.
+This document describes the complete system flow and behavior.
+Tech Stack: Node.js, Express.js, EJS templates, MySQL, Tailwind CSS
+Institution: National Meanchey University (NMU), Cambodia
+
+Last Updated: September 2026
 
 ================================================================================
 GENERAL
 ================================================================================
 
-- Users table with roles: student, admin, committee
-- All passwords are hashed with bcrypt (12 rounds)
+- 3 user roles: student, admin, committee
+- All passwords hashed with bcrypt (12 rounds)
 - Session-based authentication (cookie, 24 hours expiry)
-- CSRF protection on all POST/PUT/DELETE/PATCH forms
-- Rate limiting on auth routes (50 requests per 15 minutes, GET excluded)
-- Registration can be enabled/disabled by admin via settings table
-  (registration_open, registration_start date, registration_end date)
-- Flash messages for success/error feedback (redirect-based)
-- Bilingual support (Khmer + English) on all pages
+- CSRF protection on all POST/PUT/DELETE/PATCH forms (skips multipart)
+- Rate limiting: auth routes (50 req/15min), general routes (200 req/15min)
+- Registration/enrollment/scholarship windows controlled by admin via settings table
+- Flash messages for success/error feedback (redirect-based, shown as SweetAlert2)
+- Bilingual support (Khmer + English) on all pages via ?lang= query param
+- Dark mode with localStorage persistence and system preference fallback
+- File storage via ImageKit cloud service
+- Email via Resend API (primary) or SMTP nodemailer (fallback)
 
 ================================================================================
-LOGIN
+DATABASE TABLES (14 tables)
 ================================================================================
 
-- Single login field accepts email, username, OR phone number (any one of the three)
-- User submits login_identifier + password
+1. users                      - User accounts (student/admin/committee)
+2. applications               - Scholarship applications
+3. application_status_history - Status change audit trail
+4. enrollments                - Student enrollments with personal details
+5. payments                   - Payment records (Bakong KHQR + manual)
+6. fee_types                  - Fee categories (e.g., Tuition Fee)
+7. major_tuition              - Per-major tuition fees by academic year
+8. majors                     - Available majors (5 faculties)
+9. scholarship_categories     - Scholarship categories
+10. scholarship_types         - Scholarship types with coverage percentages
+11. provinces                 - Cambodian provinces
+12. notifications             - User notifications
+13. settings                  - System configuration (open/close windows)
+14. telegram_pending          - Telegram bot phone-linking sessions
+
+================================================================================
+1. AUTHENTICATION SYSTEM
+================================================================================
+
+--- LOGIN ---
+
+- Single login field accepts email, username, OR phone number
 - System looks up user WHERE email = ? OR username = ? OR phone = ?
 - Compare password with bcrypt
 - If password wrong: show "Invalid credentials"
-- If user is not verified (is_verified = 0): redirect to OTP verification page
+- If user is not verified (is_verified = 0): redirect to /auth/verify-otp
 - If verified: store user info in session (id, email, phone, role, names, username, profile_pic)
 - Redirect based on role: admin -> /admin/dashboard, committee -> /committee/dashboard, student -> /student/dashboard
 
-================================================================================
-REGISTRATION
-================================================================================
+--- REGISTRATION ---
 
-- Fields: Khmer name, English name, username, email, phone, password, confirm password
+- Fields: Khmer name, English name, username, email, phone, password, confirm password, verification method
 - Username: 3-50 characters, letters/numbers/underscore only, must be unique
 - Email: valid format, must be unique
 - Phone: must be unique
@@ -43,7 +66,7 @@ REGISTRATION
 - User chooses verification method: Email OR Telegram
 
 Before registering:
-1. Check if registration is open (settings table)
+1. Check if registration is open (settings.registration_open)
 2. Check if current date is within registration_start and registration_end
 3. Check for duplicate username, email, and phone
 
@@ -52,135 +75,299 @@ After validation:
 2. Insert user with is_verified = 0
 3. Send verification based on chosen method
 
-================================================================================
-VERIFICATION METHOD: EMAIL
-================================================================================
+--- VERIFICATION METHOD: EMAIL ---
 
-1. Generate a UUID token
-2. Set token expiry to 1 hour from now
-3. Store token and expiry in users table (verification_token, token_expires_at)
-4. Send email with verification link: /auth/verify-email/:token
-5. User clicks link in email
-6. System finds user WHERE verification_token = ? AND token_expires_at > NOW()
-7. If found: set is_verified = 1, clear token and expiry
-8. If not found or expired: show error message
-9. User can now login
+1. Generate UUID token, store with 1-hour expiry (verification_token, token_expires_at)
+2. Send email with verification link: /auth/verify-email/:token
+3. User clicks link -> set is_verified = 1, clear token
+4. Resend: new token generated, new email sent
 
-Resend email verification:
-- User can request a new verification email from the login page
-- System generates new token, sends new email, redirects back to login with info panel
-
-================================================================================
-VERIFICATION METHOD: TELEGRAM
-================================================================================
+--- VERIFICATION METHOD: TELEGRAM ---
 
 1. After registration, redirect to /auth/verify-otp page
-2. System sends a Telegram login code to the user's phone number
-   (uses Telegram Client API SendCode method - appears as a Telegram login notification)
-3. User enters 5-digit code on the verification page
-4. System verifies the code via Telegram Client API SignIn method
+2. System sends Telegram login code via TelegramClient API (auth.SendCode)
+3. User enters 5-digit code on verification page
+4. System verifies via TelegramClient API (auth.SignIn)
 5. If correct: set is_verified = 1
-6. If wrong: show error, increment attempt counter
-7. If expired: show error, user must request new code
-8. Max 5 attempts before code is invalidated
+6. Max 5 attempts before code invalidated
 
-Resend OTP:
-- 60-second cooldown between resend attempts
-- System sends new code via Telegram
-- Timer shown on page until resend is allowed
-
-================================================================================
-OTP VERIFICATION (shared for both email OTP and Telegram)
-================================================================================
+--- OTP VERIFICATION (shared) ---
 
 - 5-digit numeric code
 - Stored in users table: otp_code, otp_expires_at, otp_attempts, otp_last_sent_at
-- Default expiry: 10 minutes (configurable via OTP_EXPIRY_MINUTES env)
-- Max attempts: 5 (configurable via OTP_MAX_ATTEMPTS env)
-- Resend cooldown: 60 seconds (configurable via OTP_RESEND_COOLDOWN env)
-- Each failed attempt increments otp_attempts counter
-- On successful verify: clear otp_code, otp_expires_at, otp_attempts, set is_verified = 1
+- Default expiry: 10 minutes (OTP_EXPIRY_MINUTES env)
+- Max attempts: 5 (OTP_MAX_ATTEMPTS env)
+- Resend cooldown: 60 seconds (OTP_RESEND_COOLDOWN env)
 - Page shows masked phone number (e.g., +85512***456)
-- Cooldown timer counts down on client side, then reloads page
 
-================================================================================
-VERIFY ACCOUNT (lookup)
-================================================================================
-
-- If user forgot whether they verified, they can look up their account
-- User enters email or phone number
-- System finds user WHERE email = ? OR phone = ?
-- If found and already verified: "Account is already verified. You can login."
-- If found and not verified: redirect to /auth/verify-otp?userId=X
-- If not found: show error
-
-================================================================================
-LOGOUT
-================================================================================
-
-- Destroy session
-- Redirect to home page
-
-================================================================================
-FORGOT PASSWORD
-================================================================================
+--- FORGOT PASSWORD ---
 
 1. User enters email on /auth/forgot-password
-2. System finds user by email
-3. Generate UUID token, store with 1-hour expiry in users table (reset_token, reset_token_expires)
-4. Send email with reset link: /auth/reset-password/:token
-5. Always show same message regardless of email exists: "If the email exists, a reset link has been sent"
-   (prevents email enumeration)
+2. Generate UUID token, store with 1-hour expiry (reset_token, reset_token_expires)
+3. Send email with reset link: /auth/reset-password/:token
+4. Always show same message regardless of email existence (prevents email enumeration)
 
-RESET PASSWORD:
-1. User clicks link from email
-2. System finds user WHERE reset_token = ? AND reset_token_expires > NOW()
-3. If not found: "Invalid or expired reset token"
-4. If found: show password reset form (new password + confirm password)
-5. Validate: min 6 chars, passwords match
-6. Hash new password, update in database
-7. Clear reset_token and reset_token_expires
-8. Redirect to login with success message
-
-================================================================================
-PROFILE
-================================================================================
+--- PROFILE ---
 
 - View profile: shows profile picture, names, role, username, email, phone
-- Edit profile: update khmer_name, english_name, email, phone, profile picture
-  - Username is readonly
-  - Photo upload: JPG/PNG only, max 5MB, stored with UUID filename
-  - Updates session data after save
+- Edit profile: update khmer_name, english_name, email, phone, profile picture (ImageKit)
 - Change password: requires current password verification first
-  - New password + confirm password (min 6 chars)
-  - Compares current password with bcrypt
-  - If correct: hash new password, update in database
-  - If wrong: "Current password is incorrect"
+- Username is readonly
 
 ================================================================================
-SESSION BEHAVIOR
+2. SCHOLARSHIP APPLICATION SYSTEM (Student)
 ================================================================================
 
-- Session stored in server memory (or can be configured to use DB/Redis)
-- Cookie: httpOnly, sameSite: lax, maxAge: 24 hours
-- On login: store id, email, phone, role, khmer_name, english_name, username, profile_pic
-- On each request: attach user to res.locals for templates
-- Flash messages: success, error, warning (cleared after display)
-- CSRF token: generated per session, validated on all non-multipart POST/PUT/DELETE/PATCH
+--- NEW APPLICATION (POST /student/application) ---
+
+Form fields:
+- Personal: khmer_first_name, khmer_last_name, english_first_name, english_last_name, gender, date_of_birth, nationality, national_id
+- Contact: current_address, phone, telegram, email
+- Family: parent_name, parent_phone, emergency_contact, emergency_phone
+- Education: school_name, school_province_id, graduation_year, exam_result
+- Choices: major_first_choice_id, major_second_choice_id, scholarship_category_id, scholarship_type_id
+- Documents: photo, transcript, national_id (file), additional_documents (up to 5)
+
+Logic:
+1. Check registration AND scholarship windows are open
+2. Upload 4 file types to ImageKit (photo, transcript, nationalId, additionalDocs)
+3. Handle nationality_other custom value
+4. Set status = 'pending'
+5. Record initial status in application_status_history
+6. Send confirmation email
+
+--- APPLICATION STATUS FLOW ---
+
+pending -> under_review -> approved/rejected/correction_requested
+correction_requested -> pending (after student corrects and resubmits)
+
+--- CORRECT APPLICATION (POST /student/application/:id/correct) ---
+
+- Only allowed when status = 'correction_requested'
+- Re-uploads files to ImageKit (preserves old files if new ones not provided)
+- Resets status to 'pending'
+- Records status history
 
 ================================================================================
-ROLE-BASED ACCESS
+3. ENROLLMENT SYSTEM (Student)
 ================================================================================
 
-- isAuthenticated: checks if session exists, redirects to /auth/login if not
-- isAdmin: checks session exists AND role = 'admin', redirects to / if not
-- isCommittee: checks session exists AND role = 'committee', redirects to / if not
-- isStudent: checks session exists AND role = 'student', redirects to / if not
-- Routes use these as middleware: router.use(isAuthenticated, isAdmin) for all admin routes
-- Role determines dashboard redirect after login
+--- ENROLLMENT FORM (GET /student/enroll) ---
+
+Loads:
+- User profile data
+- Latest application (if any)
+- Existing enrollment for current academic year
+- Fee types (active)
+- Payment history
+- Majors and tuition fees
+- Scholarship types with coverage info
+- Settings (enrollment open/close)
+
+--- SUBMIT ENROLLMENT (POST /student/enroll) ---
+
+Form fields:
+- Academic: academic_year (hardcoded '2026-2027'), semester ('1'), major_choice
+- Personal: khmer/english names, gender, date_of_birth, place_of_birth, village, phone, current_address
+- Address: province, district, commune
+- Family: father_name, mother_name, parent_name, parent_phone, parent_relationship, occupation, education_level, guardian_phone
+- Education: previous_school, previous_diploma, diploma_year
+- Documents: doc_transcript_file, doc_birth_cert_file, doc_photo_4x6_file, doc_photo_3x4_file
+- Signature dates: student_signature_date, parent_signature_date
+
+Logic:
+1. Check enrollment window is open
+2. Check duplicate enrollment per academic_year + semester
+3. Upload 4 document files to ImageKit
+4. Set status = 'pending'
+5. Redirect to success page
+
+--- TUITION LOOKUP (GET /student/enroll/tuition/:majorId) ---
+
+- AJAX endpoint returning JSON
+- Queries major_tuition table for the major's latest active tuition
+- Returns {success, tuition} for dynamic fee display
 
 ================================================================================
-SECURITY NOTES
+4. PAYMENT SYSTEM (Student)
+================================================================================
+
+--- PAYMENT PAGE (GET /student/payments) ---
+
+Loads:
+- Enrollment record
+- Payment history
+- Fee types
+- Total paid (sum of verified payments)
+- Tuition info from major_tuition
+- Scholarship discount info from scholarship_types
+- QR code image path from settings
+
+--- TUITION CALCULATION FORMULA ---
+
+discount = tuition_per_year * coverage_percentage / 100
+studentPays = tuition_per_year - discount + ministry_fee
+
+Where:
+- tuition_per_year comes from major_tuition table
+- coverage_percentage comes from scholarship_types table
+- ministry_fee comes from scholarship_types table
+
+--- BAKONG KHQR PAYMENT (POST /student/payments/generate-qr) ---
+
+1. Validate enrollment ownership
+2. Compute student payment amount with scholarship discount
+3. Split semester vs yearly payment if applicable
+4. Generate bill number: PAY-{timestamp}-{userId}
+5. Call generateKHQR({amount, currency:'khr', billNumber, mobileNumber})
+6. Insert payment record with khqr_md5, khqr_string, status='pending'
+7. Return JSON: {success, qrImage, md5Hash, amount, expiryMinutes:10}
+
+--- TRANSACTION CHECK (GET /student/payments/check-transaction/:md5) ---
+
+1. Rate limited (10 requests/min per IP)
+2. Call checkTransaction(md5Hash) from Bakong API
+3. If responseCode = 0 (success): UPDATE payments SET status='verified', verified_at=NOW()
+4. Return JSON: {success, status}
+
+--- MANUAL PAYMENT (POST /student/payments) ---
+
+1. Upload proof image to ImageKit
+2. Insert payment with default status='pending'
+3. Admin manually verifies later
+
+--- PAYMENT STATUSES ---
+
+pending -> verified (by admin or auto via KHQR)
+pending -> rejected (by admin)
+
+--- PAYMENT METHODS ---
+
+bank_transfer, aba, acleda, wing, cash, bakong_khqr (default)
+
+================================================================================
+5. ADMIN DASHBOARD
+================================================================================
+
+--- APPLICATION MANAGEMENT ---
+
+- List all applications with pagination and filters (status, major, category, province, gender, date range)
+- View application detail with full info and status history
+- Actions: Mark Under Review, Approve (with exam details), Reject (with reason), Request Correction
+- Each action: updates status, records history, creates notification, sends email
+
+--- ENROLLMENT MANAGEMENT ---
+
+- List all enrollments with payment stats (verified count, total paid)
+- View enrollment detail with payment history
+- Actions: Approve, Reject (with admin notes)
+
+--- PAYMENT MANAGEMENT ---
+
+- List all payments with search and status filter
+- Shows total verified amount
+- Actions: Verify, Reject (with admin notes and verified_by tracking)
+
+--- MAJOR MANAGEMENT ---
+
+- CRUD operations (add, edit, toggle active/inactive, delete)
+- Search by name/faculty, pagination
+
+--- SCHOLARSHIP TYPE MANAGEMENT ---
+
+- CRUD with coverage_percentage, duration_years, provider_name, ministry_fee
+- Toggle active/inactive, search, pagination
+
+--- FEE TYPE MANAGEMENT ---
+
+- CRUD with name (bilingual), amount, description
+- Toggle active/inactive
+
+--- MAJOR TUITION MANAGEMENT ---
+
+- Per-major tuition fees by academic year
+- CRUD with duplicate check (major_id + academic_year)
+- Toggle active/inactive
+
+--- PROVINCE MANAGEMENT ---
+
+- CRUD with bilingual names
+
+--- USER MANAGEMENT ---
+
+- List users with role filter and search
+- Admin can reset user password (generates random 8-char, flashes new password)
+- Admin cannot delete other admin users
+
+--- SYSTEM SETTINGS ---
+
+9 configurable settings:
+- registration_open, registration_start, registration_end
+- enrollment_open, enrollment_start, enrollment_end
+- scholarship_open, scholarship_start, scholarship_end
+- payment_qr_file (QR code image upload)
+
+--- REPORTS AND EXPORT ---
+
+- Statistics: by major, by category, by province, by gender, by status
+- Export to Excel (exceljs) and PDF (pdfkit)
+- Send exam notifications to all approved applications
+
+================================================================================
+6. COMMITTEE DASHBOARD
+================================================================================
+
+--- READ-ONLY ACCESS ---
+
+- Committee members can ONLY view approved applications
+- No POST routes exist (read-only role)
+- All queries filter by status = 'approved'
+
+--- FEATURES ---
+
+- Dashboard: count of approved applications, breakdown by major, recent 10
+- Applications list: paginated, searchable (name, major, category)
+- Application detail: full info + status history (validates status=approved)
+- Reports: statistics filtered to approved applications only (by major, category, province, gender)
+
+================================================================================
+7. FILE STORAGE (ImageKit)
+================================================================================
+
+Folders:
+- scholarship/profiles/      - User profile pictures
+- scholarship/applications/  - Application documents (photo, transcript, nationalId, additionalDocs)
+- scholarship/enrollments/   - Enrollment documents (transcript, birthCert, photo4x6, photo3x4)
+- scholarship/payments/      - Payment proof images
+
+File constraints:
+- Allowed types: PDF, JPEG, PNG only
+- Max size: 5MB per file
+- Filenames: UUID-based to prevent conflicts
+- Upload via multer memoryStorage -> buffer -> ImageKit API
+
+================================================================================
+8. EXTERNAL SERVICES
+================================================================================
+
+1. Bakong KHQR (bakong-khqr npm) - Payment QR code generation
+2. Bakong API - Transaction verification (check_transaction_by_md5)
+3. Telegram MTProto (gramjs) - Phone OTP verification via auth.SendCode/auth.SignIn
+4. Telegram Bot API (node-telegram-bot-api) - Bot notifications and phone-linking
+5. ImageKit - Cloud file storage
+6. Resend API / SMTP nodemailer - Email delivery
+7. MySQL (mysql2/promise) - Database
+
+================================================================================
+9. RATE LIMITING
+================================================================================
+
+- authLimiter: 50 requests per 15 minutes, POST-only, keyed by client IP
+- generalLimiter: 200 requests per 15 minutes, POST-only, keyed by client IP
+- transactionCheckLimiter: 10 requests per minute on /student/payments/check-transaction/:md5
+
+================================================================================
+10. SECURITY NOTES
 ================================================================================
 
 - Passwords hashed with bcrypt, 12 salt rounds
@@ -188,7 +375,9 @@ SECURITY NOTES
 - Rate limiting on auth routes to prevent brute force
 - OTP max attempts prevents unlimited guessing
 - OTP resend cooldown prevents spam
-- Registration open/close dates enforced
+- Registration/enrollment/scholarship open/close dates enforced
 - Token expiry on email verification and password reset (1 hour)
 - File upload limited to 5MB, specific MIME types only
-- Helmet.js headers enabled (CSP and cross-origin disabled for simplicity)
+- Helmet.js headers enabled (CSP and cross-origin disabled)
+- Session cookie: httpOnly, sameSite: lax, maxAge: 24 hours
+- trust proxy: 1 for IIS reverse proxy support

@@ -1,1260 +1,428 @@
+﻿================================================================================
+COMPLETE SYSTEM REFERENCE - Scholarship & Enroll Online (NMU)
 ================================================================================
-COMPLETE AUTH SYSTEM - Scholarship & Enroll Online (Node.js/Express/EJS/MySQL)
-================================================================================
-Use this as a reference to build an identical authentication system.
-Tech Stack: Node.js, Express.js, EJS templates, MySQL, bcryptjs, express-session,
-            connect-flash, express-validator, nodemailer, Telegram API, Tailwind CSS
+Tech Stack: Node.js, Express.js, EJS templates, MySQL, Tailwind CSS
+Institution: National Meanchey University (NMU), Cambodia
+Last Updated: September 2026
+
+This document is a comprehensive reference for building an identical system.
 
 ================================================================================
-1. DATABASE SCHEMA (users table)
+1. DATABASE SCHEMA (14 tables)
 ================================================================================
 
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('student','admin','committee') DEFAULT 'student',
-    khmer_name VARCHAR(255),
-    english_name VARCHAR(255),
-    username VARCHAR(50) UNIQUE,
-    phone VARCHAR(20),
-    telegram_chat_id VARCHAR(100),
-    profile_pic VARCHAR(500),
-    is_verified TINYINT DEFAULT 0,
-    verification_token VARCHAR(255),
-    token_expires_at DATETIME,
-    otp_code VARCHAR(10),
-    otp_expires_at DATETIME,
-    otp_attempts INT DEFAULT 0,
-    otp_last_sent_at DATETIME,
-    verify_method ENUM('email','telegram') DEFAULT 'email',
-    reset_token VARCHAR(255),
-    reset_token_expires DATETIME,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_users_email (email),
-    INDEX idx_users_role (role),
-    INDEX idx_users_verification_token (verification_token),
-    INDEX idx_users_reset_token (reset_token),
-    INDEX idx_users_username (username)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+users: id, email, password, role(student/admin/committee), khmer_name, english_name,
+  username, phone, telegram_chat_id, profile_pic, is_verified, verification_token,
+  token_expires_at, otp_code, otp_expires_at, otp_attempts, otp_last_sent_at,
+  verify_method(email/telegram), reset_token, reset_token_expires, created_at, updated_at
 
-Also needed:
-CREATE TABLE settings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    setting_key VARCHAR(100) UNIQUE NOT NULL,
-    setting_value TEXT,
-    description VARCHAR(255),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+applications: id, user_id, status(pending/under_review/approved/rejected/correction_requested),
+  khmer_first_name, khmer_last_name, english_first_name, english_last_name,
+  gender(male/female/other), date_of_birth, nationality, national_id, current_address,
+  phone, telegram, email, parent_name, parent_phone, emergency_contact, emergency_phone,
+  school_name, school_province_id, graduation_year, exam_result,
+  major_first_choice_id, major_second_choice_id, scholarship_category_id, scholarship_type_id,
+  photo_path, transcript_path, national_id_path, additional_documents_path,
+  admin_remark, correction_notes, exam_date, exam_time, exam_venue, submitted_at, updated_at
 
-Default settings rows needed:
-INSERT INTO settings (setting_key, setting_value, description) VALUES
-('registration_open', '1', 'Enable/disable registration'),
-('registration_start', NULL, 'Registration start date'),
-('registration_end', NULL, 'Registration end date');
+application_status_history: id, application_id, old_status, new_status,
+  changed_by, notes, created_at
 
+enrollments: id, user_id, application_id, academic_year, semester,
+  status(pending/approved/rejected), admin_notes,
+  khmer_first_name, khmer_last_name, english_first_name, english_last_name,
+  gender(male/female), date_of_birth, place_of_birth, village, phone, current_address,
+  province, district, commune, father_name, mother_name, parent_name, parent_phone,
+  parent_relationship, occupation, education_level, guardian_phone,
+  previous_school, previous_diploma, diploma_year, major, major_choice,
+  bank_name, bank_account_number, bank_account_name, photo_path,
+  student_signature_date, parent_signature_date, enrolled_at, updated_at
+
+payments: id, enrollment_id, user_id, fee_type_id, amount,
+  payment_method(bank_transfer/aba/acleda/wing/cash/bakong_khqr),
+  transaction_ref, proof_path, khqr_md5, khqr_string,
+  status(pending/verified/rejected), admin_notes, verified_by, verified_at, paid_at, created_at
+
+fee_types: id, name_kh, name_en, amount, description, is_active, created_at, updated_at
+
+major_tuition: id, major_id, academic_year, tuition_per_year, is_active, created_at, updated_at
+  UNIQUE(major_id, academic_year)
+
+majors: id, name_kh, name_en, faculty_kh, faculty_en, is_active, created_at
+
+scholarship_categories: id, name_kh, name_en, description_kh, description_en, is_active, created_at
+
+scholarship_types: id, name_kh, name_en, coverage_percentage, duration_years,
+  provider_name, description, ministry_fee, is_active, created_at, updated_at
+
+provinces: id, name_kh, name_en
+
+notifications: id, user_id, title, message, is_read, type, created_at
+
+settings: id, setting_key, setting_value, description, updated_at
+
+telegram_pending: id, phone, chat_id, created_at
 ================================================================================
 2. .env FILE
 ================================================================================
 
 PORT=3000
 DB_HOST=localhost
+DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=scholarship_system
+DB_SSL=false
 SESSION_SECRET=your_session_secret_here
+APP_URL=http://localhost:3000
+
+RESEND_API_KEY=your_resend_api_key
+EMAIL_FROM=your@email.com
 EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
+EMAIL_PORT=465
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
+
 OTP_EXPIRY_MINUTES=10
 OTP_MAX_ATTEMPTS=5
 OTP_RESEND_COOLDOWN=60
 
-# Optional: Telegram Bot
 TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN_HERE
 TELEGRAM_API_ID=your_api_id
 TELEGRAM_API_HASH=your_api_hash
 
-================================================================================
-3. package.json DEPENDENCIES
-================================================================================
+IMAGEKIT_PUBLIC_KEY=your_public_key
+IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_URL_ENDPOINT=your_url_endpoint
 
-{
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "connect-flash": "^0.1.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "ejs": "^3.1.9",
-    "express": "^4.22.2",
-    "express-ejs-layouts": "^2.5.1",
-    "express-rate-limit": "^7.1.4",
-    "express-session": "^1.17.3",
-    "express-validator": "^7.0.1",
-    "helmet": "^7.1.0",
-    "multer": "^1.4.5-lts.1",
-    "mysql2": "^3.6.3",
-    "node-telegram-bot-api": "^0.66.0",
-    "nodemailer": "^6.9.7",
-    "nodemon": "^3.1.14",
-    "telegram": "^2.26.22",
-    "uuid": "^9.0.0"
-  }
-}
+BAKONG_API_URL=https://sit-api-bakong.nbc.org.kh/v1/check_transaction_by_md5
+BAKONG_API_TOKEN=your_bakong_token
+BAKONG_ACCOUNT_ID=your_account_id
+BAKONG_MERCHANT_NAME=NMU
+BAKONG_MERCHANT_CITY=Battambang
+BAKONG_MERCHANT_ID=your_merchant_id
+BAKONG_ACQUIRING_BANK=your_bank
 
 ================================================================================
-4. server.js (MAIN SERVER)
+3. PACKAGE.JSON DEPENDENCIES
 ================================================================================
 
-require('dotenv').config();
-
-const express = require('express');
-const expressLayouts = require('express-ejs-layouts');
-const session = require('express-session');
-const flash = require('connect-flash');
-const helmet = require('helmet');
-const cors = require('cors');
-const crypto = require('crypto');
-const path = require('path');
-const rateLimit = require('express-rate-limit');
-
-const app = express();
-
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(expressLayouts);
-app.set('layout', 'layouts/main.ejs');
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-key-change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000  // 24 hours
-  }
-}));
-
-app.use(flash());
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
-}));
-app.use(cors());
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-const db = require('./config/database');
-
-// Global middleware: attach db, user, flash messages, language, CSRF to all responses
-app.use((req, res, next) => {
-  req.db = db;
-  res.locals.user = req.session.user || null;
-  res.locals.messages = {
-    success: req.flash('success'),
-    error: req.flash('error'),
-    warning: req.flash('warning')
-  };
-  res.locals.currentLang = req.query.lang || req.session.lang || 'km';
-  req.session.lang = res.locals.currentLang;
-  if (!req.session.csrfToken) {
-    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
-  }
-  res.locals.csrfToken = req.session.csrfToken;
-  next();
-});
-
-// CSRF protection middleware (skip multipart/form-data)
-app.use((req, res, next) => {
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-    if (req.is('multipart/form-data')) {
-      return next();
-    }
-    const token = req.body._csrf || req.headers['x-csrf-token'];
-    if (!token || token !== req.session.csrfToken) {
-      req.flash('error', 'Invalid or missing CSRF token. Please try again.');
-      return res.redirect('back');
-    }
-  }
-  next();
-});
-
-// Routes
-const authRoutes = require('./routes/auth');
-app.use('/auth', rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 50,
-    message: 'Too many requests, please try again later.',
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => req.method === 'GET'
-}), authRoutes);
-
-// Connect to DB then start server
-const PORT = process.env.PORT || 3000;
-db.query('SELECT 1')
-  .then(() => {
-    console.log('Database connected successfully');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Database connection failed:', err.message);
-    process.exit(1);
-  });
+bakong-khqr, bcryptjs, connect-flash, cors, dotenv, ejs, exceljs, express,
+express-ejs-layouts, express-rate-limit, express-session, express-validator,
+helmet, imagekit, multer, mysql2, node-telegram-bot-api, nodemailer, nodemon,
+pdfkit, qrcode, resend, telegram, uuid
 
 ================================================================================
-5. config/database.js
+4. SERVER.JS ARCHITECTURE
 ================================================================================
 
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+Middleware (in order):
+1. express.urlencoded + express.json
+2. express-session (24h cookie, httpOnly, sameSite: lax)
+3. connect-flash
+4. helmet (CSP and COEP disabled)
+5. cors
+6. express.static public + uploads
+7. Custom: inject locals (req.db, user, messages, currentLang, csrfToken)
+8. Custom: CSRF guard (skips multipart)
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'scholarship_system',
-  charset: 'utf8mb4',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+Route mounting:
+- /auth      -> routes/auth.js       (authLimiter: 50/15min POST-only)
+- /student   -> routes/student.js    (generalLimiter: 200/15min POST-only)
+- /admin     -> routes/admin.js      (generalLimiter: 200/15min POST-only)
+- /committee -> routes/committee.js  (generalLimiter: 200/15min POST-only)
+- GET /      -> inline (queries majors, categories, scholarshipTypes, provinces)
 
-module.exports = pool;
-
-================================================================================
-6. config/mailer.js
-================================================================================
-
-const nodemailer = require('nodemailer');
-
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-};
-
-const sendEmail = async (to, subject, html) => {
-    try {
-        const transporter = createTransporter();
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to,
-            subject,
-            html
-        });
-        return true;
-    } catch (error) {
-        console.error('Email send error:', error);
-        return false;
-    }
-};
-
-module.exports = { sendEmail };
+Error handling: 404 handler, global error handler, trust proxy: 1
 
 ================================================================================
-7. config/telegram.js (Telegram Bot for OTP)
+5. ROUTES/AUTH.JS (19 routes)
 ================================================================================
 
-const TelegramBot = require('node-telegram-bot-api');
-
-let bot = null;
-
-const initBot = () => {
-  if (!process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
-    console.warn('Warning: TELEGRAM_BOT_TOKEN is not configured. Telegram OTP will not work.');
-    return null;
-  }
-  bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
-  console.log('Telegram bot initialized');
-  return bot;
-};
-
-const getBot = () => {
-  if (!bot) return initBot();
-  return bot;
-};
-
-const sendOTP = async (chatId, code) => {
-  const b = getBot();
-  if (!b) {
-    console.error('Telegram bot not initialized. Cannot send OTP.');
-    return false;
-  }
-  try {
-    const message = [
-      '*Scholarship System - Verification Code*',
-      '',
-      `Your verification code is: \`${code}\``,
-      '',
-      'This code expires in ' + (process.env.OTP_EXPIRY_MINUTES || 10) + ' minutes.',
-      'Do not share this code with anyone.'
-    ].join('\n');
-    await b.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-    return true;
-  } catch (error) {
-    console.error('Failed to send Telegram OTP:', error.message);
-    return false;
-  }
-};
-
-module.exports = { initBot, getBot, sendOTP };
+GET  /login              - Render login form (with unverified panel)
+POST /login              - Authenticate (email/username/phone), check verified, redirect by role
+GET  /register           - Render registration form
+POST /register           - Create account (check settings window, duplicates, email or telegram verify)
+GET  /verify-email/:token - Email verification link
+POST /resend-email       - Resend verification email
+GET  /verify-otp         - OTP verification page (masked phone, cooldown timer)
+POST /verify-otp         - Submit OTP (telegram: TelegramClient SignIn, email: verifyUserOTP)
+POST /resend-otp         - Resend OTP (60s cooldown)
+GET  /logout             - Destroy session, redirect /
+GET  /verify-account     - Account lookup form for unverified users
+POST /verify-account     - Find account by email/phone, redirect to verify-otp if unverified
+GET  /forgot-password    - Render forgot password form
+POST /forgot-password    - Send reset link (always same message to prevent enumeration)
+GET  /reset-password/:token - Render reset password form
+POST /reset-password/:token - Submit new password
+GET  /profile            - View profile
+POST /profile            - Update profile (khmer_name, english_name, email, phone, profile_pic via ImageKit)
+POST /profile/password   - Change password (requires current password)
 
 ================================================================================
-8. utils/helpers.js
+6. ROUTES/STUDENT.JS (17 routes, all require isAuthenticated + isStudent)
 ================================================================================
 
-const { v4: uuidv4 } = require('uuid');
-
-const generateToken = () => {
-  return uuidv4();
-};
-
-module.exports = { generateToken };
-
-================================================================================
-9. utils/otp.js (OTP generate, store, verify, rate-limit)
-================================================================================
-
-const crypto = require('crypto');
-
-const generateOTP = (length = 5) => {
-  const digits = '0123456789';
-  let otp = '';
-  const bytes = crypto.randomBytes(length);
-  for (let i = 0; i < length; i++) {
-    otp += digits[bytes[i] % 10];
-  }
-  return otp;
-};
-
-const storeOTP = async (db, userId, code) => {
-  const expiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES) || 10;
-  const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
-  await db.query(
-    'UPDATE users SET otp_code = ?, otp_expires_at = ?, otp_attempts = 0, otp_last_sent_at = NOW() WHERE id = ?',
-    [code, expiresAt, userId]
-  );
-};
-
-const verifyOTP = async (db, userId, code) => {
-  const maxAttempts = parseInt(process.env.OTP_MAX_ATTEMPTS) || 5;
-  const [users] = await db.query(
-    'SELECT id, otp_code, otp_expires_at, otp_attempts, is_verified FROM users WHERE id = ?',
-    [userId]
-  );
-  if (users.length === 0) return { success: false, message: 'User not found' };
-  const user = users[0];
-  if (user.is_verified) return { success: true, message: 'Already verified' };
-  if (!user.otp_code || !user.otp_expires_at) {
-    return { success: false, message: 'No verification code found. Please request a new one.' };
-  }
-  if (new Date(user.otp_expires_at) < new Date()) {
-    return { success: false, message: 'expired', messageText: 'Code has expired. Please request a new one.' };
-  }
-  if (user.otp_attempts >= maxAttempts) {
-    return { success: false, message: 'max_attempts', messageText: 'Too many failed attempts. Please request a new code.' };
-  }
-  if (user.otp_code !== code) {
-    await db.query('UPDATE users SET otp_attempts = otp_attempts + 1 WHERE id = ?', [userId]);
-    const remaining = maxAttempts - (user.otp_attempts + 1);
-    return { success: false, message: 'invalid', messageText: `Invalid code. ${remaining > 0 ? remaining + ' attempts remaining.' : 'No attempts remaining.'}` };
-  }
-  await db.query(
-    'UPDATE users SET is_verified = 1, otp_code = NULL, otp_expires_at = NULL, otp_attempts = 0 WHERE id = ?',
-    [userId]
-  );
-  return { success: true, message: 'verified' };
-};
-
-const canResend = async (db, userId) => {
-  const cooldownSeconds = parseInt(process.env.OTP_RESEND_COOLDOWN) || 60;
-  const [users] = await db.query('SELECT otp_last_sent_at FROM users WHERE id = ?', [userId]);
-  if (users.length === 0) return { allowed: false, waitSeconds: 0 };
-  const lastSent = users[0].otp_last_sent_at;
-  if (!lastSent) return { allowed: true, waitSeconds: 0 };
-  const elapsed = (Date.now() - new Date(lastSent).getTime()) / 1000;
-  if (elapsed >= cooldownSeconds) return { allowed: true, waitSeconds: 0 };
-  return { allowed: false, waitSeconds: Math.ceil(cooldownSeconds - elapsed) };
-};
-
-const clearOTP = async (db, userId) => {
-  await db.query(
-    'UPDATE users SET otp_code = NULL, otp_expires_at = NULL, otp_attempts = 0 WHERE id = ?',
-    [userId]
-  );
-};
-
-module.exports = { generateOTP, storeOTP, verifyOTP, canResend, clearOTP };
+GET  /dashboard          - Dashboard with application, enrollment, payment stats
+GET  /application/new    - New scholarship application form
+POST /application        - Submit application (4 file uploads to ImageKit, status=pending)
+GET  /application/:id    - View application detail with status history
+POST /application/:id/correct - Correct resubmitted application (only when correction_requested)
+GET  /status             - Application status list
+GET  /notifications      - Notification list
+POST /notifications/read-all - Mark all notifications read
+POST /notification/:id/read  - Mark single notification read
+GET  /enroll-success     - Enrollment success page (shows QR image)
+GET  /enroll             - Enrollment form (loads majors, tuition, scholarships, payments)
+GET  /enroll/tuition/:majorId - AJAX tuition lookup (JSON)
+POST /enroll             - Submit enrollment (4 doc uploads, academic_year=2026-2027, semester=1)
+GET  /payments           - Payment page (tuition calc, scholarship discount, payment history)
+POST /payments/generate-qr - Generate Bakong KHQR (compute discount, create QR, store md5)
+GET  /payments/check-transaction/:md5 - Poll transaction status (rate limited 10/min)
+POST /payments           - Manual payment upload (proof image to ImageKit)
 
 ================================================================================
-10. services/otpSender.js (Telegram OTP via TelegramClient API)
+7. ROUTES/ADMIN.JS (47 routes, all require isAuthenticated + isAdmin)
 ================================================================================
 
-Uses the `telegram` npm package (GramJS) to send OTP via Telegram's SendCode API.
+Dashboard:
+  GET /dashboard - Stats (counts by status), recent 10 applications
 
-Key functions:
-- normalizePhone(phoneNumber): Converts to international format (+855...)
-- sendOTP(phoneNumber): Creates a TelegramClient, calls Api.auth.SendCode, stores
-  the pending session in a Map with phoneCodeHash. Sessions auto-expire after 10 min.
-- verifyOTP(phoneNumber, code): Retrieves pending session, calls Api.auth.SignIn
-  to verify the code. Handles PHONE_CODE_INVALID, PHONE_CODE_EXPIRED,
-  SESSION_PASSWORD_NEEDED (2FA accounts).
+Applications:
+  GET  /applications              - Paginated list with 8 filters
+  GET  /applications/:id          - Full detail with status history
+  POST /applications/:id/under-review - Mark under review + email + notification
+  POST /applications/:id/approve  - Approve + exam details + email + notification
+  POST /applications/:id/reject   - Reject + reason + email + notification
+  POST /applications/:id/correction - Request correction + notes + email + notification
 
-NOTE: This method works by sending a login code to the user's Telegram account
-(it appears as a Telegram login code notification). The user reads the code from
-Telegram and enters it on the website.
+Majors:
+  GET  /majors         - Paginated list with search
+  POST /majors         - Add major
+  POST /majors/:id/edit    - Edit major
+  POST /majors/:id/toggle  - Toggle active/inactive
+  POST /majors/:id/delete  - Delete major
 
-================================================================================
-11. middleware/auth.js (Route protection)
-================================================================================
+Provinces:
+  GET  /provinces, POST /provinces, POST /provinces/:id/edit, POST /provinces/:id/delete
 
-const isAuthenticated = (req, res, next) => {
-  if (req.session.user) {
-    return next();
-  }
-  req.flash('error', 'Please log in to continue');
-  return res.redirect('/auth/login');
-};
+Users:
+  GET  /users          - Paginated list with role filter
+  POST /users/:id/reset-password - Generate random 8-char password
+  POST /users/:id/delete         - Delete user (blocks admin deletion)
 
-const isAdmin = (req, res, next) => {
-  if (req.session.user && req.session.user.role === 'admin') {
-    return next();
-  }
-  req.flash('error', 'Access denied. Admin privileges required.');
-  return res.redirect('/');
-};
+Scholarship Types:
+  GET  /scholarship-types, POST /scholarship-types, POST /scholarship-types/:id/edit,
+  POST /scholarship-types/:id/toggle, POST /scholarship-types/:id/delete
 
-const isCommittee = (req, res, next) => {
-  if (req.session.user && req.session.user.role === 'committee') {
-    return next();
-  }
-  req.flash('error', 'Access denied. Committee privileges required.');
-  return res.redirect('/');
-};
+Fee Types:
+  GET  /fee-types, POST /fee-types, POST /fee-types/:id/edit,
+  POST /fee-types/:id/toggle, POST /fee-types/:id/delete
 
-const isStudent = (req, res, next) => {
-  if (req.session.user && req.session.user.role === 'student') {
-    return next();
-  }
-  req.flash('error', 'Access denied. Student privileges required.');
-  return res.redirect('/');
-};
+Major Tuition:
+  GET  /major-tuition, POST /major-tuition, POST /major-tuition/:id/edit,
+  POST /major-tuition/:id/toggle, POST /major-tuition/:id/delete
 
-module.exports = { isAuthenticated, isAdmin, isCommittee, isStudent };
+Enrollments:
+  GET  /enrollments           - Paginated with payment stats
+  GET  /enrollments/:id       - Detail with payment history
+  POST /enrollments/:id/approve - Approve with admin notes
+  POST /enrollments/:id/reject  - Reject with admin notes
 
-Usage in route files:
-  const { isAuthenticated, isAdmin } = require('../middleware/auth');
-  router.use(isAuthenticated, isAdmin);   // all routes in this file require admin
+Payments:
+  GET  /payments              - Paginated with total verified amount
+  POST /payments/:id/verify   - Verify payment
+  POST /payments/:id/reject   - Reject payment
 
-================================================================================
-12. middleware/upload.js (File upload with multer)
-================================================================================
+Reports:
+  GET  /reports               - Statistics by major/category/province/gender/status
+  GET  /reports/export/excel  - Export to Excel
+  GET  /reports/export/pdf    - Export to PDF
 
-const multer = require('multer');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+Settings:
+  GET  /settings              - View 9 configurable settings
+  POST /settings              - Update settings (registration/enrollment/scholarship windows + QR)
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', 'uploads'));
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF, JPEG, and PNG are allowed.'), false);
-  }
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }  // 5MB max
-});
-
-const uploadPhoto = upload.single('photo');
-
-module.exports = { uploadPhoto };
+Notifications:
+  POST /notifications/send    - Send exam notification to all approved applications
 
 ================================================================================
-13. routes/auth.js (COMPLETE AUTH ROUTES)
+8. ROUTES/COMMITTEE.JS (4 routes, all require isAuthenticated + isCommittee)
 ================================================================================
 
-Features:
-- Login with email, username, or phone (any identifier)
-- Register with dual verification: email link OR Telegram OTP
-- Email verification via token link
-- Telegram OTP verification (5-digit code)
-- Resend OTP / Resend verification email
-- Forgot password via email reset link
-- Reset password page
-- Profile view/edit with photo upload
-- Change password (requires current password)
-- Verify account lookup (find unverified account by email/phone)
-- Registration can be disabled via settings (registration_open, registration_start/end)
-- CSRF protection on all POST forms
-- Rate limiting on /auth routes (50 req / 15 min)
+GET /dashboard      - Only approved applications: count, by major, recent 10
+GET /applications   - Paginated list of APPROVED applications only
+GET /applications/:id - Detail (validates status=approved)
+GET /reports        - Statistics filtered to approved only
 
---- Full routes/auth.js code: ---
-
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
-const { sendEmail } = require('../config/mailer');
-const { body, validationResult } = require('express-validator');
-const { generateToken } = require('../utils/helpers');
-const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend, clearOTP } = require('../utils/otp');
-const telegramOtp = require('../services/otpSender');
-
-// ==================== LOGIN ====================
-
-router.get('/login', (req, res) => {
-  const showResendPanel = req.query.unverified === '1';
-  const resendEmail = req.query.email || '';
-  res.render('auth/login', { title: 'Login', showResendPanel, resendEmail });
-});
-
-router.post('/login', [
-  body('login_identifier').trim().notEmpty().withMessage('Email, username, or phone is required'),
-  body('password').notEmpty().withMessage('Password is required'),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      req.flash('error', errors.array().map(e => e.msg).join('. '));
-      return res.redirect('/auth/login');
-    }
-    const { login_identifier, password } = req.body;
-    const [users] = await req.db.query(
-      'SELECT * FROM users WHERE email = ? OR username = ? OR phone = ?',
-      [login_identifier, login_identifier, login_identifier]
-    );
-    if (users.length === 0) {
-      req.flash('error', 'Invalid credentials');
-      return res.redirect('/auth/login');
-    }
-    const user = users[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      req.flash('error', 'Invalid credentials');
-      return res.redirect('/auth/login');
-    }
-    if (!user.is_verified) {
-      req.flash('error', 'Please verify your account before logging in');
-      return res.redirect('/auth/verify-otp?userId=' + user.id);
-    }
-    req.session.user = {
-      id: user.id,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      khmer_name: user.khmer_name,
-      english_name: user.english_name,
-      username: user.username,
-      profile_pic: user.profile_pic
-    };
-    if (user.role === 'admin') {
-      return res.redirect('/admin/dashboard');
-    } else if (user.role === 'committee') {
-      return res.redirect('/committee/dashboard');
-    }
-    return res.redirect('/student/dashboard');
-  } catch (error) {
-    console.error('Login error:', error);
-    req.flash('error', 'An error occurred during login');
-    return res.redirect('/auth/login');
-  }
-});
-
-// ==================== REGISTER ====================
-
-router.get('/register', (req, res) => {
-  res.render('auth/register', { title: 'Register' });
-});
-
-router.post('/register', [
-  body('khmer_name').trim().notEmpty().withMessage('Khmer name is required'),
-  body('english_name').trim().notEmpty().withMessage('English name is required'),
-  body('username').trim().matches(/^[a-zA-Z0-9_]{3,50}$/).withMessage('Username must be 3-50 characters (letters, numbers, _)'),
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('phone').trim().notEmpty().withMessage('Phone number is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('confirm_password').custom((value, { req }) => value === req.body.password).withMessage('Passwords do not match'),
-  body('verify_method').isIn(['email', 'telegram']).withMessage('Invalid verification method'),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      req.flash('error', errors.array().map(e => e.msg).join('. '));
-      return res.redirect('/auth/register');
-    }
-    // Check registration settings
-    const [settingsRows] = await req.db.query('SELECT * FROM settings');
-    const settings = {};
-    settingsRows.forEach(row => { settings[row.setting_key] = row.setting_value; });
-    if (settings.registration_open === '0') {
-      req.flash('error', 'Registration is currently closed. Please check back later.');
-      return res.redirect('/auth/register');
-    }
-    const now = new Date();
-    if (settings.registration_start && new Date(settings.registration_start) > now) {
-      req.flash('error', 'Registration has not opened yet. Please check back later.');
-      return res.redirect('/auth/register');
-    }
-    if (settings.registration_end && new Date(settings.registration_end) < now) {
-      req.flash('error', 'Registration has closed. Please check back later.');
-      return res.redirect('/auth/register');
-    }
-    const { khmer_name, english_name, username, email, phone, password, verify_method } = req.body;
-
-    // Check duplicates
-    const [existingUsername] = await req.db.query('SELECT id FROM users WHERE username = ?', [username]);
-    if (existingUsername.length > 0) {
-      req.flash('error', 'Username already taken');
-      return res.redirect('/auth/register');
-    }
-    const [existingEmail] = await req.db.query('SELECT id FROM users WHERE email = ?', [email]);
-    if (existingEmail.length > 0) {
-      req.flash('error', 'Email already registered');
-      return res.redirect('/auth/register');
-    }
-    const [existingPhone] = await req.db.query('SELECT id FROM users WHERE phone = ?', [phone]);
-    if (existingPhone.length > 0) {
-      req.flash('error', 'Phone number already registered');
-      return res.redirect('/auth/register');
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    if (verify_method === 'email') {
-      const token = generateToken();
-      const expires = new Date(Date.now() + 3600000); // 1 hour
-      const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
-      );
-      const verificationUrl = `${req.protocol}://${req.get('host')}/auth/verify-email/${token}`;
-      const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
-        <p>Hello ${khmer_name || english_name},</p>
-        <p>Thank you for registering with our scholarship system.</p>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">${verificationUrl}</a>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you did not create an account, please ignore this email.</p>
-      `);
-      if (emailSent) {
-        req.flash('success', 'Registration successful! Please check your email to verify your account.');
-      } else {
-        req.flash('error', 'Registration successful but failed to send verification email.');
-      }
-      return res.redirect('/auth/login');
-    } else {
-      // Telegram verification
-      const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, 'telegram']
-      );
-      const userId = result.insertId;
-      try {
-        await telegramOtp.sendOTP(phone);
-        req.flash('success', 'Registration successful! Please enter the OTP code sent to your Telegram.');
-        return res.redirect('/auth/verify-otp?userId=' + userId);
-      } catch (otpError) {
-        console.error('Telegram OTP send error:', otpError);
-        req.flash('error', 'Registration successful but failed to send OTP. Please try to resend from verification page.');
-        return res.redirect('/auth/verify-otp?userId=' + userId);
-      }
-    }
-  } catch (error) {
-    console.error('Registration error:', error);
-    req.flash('error', 'An error occurred during registration');
-    return res.redirect('/auth/register');
-  }
-});
-
-// ==================== EMAIL VERIFICATION ====================
-
-router.get('/verify-email/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const [users] = await req.db.query(
-      'SELECT * FROM users WHERE verification_token = ? AND token_expires_at > NOW()',
-      [token]
-    );
-    if (users.length === 0) {
-      req.flash('error', 'Invalid or expired verification token');
-      return res.redirect('/auth/login');
-    }
-    const user = users[0];
-    await req.db.query(
-      'UPDATE users SET is_verified = 1, verification_token = NULL, token_expires_at = NULL WHERE id = ?',
-      [user.id]
-    );
-    req.flash('success', 'Email verified successfully! You can now login.');
-    return res.redirect('/auth/login');
-  } catch (error) {
-    console.error('Email verification error:', error);
-    req.flash('error', 'An error occurred during verification');
-    return res.redirect('/auth/login');
-  }
-});
-
-router.post('/resend-email', [
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-], async (req, res) => {
-  try {
-    const { email } = req.body;
-    const [users] = await req.db.query('SELECT * FROM users WHERE email = ? AND is_verified = 0', [email]);
-    if (users.length === 0) {
-      req.flash('error', 'No pending registration found for this email');
-      return res.redirect('/auth/login');
-    }
-    const user = users[0];
-    const token = generateToken();
-    const expires = new Date(Date.now() + 3600000);
-    await req.db.query(
-      'UPDATE users SET verification_token = ?, token_expires_at = ? WHERE id = ?',
-      [token, expires, user.id]
-    );
-    const verificationUrl = `${req.protocol}://${req.get('host')}/auth/verify-email/${token}`;
-    await sendEmail(email, 'Resend Verification Link', `
-      <p>Hello ${user.khmer_name || user.english_name},</p>
-      <p>Here is your verification link:</p>
-      <a href="${verificationUrl}">${verificationUrl}</a>
-      <p>This link will expire in 1 hour.</p>
-    `);
-    req.flash('success', 'Verification email sent. Please check your inbox.');
-    return res.redirect('/auth/login?unverified=1&email=' + encodeURIComponent(email));
-  } catch (error) {
-    console.error('Resend email error:', error);
-    req.flash('error', 'An error occurred. Please try again.');
-    return res.redirect('/auth/login');
-  }
-});
-
-// ==================== TELEGRAM OTP VERIFICATION ====================
-
-router.get('/verify-otp', async (req, res) => {
-  const userId = req.query.userId;
-  if (!userId) return res.redirect('/auth/login');
-  try {
-    const [users] = await req.db.query('SELECT id, phone, is_verified, verify_method FROM users WHERE id = ?', [userId]);
-    if (users.length === 0) return res.redirect('/auth/login');
-    const user = users[0];
-    if (user.is_verified) {
-      req.flash('success', 'Account already verified. You can login.');
-      return res.redirect('/auth/login');
-    }
-    const resend = await canResend(req.db, userId);
-    const maskedPhone = user.phone ? user.phone.substring(0, 5) + '***' + user.phone.substring(user.phone.length - 3) : '***';
-    res.render('auth/verify-otp', {
-      title: 'Verify Account',
-      userId: user.id,
-      maskedPhone,
-      canResend: resend.allowed,
-      waitSeconds: resend.waitSeconds,
-      verifyMethod: user.verify_method || 'telegram',
-      error: null,
-      success: null
-    });
-  } catch (error) {
-    console.error('Verify OTP page error:', error);
-    req.flash('error', 'An error occurred');
-    return res.redirect('/auth/login');
-  }
-});
-
-router.post('/verify-otp', [
-  body('otpCode').isLength({ min: 5, max: 5 }).withMessage('Please enter a 5-digit code'),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    const { userId, otpCode, verify_method } = req.body;
-    const [users] = await req.db.query('SELECT id, phone, is_verified, verify_method FROM users WHERE id = ?', [userId]);
-    if (users.length === 0) return res.redirect('/auth/login');
-    const user = users[0];
-    if (user.is_verified) {
-      req.flash('success', 'Already verified');
-      return res.redirect('/auth/login');
-    }
-    const method = verify_method || user.verify_method || 'telegram';
-    const resend = await canResend(req.db, userId);
-    const maskedPhone = user.phone ? user.phone.substring(0, 5) + '***' + user.phone.substring(user.phone.length - 3) : '***';
-
-    if (!errors.isEmpty()) {
-      return res.render('auth/verify-otp', {
-        title: 'Verify Account', userId, maskedPhone,
-        canResend: resend.allowed, waitSeconds: resend.waitSeconds,
-        verifyMethod: method, error: errors.array()[0].msg, success: null
-      });
-    }
-
-    if (method === 'telegram') {
-      try {
-        await telegramOtp.verifyOTP(user.phone, otpCode);
-        await req.db.query(
-          'UPDATE users SET is_verified = 1, otp_code = NULL, otp_expires_at = NULL, otp_attempts = 0 WHERE id = ?',
-          [userId]
-        );
-        req.flash('success', 'Phone verified successfully! You can now login.');
-        return res.redirect('/auth/login');
-      } catch (verifyError) {
-        return res.render('auth/verify-otp', {
-          title: 'Verify Account', userId, maskedPhone,
-          canResend: resend.allowed, waitSeconds: resend.waitSeconds,
-          verifyMethod: method, error: verifyError.message, success: null
-        });
-      }
-    } else {
-      const result = await verifyUserOTP(req.db, userId, otpCode);
-      if (result.success) {
-        req.flash('success', 'Email verified successfully! You can now login.');
-        return res.redirect('/auth/login');
-      } else {
-        return res.render('auth/verify-otp', {
-          title: 'Verify Account', userId, maskedPhone,
-          canResend: resend.allowed, waitSeconds: resend.waitSeconds,
-          verifyMethod: method, error: result.messageText || result.message, success: null
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    req.flash('error', 'An error occurred during verification');
-    return res.redirect('/auth/login');
-  }
-});
-
-router.post('/resend-otp', async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const [users] = await req.db.query('SELECT id, phone, verify_method FROM users WHERE id = ? AND is_verified = 0', [userId]);
-    if (users.length === 0) {
-      req.flash('error', 'No pending verification found');
-      return res.redirect('/auth/login');
-    }
-    const user = users[0];
-    const method = user.verify_method || 'telegram';
-    const resendCheck = await canResend(req.db, userId);
-    if (!resendCheck.allowed) {
-      req.flash('error', 'Please wait before resending');
-      return res.redirect('/auth/verify-otp?userId=' + userId);
-    }
-    if (method === 'telegram') {
-      try {
-        await telegramOtp.sendOTP(user.phone);
-        const code = telegramOtp.generateOTP();
-        await storeOTP(req.db, userId, code);
-        req.flash('success', 'New OTP sent to your Telegram.');
-      } catch (otpError) {
-        console.error('Telegram resend error:', otpError);
-        req.flash('error', 'Failed to resend OTP. Please try again.');
-      }
-    } else {
-      const code = generateOTP();
-      await storeOTP(req.db, userId, code);
-      const emailUser = await req.db.query('SELECT email FROM users WHERE id = ?', [userId]);
-      if (emailUser.length > 0) {
-        await sendEmail(emailUser[0].email, 'Your Verification Code', `
-          <p>Your verification code is: <strong>${code}</strong></p>
-          <p>This code expires in ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.</p>
-        `);
-      }
-      req.flash('success', 'New verification code sent to your email.');
-    }
-    return res.redirect('/auth/verify-otp?userId=' + userId);
-  } catch (error) {
-    console.error('Resend OTP error:', error);
-    req.flash('error', 'An error occurred');
-    return res.redirect('/auth/login');
-  }
-});
-
-// ==================== LOGOUT ====================
-
-router.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) console.error('Logout error:', err);
-    return res.redirect('/');
-  });
-});
-
-// ==================== VERIFY ACCOUNT (lookup by email/phone) ====================
-
-router.get('/verify-account', (req, res) => {
-  res.render('auth/verify-account', { title: 'Verify Account' });
-});
-
-router.post('/verify-account', [
-  body('identifier').trim().notEmpty().withMessage('Email or phone number is required'),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      req.flash('error', errors.array()[0].msg);
-      return res.redirect('/auth/verify-account');
-    }
-    const { identifier } = req.body;
-    const [users] = await req.db.query(
-      'SELECT id, email, phone, is_verified, verify_method FROM users WHERE email = ? OR phone = ?',
-      [identifier, identifier]
-    );
-    if (users.length === 0) {
-      req.flash('error', 'No account found with that email or phone number');
-      return res.redirect('/auth/verify-account');
-    }
-    const user = users[0];
-    if (user.is_verified) {
-      req.flash('success', 'Account is already verified. You can login.');
-      return res.redirect('/auth/login');
-    }
-    return res.redirect('/auth/verify-otp?userId=' + user.id);
-  } catch (error) {
-    console.error('Verify account lookup error:', error);
-    req.flash('error', 'An error occurred');
-    return res.redirect('/auth/verify-account');
-  }
-});
-
-// ==================== FORGOT PASSWORD ====================
-
-router.get('/forgot-password', (req, res) => {
-  res.render('auth/forgot-password', { title: 'Forgot Password' });
-});
-
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      req.flash('error', 'Please provide your email');
-      return res.redirect('/auth/forgot-password');
-    }
-    const [users] = await req.db.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
-      req.flash('success', 'If the email exists, a reset link has been sent');
-      return res.redirect('/auth/forgot-password');
-    }
-    const user = users[0];
-    const token = generateToken();
-    const expires = new Date(Date.now() + 3600000);
-    await req.db.query(
-      'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
-      [token, expires, user.id]
-    );
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST, port: process.env.EMAIL_PORT, secure: false,
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-    });
-    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER, to: user.email, subject: 'Password Reset Request',
-      html: `<p>Click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a><p>This link expires in 1 hour.</p>`
-    });
-    req.flash('success', 'If the email exists, a reset link has been sent');
-    return res.redirect('/auth/forgot-password');
-  } catch (error) {
-    console.error('Forgot password error:', error);
-    req.flash('error', 'An error occurred');
-    return res.redirect('/auth/forgot-password');
-  }
-});
-
-router.get('/reset-password/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const [users] = await req.db.query(
-      'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > NOW()', [token]
-    );
-    if (users.length === 0) {
-      req.flash('error', 'Invalid or expired reset token');
-      return res.redirect('/auth/login');
-    }
-    res.render('auth/reset-password', { title: 'Reset Password', token });
-  } catch (error) {
-    console.error('Reset password page error:', error);
-    req.flash('error', 'An error occurred');
-    return res.redirect('/auth/login');
-  }
-});
-
-router.post('/reset-password/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password, confirm_password } = req.body;
-    if (!password || !confirm_password) {
-      req.flash('error', 'Please provide new password');
-      return res.redirect(`/auth/reset-password/${token}`);
-    }
-    if (password !== confirm_password) {
-      req.flash('error', 'Passwords do not match');
-      return res.redirect(`/auth/reset-password/${token}`);
-    }
-    if (password.length < 6) {
-      req.flash('error', 'Password must be at least 6 characters');
-      return res.redirect(`/auth/reset-password/${token}`);
-    }
-    const [users] = await req.db.query(
-      'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > NOW()', [token]
-    );
-    if (users.length === 0) {
-      req.flash('error', 'Invalid or expired reset token');
-      return res.redirect('/auth/login');
-    }
-    const hashedPassword = await bcrypt.hash(password, 12);
-    await req.db.query(
-      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
-      [hashedPassword, users[0].id]
-    );
-    req.flash('success', 'Password reset successful. Please login.');
-    return res.redirect('/auth/login');
-  } catch (error) {
-    console.error('Reset password error:', error);
-    req.flash('error', 'An error occurred');
-    return res.redirect('/auth/login');
-  }
-});
-
-// ==================== PROFILE ====================
-
-const { uploadPhoto } = require('../middleware/upload');
-
-router.get('/profile', async (req, res) => {
-  if (!req.session.user) return res.redirect('/auth/login');
-  try {
-    const [users] = await req.db.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
-    res.render('auth/profile', { title: 'Profile', profile: users[0] });
-  } catch (error) {
-    console.error(error);
-    req.flash('error', 'Error loading profile');
-    res.redirect('back');
-  }
-});
-
-router.post('/profile', uploadPhoto, async (req, res) => {
-  if (!req.session.user) return res.redirect('/auth/login');
-  if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
-    req.flash('error', 'Invalid or missing CSRF token. Please try again.');
-    return res.redirect('/auth/profile');
-  }
-  try {
-    const { khmer_name, english_name, email, phone } = req.body;
-    const profilePic = req.file ? req.file.filename : null;
-    if (profilePic) {
-      await req.db.query(
-        'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ?, profile_pic = ? WHERE id = ?',
-        [khmer_name, english_name, email, phone, profilePic, req.session.user.id]
-      );
-    } else {
-      await req.db.query(
-        'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ? WHERE id = ?',
-        [khmer_name, english_name, email, phone, req.session.user.id]
-      );
-    }
-    req.session.user.khmer_name = khmer_name;
-    req.session.user.english_name = english_name;
-    req.session.user.email = email;
-    if (profilePic) req.session.user.profile_pic = profilePic;
-    req.flash('success', 'Profile updated successfully');
-    res.redirect('/auth/profile');
-  } catch (error) {
-    console.error(error);
-    req.flash('error', 'Error updating profile');
-    res.redirect('/auth/profile');
-  }
-});
-
-router.post('/profile/password', async (req, res) => {
-  if (!req.session.user) return res.redirect('/auth/login');
-  try {
-    const { current_password, new_password, confirm_password } = req.body;
-    if (new_password !== confirm_password) {
-      req.flash('error', 'Passwords do not match');
-      return res.redirect('/auth/profile');
-    }
-    if (new_password.length < 6) {
-      req.flash('error', 'Password must be at least 6 characters');
-      return res.redirect('/auth/profile');
-    }
-    const [users] = await req.db.query('SELECT password FROM users WHERE id = ?', [req.session.user.id]);
-    const isMatch = await bcrypt.compare(current_password, users[0].password);
-    if (!isMatch) {
-      req.flash('error', 'Current password is incorrect');
-      return res.redirect('/auth/profile');
-    }
-    const hashedPassword = await bcrypt.hash(new_password, 12);
-    await req.db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.session.user.id]);
-    req.flash('success', 'Password changed successfully');
-    res.redirect('/auth/profile');
-  } catch (error) {
-    console.error(error);
-    req.flash('error', 'Error changing password');
-    res.redirect('/auth/profile');
-  }
-});
-
-module.exports = router;
+NOTE: Committee is READ-ONLY. No POST routes exist.
 
 ================================================================================
-14. VIEWS (EJS Templates)
+9. SERVICES, UTILS, AND CONFIG
 ================================================================================
+
+--- services/otpSender.js ---
+Telegram MTProto API (gramjs) for phone verification.
+Functions: sendOTP(phone), verifyOTP(phone, code), hasPendingSession(phone)
+Uses pendingSessions Map with 10-min auto-cleanup.
+
+--- utils/helpers.js ---
+formatDate, formatDateShort, getStatusColor, getStatusText, truncate, escapeHtml, generateToken
+
+--- utils/imagekit.js ---
+uploadToImageKit(file, folderType), deleteFromImageKit(fileId), extractFileId(url)
+Folders: profiles, enrollments, applications, payments
+
+--- utils/otp.js ---
+generateOTP(length=5), storeOTP(db, userId, code), verifyOTP(db, userId, code),
+canResend(db, userId), clearOTP(db, userId)
+
+--- config/bakong.js ---
+generateKHQR({amount, currency, billNumber, mobileNumber}) -> {qrString, md5Hash, qrImageBase64}
+checkTransaction(md5Hash) -> {success, status, data}
+
+--- config/mailer.js ---
+sendEmail(to, subject, html) - Tries Resend API first, falls back to SMTP nodemailer
+
+--- config/telegram.js ---
+initBot(), getBot(), sendOTP(chatId, code), sendMessage(chatId, text), setupWebhook(app, db)
+
+--- config/database.js ---
+MySQL2 promise pool (10 connection limit, utf8mb4)
+
+--- config/imagekit.js ---
+ImageKit SDK client initialization
+
+--- config/app.js ---
+baseUrl, port constants
+
+--- middleware/auth.js ---
+isAuthenticated, isAdmin, isCommittee, isStudent
+
+--- middleware/upload.js ---
+uploadPhoto (single photo), uploadMultiple (photo+transcript+nationalId+5 additional),
+uploadEnrollmentDocs (transcript+birthCert+photo4x6+photo3x4)
+All use memoryStorage, PDF/JPEG/PNG only, 5MB max
+
+================================================================================
+10. VIEWS (EJS Templates)
+================================================================================
+
+--- views/layouts/main.ejs ---
+HTML lang toggles km/en. Tailwind CSS CDN with dark mode (class strategy).
+Hanuman + Plus Jakarta Sans fonts, Bootstrap Icons, Chart.js, SweetAlert2.
+Custom CSS for animations, print styles, upload areas, phone inputs.
+Flash messages rendered as hidden JSON, parsed into SweetAlert2 popups.
+If logged in: sidebar offset (lg:ml-[260px]) + top padding.
+If not logged in: full-width main.
+
+--- views/partials/navbar.ejs ---
+Public: sticky top, logo + "NMU Scholarship & Enroll Online", Home link,
+  theme toggle, KM/EN switcher, Login/Register buttons. Mobile hamburger menu.
+Authenticated: minimal top bar with theme toggle only.
+
+--- views/partials/sidebar.ejs ---
+Fixed left 260px. Only renders when user exists.
+Role-based navigation:
+  student: Dashboard, Apply, Enrollment, Status, Notifications, Payments
+  admin: Dashboard, Applications, Manage section (Majors, Scholarship Types,
+    Provinces, Users, Tuition), Enrollment and Payment section (Enrollments,
+    Payments), Analytics section (Reports, Settings)
+  committee: Dashboard, Applications, Reports
+Footer: user avatar, name, role, profile link, theme toggle, language switcher, logout.
+
+--- views/partials/footer.ejs ---
+3-column grid: Logo+description, Quick Links, Contact info.
+Copyright: 2026 National Meanchey University.
+
+--- views/index.ejs (Homepage) ---
+10 sections: Hero, Our Services, Why Choose Us, Available Majors, How It Works,
+  About NMU, Why Create Account, How to Register and Login, Statistics, Final CTA.
 
 --- views/auth/login.ejs ---
-
-Login page with:
-- Email/Username/Phone field (single login_identifier field)
-- Password field with show/hide toggle
-- CSRF token in hidden field
-- Flash message display (error/success)
-- "Not verified yet? Verify Account" link -> /auth/verify-account
-- "Forgot password? Reset" link -> /auth/forgot-password
-- "No account? Sign Up" link -> /auth/register
-- If unverified panel is shown (via ?unverified=1 query param): amber info box
-  telling user to check email/Telegram
-- Green theme (bg-green-500 buttons), rounded-2xl cards, dark mode support
+Single login_identifier field (email/username/phone), password toggle, CSRF,
+  unverified info panel, links to verify-account, forgot-password, register.
 
 --- views/auth/register.ejs ---
-
-Registration page with:
-- 2-column grid: Khmer Name + English Name
-- Username field with @ icon, pattern validation [a-zA-Z0-9_]{3,50}
-- Email field with envelope icon
-- Phone field (uses partial include ../partials/phone-input)
-- Password + Confirm Password side by side with show/hide toggles
-- Verification Method selector: Email (radio) or Telegram (radio)
-  - Email selected: green border, shows hint about email link
-  - Telegram selected: blue border, shows hint about Telegram OTP
-- Submit button "Create Account"
-- Client-side password match validation with SweetAlert
-- "Already have an account? Sign In" link
+7 fields in 2-column grid, phone-input partial, verification method radio
+  (email/telegram) with visual indicators.
 
 --- views/auth/verify-otp.ejs ---
-
-OTP verification page with:
-- If method=telegram: blue Telegram icon + "Enter 5-digit code sent to Telegram"
-- If method=email: green envelope icon + "Enter 5-digit code sent to email"
-- Masked phone number display
-- Error/success alerts
-- 5-digit OTP input (tracking [0.5em] between digits, mono font, centered)
-- Resend button or cooldown timer ("Resend available in Xs")
-- "Back to Login" link
-- JavaScript countdown timer that reloads page when done
+Method-specific icon (telegram blue / email green), masked phone, 5-digit OTP input,
+  resend button with cooldown timer.
 
 --- views/auth/verify-account.ejs ---
-
-Account lookup page for unverified users:
-- Orange info box explaining the purpose
-- Single field: Email or Phone
-- "Find Account" button with search icon
-- Redirects to /auth/verify-otp?userId=X if found and unverified
-- "Back to Login" link
+Single email/phone lookup field, redirects to verify-otp if unverified.
 
 --- views/auth/forgot-password.ejs ---
-
-Simple email input form:
-- Email field
-- "Send Reset Link" button
-- "Back to Login" link
+Single email field, send reset link.
 
 --- views/auth/reset-password.ejs ---
-
-Password reset form (accessed via token URL):
-- New Password field (min 6 chars)
-- Confirm Password field
-- "Reset Password" button
-- Client-side password match validation with SweetAlert
+New password + confirm password, client-side match validation.
 
 --- views/auth/profile.ejs ---
-
-Profile page with 2-column layout:
-
-Left column (1/3 width):
-- Profile picture (shows image if exists, else person icon)
-- English name + Khmer name
-- Role badge (color-coded: admin=red, committee=blue, student=green)
-- Username, email, phone
-
-Right column (2/3 width):
-1. Edit Profile card (green header):
-   - Khmer Name + English Name fields
-   - Username (readonly)
-   - Email field
-   - Phone field (phone-input partial)
-   - Profile picture upload (drag & drop area, preview)
-   - Save button
-
-2. Change Password card (yellow header):
-   - Current Password field
-   - New Password + Confirm New Password fields
-   - Change Password button
-
-All forms include CSRF tokens. Profile upload uses multipart/form-data.
+2-column: left (avatar, name, role, info), right (edit profile form + change password form).
 
 ================================================================================
-15. LAYOUT: views/layouts/main.ejs (relevant auth parts)
-================================================================================
-
-- HTML lang attribute toggles between 'km' and 'en'
-- Tailwind CSS via CDN with dark mode ('class' strategy)
-- Hanuman (Khmer) + Plus Jakarta Sans fonts
-- Bootstrap Icons
-- SweetAlert2 (custom CSS animations in <style>)
-- Custom CSS: upload-area styles, phone-group styles, print styles
-- Flash messages partial included
-- Sidebar + Navbar partials included
-- If user is logged in: main with sidebar offset (lg:ml-[260px])
-- If not logged in: full-width main (no sidebar)
-- CSRF token + phone-full-value concatenation script at bottom
-- Dark mode detection: checks localStorage or prefers-color-scheme
-
-================================================================================
-FLOW SUMMARY
+11. FLOW SUMMARY
 ================================================================================
 
 1. REGISTRATION:
-   User fills form -> checks settings (registration_open/start/end) ->
-   checks duplicate username/email/phone -> bcrypt.hash(password, 12) ->
-   IF email method: INSERT with verification_token + send email link
-   IF telegram method: INSERT unverified -> send OTP via Telegram API -> redirect to verify-otp page
+   User fills form -> check settings (registration_open/start/end) ->
+   check duplicates -> bcrypt.hash(password, 12) ->
+   IF email: INSERT with verification_token -> send email link
+   IF telegram: INSERT unverified -> send OTP via Telegram API -> redirect to verify-otp
 
 2. VERIFICATION:
    Email: Click link -> /auth/verify-email/:token -> UPDATE is_verified=1
-   Telegram: Enter code -> /auth/verify-otp -> verifyOTP() from utils/otp.js OR
-             telegramOtp.verifyOTP() (TelegramClient Api.auth.SignIn) -> UPDATE is_verified=1
+   Telegram: Enter code -> /auth/verify-otp -> telegramOtp.verifyOTP() -> UPDATE is_verified=1
 
 3. LOGIN:
-   Find user by email/username/phone -> bcrypt.compare password ->
-   Check is_verified -> If not verified, redirect to verify-otp page ->
-   Store user data in req.session.user -> Redirect based on role (admin/committee/student)
+   Find by email/username/phone -> bcrypt.compare ->
+   Check is_verified -> store session -> redirect by role
 
-4. SESSION:
-   express-session with 24h cookie, httpOnly, sameSite: lax
-   CSRF token stored in session, validated on all POST/PUT/DELETE/PATCH
+4. SCHOLARSHIP APPLICATION:
+   Student fills form (personal, contact, family, education, document uploads) ->
+   check registration+scholarship windows -> upload to ImageKit -> status=pending ->
+   Admin reviews -> under_review -> approved/rejected/correction_requested ->
+   Email notification at each status change
 
-5. PASSWORD RESET:
-   Enter email -> generate UUID token, store with 1h expiry ->
-   Send email with reset link -> User clicks link -> /auth/reset-password/:token ->
-   Verify token not expired -> bcrypt.hash new password -> UPDATE password, clear token
+5. ENROLLMENT:
+   Student fills form (academic, personal, family, documents) ->
+   check enrollment window -> check duplicate per year+semester ->
+   upload docs to ImageKit -> status=pending -> Admin approves/rejects
+
+6. PAYMENT (Bakong KHQR):
+   Student views tuition page -> system calculates:
+     discount = tuition_per_year * coverage_percentage / 100
+     studentPays = tuition_per_year - discount + ministry_fee
+   Student generates QR -> system calls generateKHQR() -> stores khqr_md5+khqr_string
+   Student scans QR with banking app -> system polls check-transaction/:md5
+   On success: payment auto-verified -> receipt page
+   Fallback: manual payment with proof upload -> admin verifies
+
+7. ADMIN MANAGEMENT:
+   Applications: review, approve (with exam details), reject, request correction
+   Enrollments: approve/reject with notes
+   Payments: verify/reject with admin tracking
+   Reports: statistics + Excel/PDF export
+   Settings: control registration/enrollment/scholarship windows
+
+8. COMMITTEE:
+   Read-only access to approved applications and reports
+
+================================================================================
+12. EXTERNAL SERVICES
+================================================================================
+
+1. Bakong KHQR (bakong-khqr npm) - Payment QR generation
+2. Bakong API - Transaction verification (check_transaction_by_md5)
+3. Telegram MTProto (gramjs) - Phone OTP via auth.SendCode/auth.SignIn
+4. Telegram Bot API - Bot notifications and phone-linking
+5. ImageKit - Cloud file storage (profiles, applications, enrollments, payments)
+6. Resend API / SMTP - Email delivery
+7. MySQL (mysql2/promise) - Database
+
+================================================================================
+                              END OF REFERENCE
+================================================================================

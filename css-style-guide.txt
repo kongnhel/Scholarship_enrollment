@@ -638,88 +638,294 @@
 
 
 ================================================================================
-17. HERO SECTION (Homepage)
+17. HERO SECTION (Homepage - views/index.ejs lines 1-12)
 ================================================================================
+
+  Green gradient banner with NMU logo, bilingual title, description, and CTA buttons.
+  Data: hardcoded bilingual text, no database queries.
 
   <section class="bg-gradient-to-br from-green-600 via-green-500 to-emerald-400
        rounded-3xl p-8 md:p-12 text-white mb-8">
     <div class="max-w-3xl mx-auto text-center">
-      <img src="logo.png" class="w-20 h-20 rounded-full mx-auto mb-6
-           ring-4 ring-white/30 shadow-xl">
-      <h1 class="text-3xl md:text-4xl font-bold mb-3">Title</h1>
-      <p class="text-green-100 text-lg mb-2">Subtitle</p>
-      <p class="text-green-200 text-sm mb-8 max-w-xl mx-auto">Description</p>
+      <img src="/images/nmu-logo.jpg" alt="NMU"
+           class="w-20 h-20 rounded-full mx-auto mb-6 ring-4 ring-white/30 shadow-xl">
+      <h1 class="text-3xl md:text-4xl font-bold mb-3">
+        Scholarship & Online Enrollment (EN) / អាហារូបករណ៍ និងការចុះឈ្មោះចូលរៀនអនឡាញ (KM)
+      </h1>
+      <p class="text-green-100 text-lg mb-2">
+        National Meanchey University (EN) / សាកលវិទ្យាល័យជាតិមានជ័យ (KM)
+      </p>
+      <p class="text-green-200 text-sm mb-8 max-w-xl mx-auto">
+        Apply for scholarships and enroll online easily. Choose your major,
+        scholarship type, and pay tuition via Bakong KHQR.
+      </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="#" class="px-8 py-3 bg-white text-green-600 rounded-xl font-bold
-           hover:bg-green-50 transition-all shadow-lg">Primary CTA</a>
-        <a href="#" class="px-8 py-3 bg-white/20 text-white rounded-xl font-bold
-           hover:bg-white/30 transition-all border border-white/30">Secondary CTA</a>
+        <a href="/auth/register"
+           class="px-8 py-3 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400
+                  rounded-xl font-bold hover:bg-green-50 dark:hover:bg-green-900/20
+                  transition-all shadow-lg">
+          <i class="bi bi-pencil-square mr-2"></i>Register Now
+        </a>
+        <a href="/auth/login"
+           class="px-8 py-3 bg-white/20 text-white rounded-xl font-bold
+                  hover:bg-white/30 transition-all border border-white/30">
+          <i class="bi bi-box-arrow-in-right mr-2"></i>Login
+        </a>
       </div>
     </div>
   </section>
 
 
 ================================================================================
-18. FEATURE CARDS (Homepage)
+18. OUR SERVICES (Homepage - views/index.ejs lines 14-34)
 ================================================================================
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
-         border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
-      <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl
-           flex items-center justify-center mb-4">
-        <i class="bi bi-icon text-green-600 dark:text-green-400 text-xl"></i>
+  3-column grid of service cards with icon, title, and description.
+  Hardcoded content (not from database). Uses color-coded icon backgrounds.
+
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2">
+      Our Services
+    </h2>
+    <p class="text-gray-500 dark:text-gray-400 text-center mb-8">
+      Complete services for students
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Card 1: Scholarships (green) -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
+           border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl
+             flex items-center justify-center mb-4">
+          <i class="bi bi-award text-green-600 dark:text-green-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">Scholarships</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">
+          Apply for scholarships including 100% Ministry, NMU, and Mekong scholarships.
+        </p>
       </div>
-      <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">Title</h3>
-      <p class="text-gray-500 dark:text-gray-400 text-sm">Description</p>
+      <!-- Card 2: Enrollment (blue) -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
+           border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl
+             flex items-center justify-center mb-4">
+          <i class="bi bi-person-check text-blue-600 dark:text-blue-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">Enrollment</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">
+          Register online, choose your major and academic year.
+        </p>
+      </div>
+      <!-- Card 3: Payments (purple) -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
+           border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl
+             flex items-center justify-center mb-4">
+          <i class="bi bi-credit-card text-purple-600 dark:text-purple-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 dark:text-gray-100 mb-2">Payments</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">
+          Pay tuition via Bakong KHQR easily and securely.
+        </p>
+      </div>
     </div>
-  </div>
+  </section>
 
 
 ================================================================================
-19. STEP INDICATORS (How to Apply)
+19. WHY CHOOSE US (Homepage - views/index.ejs lines 36-56)
 ================================================================================
 
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="text-center">
-      <div class="w-14 h-14 bg-green-500 text-white rounded-2xl
-           flex items-center justify-center text-xl font-bold mx-auto mb-3">1</div>
-      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1">Step</h4>
-      <p class="text-gray-500 dark:text-gray-400 text-xs">Description</p>
+  3-column grid of benefit cards. Hardcoded content.
+
+  <section class="mb-12">
+    <h2>Why Choose Us?</h2>
+    <p>Reasons to use our system</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Card 1: Easy to Use (green, bi-file-earmark-check) -->
+      <!-- Card 2: Real-time Tracking (blue, bi-graph-up-arrow) -->
+      <!-- Card 3: Secure (purple, bi-shield-lock) -->
     </div>
-  </div>
+  </section>
 
 
 ================================================================================
-20. STAT NUMBERS (Homepage)
+20. AVAILABLE MAJORS (Homepage - views/index.ejs lines 58-76)
 ================================================================================
 
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+  Dynamic grid populated from database query: SELECT * FROM majors WHERE is_active = 1.
+  Each card shows major name and faculty name (bilingual).
+  Rendered server-side with EJS forEach loop.
+
+  <section class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm
+       border border-gray-100 dark:border-gray-700 mb-12">
+    <h2>Available Majors</h2>
+    <p>Choose your desired major at NMU</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% majors.forEach(function(major) { %>
+        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4
+             border border-gray-100 dark:border-gray-700
+             hover:border-green-300 hover:shadow-md transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg
+                 flex items-center justify-center flex-shrink-0">
+              <i class="bi bi-book text-green-600 dark:text-green-400"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                <%= currentLang === 'km' ? major.name_kh : major.name_en %>
+              </h4>
+              <p class="text-gray-400 dark:text-gray-500 text-xs">
+                <%= currentLang === 'km' ? major.faculty_kh : major.faculty_en %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </section>
+
+
+================================================================================
+21. HOW IT WORKS (Homepage - views/index.ejs lines 78-108)
+================================================================================
+
+  5-step flow displayed in a responsive grid (2 cols mobile, 5 cols desktop).
+  Hardcoded steps: Register -> Apply -> Enroll -> Pay -> Study.
+  Each step has a numbered green circle, title, and short description.
+
+  <section class="mb-12">
+    <h2>How It Works</h2>
+    <p>Simple steps to register and enroll</p>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="text-center">
+        <div class="w-14 h-14 bg-green-500 text-white rounded-2xl
+             flex items-center justify-center text-xl font-bold mx-auto mb-3">1</div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1">Register</h4>
+        <p class="text-gray-500 dark:text-gray-400 text-xs">Create account</p>
+      </div>
+      <!-- Steps 2-5: Apply, Enroll, Pay, Study -->
+    </div>
+  </section>
+
+
+================================================================================
+22. ABOUT NMU (Homepage - views/index.ejs lines 110-158)
+================================================================================
+
+  Two-column layout: left side has university description and external links,
+  right side lists 5 faculties with colored icon backgrounds.
+  Hardcoded content (university info + faculty list).
+
+  Left column:
+  - Title: "About National Meanchey University"
+  - Two paragraphs describing the university's founding and mission
+  - External links: nmu.edu.kh, Facebook, YouTube (styled as colored buttons)
+
+  Right column:
+  - Title: "Our 5 Faculties"
+  - 5 faculty cards with unique colors:
+    1. Agriculture & Food Processing (green, bi-flower1)
+    2. Science & Technology (blue, bi-cpu)
+    3. Arts, Humanities & Languages (purple, bi-book)
+    4. Business Management & Tourism (orange, bi-briefcase)
+    5. Social Sciences & Community Development (pink, bi-people)
+
+
+================================================================================
+23. WHY CREATE AN ACCOUNT (Homepage - views/index.ejs lines 160-193)
+================================================================================
+
+  4-column grid of account benefit cards. Hardcoded content.
+  Each card has a colored icon background, title, and short description.
+
+  <section class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm
+       border border-gray-100 dark:border-gray-700 mb-12">
+    <h2>Why Create an Account?</h2>
+    <p>Creating an account helps you manage your studies</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Card 1: Apply for Scholarship (green, bi-award) -->
+      <!-- Card 2: Enroll Online (blue, bi-person-check) -->
+      <!-- Card 3: Pay Tuition (orange, bi-credit-card) -->
+      <!-- Card 4: Get Notified (purple, bi-bell) -->
+    </div>
+  </section>
+
+
+================================================================================
+24. HOW TO REGISTER & LOGIN (Homepage - views/index.ejs lines 195-260)
+================================================================================
+
+  Two-column layout with side-by-side step-by-step guides.
+  Left: Registration steps (3 steps with green numbered circles).
+  Right: Login steps (3 steps with blue numbered circles).
+  Each column has a CTA button at the bottom linking to /auth/register or /auth/login.
+
+  Registration steps:
+  1. Click "Register" button (on menu or homepage)
+  2. Fill in account information (full name, email, password)
+  3. Click "Register" (can login immediately after)
+
+  Login steps:
+  1. Click "Login" button (on menu or homepage)
+  2. Enter email and password
+  3. Click "Login" and start applying or enrolling
+
+
+================================================================================
+25. STATISTICS (Homepage - views/index.ejs lines 262-279)
+================================================================================
+
+  4-column grid of stat cards showing dynamic counts from database.
+  Data sources:
+  - Majors: majors.length (from DB query)
+  - Scholarship Types: scholarshipTypes.length (from DB query)
+  - Provinces: provinces.length (from DB query)
+  - Faculties: hardcoded "5"
+
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center
          shadow-sm border border-gray-100 dark:border-gray-700">
-      <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">12+</div>
-      <div class="text-gray-500 dark:text-gray-400 text-sm">Label</div>
+      <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+        <%= majors.length %>+
+      </div>
+      <div class="text-gray-500 dark:text-gray-400 text-sm">Majors</div>
     </div>
-  </div>
+    <!-- 3 more stat cards: Scholarship Types, Provinces, Faculties -->
+  </section>
 
 
 ================================================================================
-21. CTA SECTION (Homepage Bottom)
+26. FINAL CTA (Homepage Bottom - views/index.ejs lines 281-288)
 ================================================================================
+
+  Green gradient banner with centered title, description, and two CTA buttons.
+  Hardcoded content. Links to /auth/register and /auth/login.
 
   <section class="bg-gradient-to-r from-green-500 to-emerald-500
        rounded-2xl p-8 text-center text-white mb-12">
-    <h2 class="text-2xl font-bold mb-3">Title</h2>
-    <p class="text-green-100 mb-6">Description</p>
-    <a href="#" class="px-8 py-3 bg-white text-green-600 rounded-xl font-bold
-       hover:bg-green-50 transition-all shadow-lg inline-block">
-      Call to Action
-    </a>
+    <h2 class="text-2xl font-bold mb-3">Ready to Get Started?</h2>
+    <p class="text-green-100 mb-6">
+      Don't miss the opportunity to study at NMU. Register now to apply
+      for scholarships and enroll.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/auth/register"
+         class="px-8 py-3 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400
+                rounded-xl font-bold hover:bg-green-50 dark:hover:bg-green-900/20
+                transition-all shadow-lg inline-block">
+        <i class="bi bi-pencil-square mr-2"></i>Register Now
+      </a>
+      <a href="/auth/login"
+         class="px-8 py-3 bg-white/20 text-white rounded-xl font-bold
+                hover:bg-white/30 transition-all border border-white/30 inline-block">
+        <i class="bi bi-box-arrow-in-right mr-2"></i>Login
+      </a>
+    </div>
   </section>
 
 
 ================================================================================
-22. NOTIFICATION LIST
+27. NOTIFICATION LIST
 ================================================================================
 
   --- Unread Notification ---
@@ -748,7 +954,7 @@
 
 
 ================================================================================
-23. DASHBOARD HEADER
+28. DASHBOARD HEADER
 ================================================================================
 
   <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm
@@ -774,7 +980,7 @@
 
 
 ================================================================================
-24. FOOTER
+29. FOOTER
 ================================================================================
 
   <footer class="bg-gray-900 dark:bg-gray-950 text-white mt-16">
@@ -809,7 +1015,7 @@
 
 
 ================================================================================
-25. JAVASCRIPT UTILITIES
+30. JAVASCRIPT UTILITIES
 ================================================================================
 
   --- Theme Toggle ---
@@ -902,7 +1108,7 @@
 
 
 ================================================================================
-26. COMPLETE <head> TEMPLATE (Copy This)
+31. COMPLETE <head> TEMPLATE (Copy This)
 ================================================================================
 
   <!DOCTYPE html>
