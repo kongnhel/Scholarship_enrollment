@@ -725,11 +725,21 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
     try {
-        const { registration_open, registration_start, registration_end, enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end } = req.body;
+        const { registration_open, registration_start, registration_end, enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end, form_type } = req.body;
 
         const [rows] = await req.db.query('SELECT setting_key, setting_value FROM settings');
         const current = {};
         rows.forEach(row => { current[row.setting_key] = row.setting_value; });
+
+        if (req.file) {
+            const uploaded = await uploadToImageKit(req.file, 'payment');
+            await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [uploaded.url, 'payment_qr_path']);
+        }
+
+        if (form_type === 'qr_upload') {
+            req.flash('success', t(req, 'បានកែសម្រួលការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
+            return res.redirect('/admin/settings');
+        }
 
         const regOpen = registration_open !== undefined
             ? (Array.isArray(registration_open) ? registration_open[registration_open.length - 1] : registration_open)
