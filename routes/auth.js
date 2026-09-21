@@ -567,12 +567,7 @@ router.post('/profile', uploadPhoto, async (req, res) => {
     return res.redirect('/auth/profile');
   }
   try {
-    const { khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone } = req.body;
-    const dob = date_of_birth || null;
-    const nid = national_id || null;
-    const pob = place_of_birth || null;
-    const addr = address || null;
-    const gen = gender || null;
+    const { khmer_name, english_name, email, phone } = req.body;
     let profilePic = null;
     if (req.file) {
       const r = await uploadToImageKit(req.file, 'profile');
@@ -581,23 +576,18 @@ router.post('/profile', uploadPhoto, async (req, res) => {
     
     if (profilePic) {
       await req.db.query(
-        'UPDATE users SET khmer_name = ?, english_name = ?, national_id = ?, gender = ?, date_of_birth = ?, place_of_birth = ?, address = ?, email = ?, phone = ?, profile_pic = ? WHERE id = ?',
-        [khmer_name, english_name, nid, gen, dob, pob, addr, email, phone, profilePic, req.session.user.id]
+        'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ?, profile_pic = ? WHERE id = ?',
+        [khmer_name, english_name, email, phone, profilePic, req.session.user.id]
       );
     } else {
       await req.db.query(
-        'UPDATE users SET khmer_name = ?, english_name = ?, national_id = ?, gender = ?, date_of_birth = ?, place_of_birth = ?, address = ?, email = ?, phone = ? WHERE id = ?',
-        [khmer_name, english_name, nid, gen, dob, pob, addr, email, phone, req.session.user.id]
+        'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ? WHERE id = ?',
+        [khmer_name, english_name, email, phone, req.session.user.id]
       );
     }
     
     req.session.user.khmer_name = khmer_name;
     req.session.user.english_name = english_name;
-    req.session.user.national_id = nid;
-    req.session.user.gender = gen;
-    req.session.user.date_of_birth = dob;
-    req.session.user.place_of_birth = pob;
-    req.session.user.address = addr;
     req.session.user.email = email;
     if (profilePic) req.session.user.profile_pic = profilePic;
     
