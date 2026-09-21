@@ -763,8 +763,12 @@ router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
         req.flash('success', t(req, 'បានកែសម្រួលការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
         res.redirect('/admin/settings');
     } catch (err) {
-        console.error(err);
-        req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
+        console.error('Settings update error:', err);
+        if (err.message && err.message.includes('ImageKit')) {
+            req.flash('error', t(req, 'មានកំហុសក្នុងការបញ្ចូលរូបភាព។ សូមពិនិត្យមើល ImageKit configuration។', 'Image upload failed. Please check ImageKit configuration.'));
+        } else {
+            req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
+        }
         res.redirect('/admin/settings');
     }
 });
