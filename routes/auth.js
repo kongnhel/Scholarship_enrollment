@@ -57,7 +57,11 @@ router.post('/login', [
       role: user.role,
       khmer_name: user.khmer_name,
       english_name: user.english_name,
-      username: user.username,
+      national_id: user.national_id,
+      gender: user.gender,
+      date_of_birth: user.date_of_birth,
+      place_of_birth: user.place_of_birth,
+      address: user.address,
       profile_pic: user.profile_pic
     };
     if (user.role === 'admin') {
@@ -81,8 +85,7 @@ router.get('/register', (req, res) => {
 
 router.post('/register', [
   body('khmer_name').trim().notEmpty().withMessage('Khmer name is required'),
-  body('english_name').trim().notEmpty().withMessage('English name is required'),
-  body('username').trim().matches(/^[a-zA-Z0-9_]{3,50}$/).withMessage('Username must be 3-50 characters (letters, numbers, _)'),
+  body('english_name').trim().notEmpty().withMessage('Latin name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('phone').trim().notEmpty().withMessage('Phone number is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -111,13 +114,8 @@ router.post('/register', [
       req.flash('error', t(req, 'ការចុះឈ្មោះបានបិទ។ សូមព្យាយាមនៅពេលក្រោយ។', 'Registration has closed. Please check back later.'));
       return res.redirect('/auth/register');
     }
-    const { khmer_name, english_name, username, email, phone, password, verify_method } = req.body;
+    const { khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, password, verify_method } = req.body;
 
-    const [existingUsername] = await req.db.query('SELECT id FROM users WHERE username = ?', [username]);
-    if (existingUsername.length > 0) {
-      req.flash('error', t(req, 'ឈ្មោះអ្នកប្រើប្រាស់នេះត្រូវបានប្រើប្រាស់រួចហើយ', 'Username already taken'));
-      return res.redirect('/auth/register');
-    }
     const [existingEmail] = await req.db.query('SELECT id FROM users WHERE email = ?', [email]);
     if (existingEmail.length > 0) {
       req.flash('error', t(req, 'អ៊ីមែលនេះត្រូវបានចុះឈ្មោះរួចហើយ', 'Email already registered'));
@@ -128,6 +126,11 @@ router.post('/register', [
       req.flash('error', t(req, 'លេខទូរស័ព្ទនេះត្រូវបានចុះឈ្មោះរួចហើយ', 'Phone number already registered'));
       return res.redirect('/auth/register');
     }
+    const [existingNationalId] = await req.db.query('SELECT id FROM users WHERE national_id = ?', [national_id]);
+    if (existingNationalId.length > 0) {
+      req.flash('error', t(req, 'លេខអត្តសញ្ញាណប័ណ្ណនេះត្រូវបានចុះឈ្មោះរួចហើយ', 'National ID already registered'));
+      return res.redirect('/auth/register');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -135,10 +138,10 @@ router.post('/register', [
       const token = generateToken();
       const expires = new Date(Date.now() + 3600000);
       const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
+        'INSERT INTO users (khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
       );
-const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
+      const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
       const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
         <p>Hello ${escapeHtml(khmer_name || english_name)},</p>
         <p>Thank you for registering with our scholarship system.</p>
@@ -155,8 +158,8 @@ const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
       return res.redirect('/auth/login');
     } else {
       const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, 'telegram']
+        'INSERT INTO users (khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, password, role, is_verified, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, hashedPassword, 'student', 0, 'telegram']
       );
       const userId = result.insertId;
 
@@ -563,7 +566,12 @@ router.post('/profile', uploadPhoto, async (req, res) => {
     return res.redirect('/auth/profile');
   }
   try {
-    const { khmer_name, english_name, email, phone } = req.body;
+    const { khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone } = req.body;
+    const dob = date_of_birth || null;
+    const nid = national_id || null;
+    const pob = place_of_birth || null;
+    const addr = address || null;
+    const gen = gender || null;
     let profilePic = null;
     if (req.file) {
       const r = await uploadToImageKit(req.file, 'profile');
@@ -572,18 +580,23 @@ router.post('/profile', uploadPhoto, async (req, res) => {
     
     if (profilePic) {
       await req.db.query(
-        'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ?, profile_pic = ? WHERE id = ?',
-        [khmer_name, english_name, email, phone, profilePic, req.session.user.id]
+        'UPDATE users SET khmer_name = ?, english_name = ?, national_id = ?, gender = ?, date_of_birth = ?, place_of_birth = ?, address = ?, email = ?, phone = ?, profile_pic = ? WHERE id = ?',
+        [khmer_name, english_name, nid, gen, dob, pob, addr, email, phone, profilePic, req.session.user.id]
       );
     } else {
       await req.db.query(
-        'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ? WHERE id = ?',
-        [khmer_name, english_name, email, phone, req.session.user.id]
+        'UPDATE users SET khmer_name = ?, english_name = ?, national_id = ?, gender = ?, date_of_birth = ?, place_of_birth = ?, address = ?, email = ?, phone = ? WHERE id = ?',
+        [khmer_name, english_name, nid, gen, dob, pob, addr, email, phone, req.session.user.id]
       );
     }
     
     req.session.user.khmer_name = khmer_name;
     req.session.user.english_name = english_name;
+    req.session.user.national_id = nid;
+    req.session.user.gender = gen;
+    req.session.user.date_of_birth = dob;
+    req.session.user.place_of_birth = pob;
+    req.session.user.address = addr;
     req.session.user.email = email;
     if (profilePic) req.session.user.profile_pic = profilePic;
     

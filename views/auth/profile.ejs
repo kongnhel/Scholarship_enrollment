@@ -14,7 +14,10 @@
         <%= profile.role.charAt(0).toUpperCase() + profile.role.slice(1) %>
       </span>
       <div class="mt-4 space-y-2 text-sm text-gray-500 dark:text-gray-400">
-        <% if (profile.username) { %><p><i class="bi bi-at mr-2"></i><%= profile.username %></p><% } %>
+        <% if (profile.national_id) { %><p><i class="bi bi-credit-card mr-2"></i><%= profile.national_id %></p><% } %>
+        <% if (profile.gender) { %><p><i class="bi bi-gender-ambiguous mr-2"></i><%= profile.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (currentLang === 'km' ? 'ស្រី' : 'Female') %></p><% } %>
+        <% if (profile.date_of_birth) { %><p><i class="bi bi-calendar mr-2"></i><%= new Date(profile.date_of_birth).toLocaleDateString(currentLang === 'km' ? 'km-KH' : 'en-US') %></p><% } %>
+        <% if (profile.place_of_birth) { %><p><i class="bi bi-geo-alt mr-2"></i><%= profile.place_of_birth %></p><% } %>
         <p><i class="bi bi-envelope mr-2"></i><%= profile.email %></p>
         <% if (profile.phone) { %><p><i class="bi bi-phone mr-2"></i><%= profile.phone %></p><% } %>
       </div>
@@ -34,19 +37,40 @@
                 <input type="text" name="khmer_name" value="<%= profile.khmer_name || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %></label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះឡាតាំង' : 'Latin Name' %></label>
                 <input type="text" name="english_name" value="<%= profile.english_name || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %></label>
-                <input type="text" value="<%= profile.username || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed" readonly>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខអត្តសញ្ញាណប័ណ្ណ' : 'National ID' %></label>
+                <input type="text" name="national_id" value="<%= profile.national_id || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></label>
+                <select name="gender" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+                  <option value="male" <%= profile.gender === 'male' ? 'selected' : '' %>><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></option>
+                  <option value="female" <%= profile.gender === 'female' ? 'selected' : '' %>><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %></label>
+                <input type="date" name="date_of_birth" value="<%= profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ទីកន្លែងកំណើត' : 'Place of Birth' %></label>
+                <input type="text" name="place_of_birth" value="<%= profile.place_of_birth || '' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %></label>
                 <input type="email" name="email" value="<%= profile.email %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
               </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អាស័យដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %></label>
+              <textarea name="address" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"><%= profile.address || '' %></textarea>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

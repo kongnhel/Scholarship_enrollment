@@ -72,6 +72,7 @@
       </div>
       <div class="p-6">
         <form action="/student/payments" method="POST" enctype="multipart/form-data" class="space-y-4">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollment' %> *</label>

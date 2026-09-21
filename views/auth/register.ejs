@@ -16,23 +16,43 @@
             <input type="text" name="khmer_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះខ្មែរ' : 'Enter Khmer name' %>" required>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %> *</label>
-            <input type="text" name="english_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះអង់គ្លេស' : 'Enter English name' %>" required>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះឡាតាំង' : 'Latin Name' %> *</label>
+            <input type="text" name="english_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះឡាតាំង' : 'Enter Latin name' %>" required>
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %> *</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខអត្តសញ្ញាណប័ណ្ណសម្គាល់ខ្លួន' : 'National ID Number' %></label>
           <div class="relative">
-            <i class="bi bi-at absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="text" name="username" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់ (អក្ខរា លេខ _)' : 'username (letters, numbers, _)' %>" pattern="[a-zA-Z0-9_]{3,50}" minlength="3" maxlength="50" required>
+            <i class="bi bi-credit-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="text" name="national_id" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលលេខអត្តសញ្ញាណប័ណ្ណ' : 'Enter National ID number' %>">
           </div>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? '៣-៥០ អក្ខរា។ អាចប្រើអក្ខរា ABC លេខ និង _' : '3-50 chars. Letters, numbers, and _ only' %></p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></label>
+            <select name="gender" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសភេទ' : 'Select gender' %></option>
+              <option value="male"><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></option>
+              <option value="female"><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %></label>
+            <input type="date" name="date_of_birth" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ទីកន្លែងកំណើត' : 'Place of Birth' %></label>
+          <input type="text" name="place_of_birth" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលទីកន្លែងកំណើត' : 'Enter place of birth' %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អាស័យដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %></label>
+          <textarea name="address" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលអាស័យដ្ឋានបច្ចុប្បន្ន' : 'Enter current address' %>"></textarea>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %> *</label>
           <div class="relative">
             <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <!-- 9 -->
             <input type="email" name="email" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="your@email.com" required>
           </div>
         </div>
