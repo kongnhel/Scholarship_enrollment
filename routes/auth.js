@@ -85,7 +85,8 @@ router.get('/register', (req, res) => {
 
 router.post('/register', [
   body('khmer_name').trim().notEmpty().withMessage('Khmer name is required'),
-  body('english_name').trim().notEmpty().withMessage('Latin name is required'),
+  body('english_name').trim().notEmpty().withMessage('English name is required'),
+  body('username').trim().matches(/^[a-zA-Z0-9_]{3,50}$/).withMessage('Username must be 3-50 characters (letters, numbers, _)'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('phone').trim().notEmpty().withMessage('Phone number is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -95,7 +96,7 @@ router.post('/register', [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      req.flash('error', t(req, 'សូមបំពេញព័ត៌មានទាំងអស់ឱ្យបានត្រឹមត្រូវ', 'Please fill in all fields correctly'));
+      req.flash('error', errors.array().map(e => e.msg).join('. '));
       return res.redirect('/auth/register');
     }
     const [settingsRows] = await req.db.query('SELECT * FROM settings');
@@ -114,8 +115,13 @@ router.post('/register', [
       req.flash('error', t(req, 'ការចុះឈ្មោះបានបិទ។ សូមព្យាយាមនៅពេលក្រោយ។', 'Registration has closed. Please check back later.'));
       return res.redirect('/auth/register');
     }
-    const { khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, password, verify_method } = req.body;
+    const { khmer_name, english_name, username, email, phone, password, verify_method } = req.body;
 
+    const [existingUsername] = await req.db.query('SELECT id FROM users WHERE username = ?', [username]);
+    if (existingUsername.length > 0) {
+      req.flash('error', t(req, 'ឈ្មោះអ្នកប្រើប្រាស់នេះត្រូវបានប្រើរួចហើយ', 'Username already taken'));
+      return res.redirect('/auth/register');
+    }
     const [existingEmail] = await req.db.query('SELECT id FROM users WHERE email = ?', [email]);
     if (existingEmail.length > 0) {
       req.flash('error', t(req, 'អ៊ីមែលនេះត្រូវបានចុះឈ្មោះរួចហើយ', 'Email already registered'));
@@ -126,11 +132,6 @@ router.post('/register', [
       req.flash('error', t(req, 'លេខទូរស័ព្ទនេះត្រូវបានចុះឈ្មោះរួចហើយ', 'Phone number already registered'));
       return res.redirect('/auth/register');
     }
-    const [existingNationalId] = await req.db.query('SELECT id FROM users WHERE national_id = ?', [national_id]);
-    if (existingNationalId.length > 0) {
-      req.flash('error', t(req, 'លេខអត្តសញ្ញាណប័ណ្ណនេះត្រូវបានចុះឈ្មោះរួចហើយ', 'National ID already registered'));
-      return res.redirect('/auth/register');
-    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -138,8 +139,8 @@ router.post('/register', [
       const token = generateToken();
       const expires = new Date(Date.now() + 3600000);
       const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
+        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
       );
       const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
       const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
@@ -158,8 +159,8 @@ router.post('/register', [
       return res.redirect('/auth/login');
     } else {
       const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, password, role, is_verified, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, email, phone, hashedPassword, 'student', 0, 'telegram']
+        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, 'telegram']
       );
       const userId = result.insertId;
 
