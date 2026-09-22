@@ -24,17 +24,16 @@ async function migrate() {
       }
     };
 
-    await addColumn('national_id', "VARCHAR(100) AFTER english_name");
-    await addColumn('gender', "ENUM('male', 'female') AFTER national_id");
+    await addColumn('gender', "ENUM('male', 'female') AFTER english_name");
     await addColumn('date_of_birth', "DATE AFTER gender");
     await addColumn('place_of_birth', "VARCHAR(255) AFTER date_of_birth");
     await addColumn('address', "TEXT AFTER place_of_birth");
 
     try {
-      await connection.query('ALTER TABLE users ADD INDEX idx_users_national_id (national_id)');
-      console.log('Added national_id index');
+      await connection.query('ALTER TABLE users ADD INDEX idx_users_gender (gender)');
+      console.log('Added gender index');
     } catch (e) {
-      if (e.code === 'ER_DUP_KEYNAME') console.log('national_id index already exists, skipping');
+      if (e.code === 'ER_DUP_KEYNAME') console.log('gender index already exists, skipping');
       else throw e;
     }
 

@@ -121,16 +121,16 @@ After validation:
 --- NEW APPLICATION (POST /student/application) ---
 
 Form fields:
-- Personal: khmer_first_name, khmer_last_name, english_first_name, english_last_name, gender, date_of_birth, nationality, national_id
+- Personal: khmer_first_name, khmer_last_name, english_first_name, english_last_name, gender, date_of_birth, nationality
 - Contact: current_address, phone, telegram, email
 - Family: parent_name, parent_phone, emergency_contact, emergency_phone
 - Education: school_name, school_province_id, graduation_year, exam_result
 - Choices: major_first_choice_id, major_second_choice_id, scholarship_category_id, scholarship_type_id
-- Documents: photo, transcript, national_id (file), additional_documents (up to 5)
+- Documents: photo, transcript, additional_documents (up to 5)
 
 Logic:
 1. Check registration AND scholarship windows are open
-2. Upload 4 file types to ImageKit (photo, transcript, nationalId, additionalDocs)
+2. Upload 3 file types to ImageKit (photo, transcript, additionalDocs)
 3. Handle nationality_other custom value
 4. Set status = 'pending'
 5. Record initial status in application_status_history
@@ -336,7 +336,7 @@ bank_transfer, aba, acleda, wing, cash, bakong_khqr (default)
 
 Folders:
 - scholarship/profiles/      - User profile pictures
-- scholarship/applications/  - Application documents (photo, transcript, nationalId, additionalDocs)
+- scholarship/applications/  - Application documents (photo, transcript, additionalDocs)
 - scholarship/enrollments/   - Enrollment documents (transcript, birthCert, photo4x6, photo3x4)
 - scholarship/payments/      - Payment proof images
 

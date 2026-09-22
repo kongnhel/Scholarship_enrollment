@@ -18,11 +18,11 @@ users: id, email, password, role(student/admin/committee), khmer_name, english_n
 
 applications: id, user_id, status(pending/under_review/approved/rejected/correction_requested),
   khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-  gender(male/female/other), date_of_birth, nationality, national_id, current_address,
+  gender(male/female/other), date_of_birth, nationality, current_address,
   phone, telegram, email, parent_name, parent_phone, emergency_contact, emergency_phone,
   school_name, school_province_id, graduation_year, exam_result,
   major_first_choice_id, major_second_choice_id, scholarship_category_id, scholarship_type_id,
-  photo_path, transcript_path, national_id_path, additional_documents_path,
+  photo_path, transcript_path, additional_documents_path,
   admin_remark, correction_notes, exam_date, exam_time, exam_venue, submitted_at, updated_at
 
 application_status_history: id, application_id, old_status, new_status,
@@ -300,7 +300,7 @@ baseUrl, port constants
 isAuthenticated, isAdmin, isCommittee, isStudent
 
 --- middleware/upload.js ---
-uploadPhoto (single photo), uploadMultiple (photo+transcript+nationalId+5 additional),
+uploadPhoto (single photo), uploadMultiple (photo+transcript+5 additional),
 uploadEnrollmentDocs (transcript+birthCert+photo4x6+photo3x4)
 All use memoryStorage, PDF/JPEG/PNG only, 5MB max
 

@@ -65,18 +65,17 @@ async function seed() {
       await db.query(
         `INSERT INTO applications (
           user_id, status, khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-          gender, date_of_birth, nationality, national_id, current_address,
+          gender, date_of_birth, nationality, current_address,
           phone, telegram, email,
           parent_name, parent_phone, emergency_contact, emergency_phone,
           school_name, school_province_id, graduation_year, exam_result,
           major_first_choice_id, major_second_choice_id, scholarship_category_id,
           submitted_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           user.id, status,
           kFirst, kLast, eFirst, eLast,
           pick(genders), dob, 'Cambodian',
-          `${Math.floor(10000000 + Math.random() * 90000000)}`,
           randomAddress(),
           randomPhone(), `${eFirst.toLowerCase()}${user.id}`, `student${user.id}@gmail.com`,
           `${pick(khmerLastNames)} ${pick(khmerFirstNames)}`, randomPhone(),

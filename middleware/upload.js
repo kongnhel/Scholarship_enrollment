@@ -21,7 +21,6 @@ const uploadPhoto = upload.single('photo');
 const uploadMultiple = upload.fields([
   { name: 'photo', maxCount: 1 },
   { name: 'transcript', maxCount: 1 },
-  { name: 'nationalId', maxCount: 1 },
   { name: 'additionalDocuments', maxCount: 5 }
 ]);
 

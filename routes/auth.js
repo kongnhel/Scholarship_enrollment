@@ -57,7 +57,6 @@ router.post('/login', [
       role: user.role,
       khmer_name: user.khmer_name,
       english_name: user.english_name,
-      national_id: user.national_id,
       gender: user.gender,
       date_of_birth: user.date_of_birth,
       place_of_birth: user.place_of_birth,

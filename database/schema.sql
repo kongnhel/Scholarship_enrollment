@@ -8,7 +8,6 @@ CREATE TABLE users (
     role ENUM('student','admin','committee') DEFAULT 'student',
     khmer_name VARCHAR(255),
     english_name VARCHAR(255),
-    national_id VARCHAR(100),
     gender ENUM('male', 'female'),
     date_of_birth DATE,
     place_of_birth VARCHAR(255),
@@ -24,7 +23,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_users_email (email),
     INDEX idx_users_role (role),
-    INDEX idx_users_national_id (national_id),
     INDEX idx_users_verification_token (verification_token),
     INDEX idx_users_reset_token (reset_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -84,7 +82,6 @@ CREATE TABLE applications (
     gender ENUM('male','female','other'),
     date_of_birth DATE,
     nationality VARCHAR(100) DEFAULT 'Cambodian',
-    national_id VARCHAR(100),
     current_address TEXT,
     phone VARCHAR(20),
     telegram VARCHAR(100),
@@ -103,7 +100,6 @@ CREATE TABLE applications (
     scholarship_type_id INT,
     photo_path VARCHAR(500),
     transcript_path VARCHAR(500),
-    national_id_path VARCHAR(500),
     additional_documents_path VARCHAR(500),
     admin_remark TEXT,
     correction_notes TEXT,
