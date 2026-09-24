@@ -1,16 +1,31 @@
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><i class="bi bi-clipboard-check text-green-600 dark:text-green-400"></i><%= currentLang === 'km' ? 'ស្ថានភាពពាក្យសុំ' : 'Application Status' %></h1>
+<div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+  <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+  <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+        <i class="bi bi-clipboard-check text-white text-xl"></i>
+      </div>
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
+          <i class="bi bi-collection"></i>
+          <%= applications.length %> <%= currentLang === 'km' ? 'ពាក្យសុំ' : 'applications' %>
+        </div>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ស្ថានភាពពាក្យសុំ' : 'Application Status' %></h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'តាមដានពាក្យសុំអាហារូបករណ៍ទាំងអស់របស់អ្នក' : 'Track all your scholarship applications' %></p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <% if (applications.length === 0) { %>
-  <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
     <i class="bi bi-inbox text-5xl text-gray-300 mb-4 block"></i>
     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'មិនរកឃើញពាក្យសុំ' : 'No Applications Found' %></h3>
     <p class="text-gray-500 dark:text-gray-400 mb-6"><%= currentLang === 'km' ? 'អ្នកមិនទាន់បានដាក់ពាក្យសុំណាមួយនៅឡើយទេ។' : "You haven't submitted any applications yet." %></p>
     <a href="/student/application/new" class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all inline-flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បង្កើតពាក្យសុំ' : 'Create Application' %></a>
   </div>
 <% } else { %>
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-800/50">

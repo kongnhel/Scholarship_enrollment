@@ -1,10 +1,27 @@
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ស្វាគមន៍' : 'Welcome' %>, <%= user.english_name %></h1>
-  <p class="text-gray-500 dark:text-gray-400 text-sm"><%= currentLang === 'km' ? 'តារាងព័ត៌មានសិស្ស' : 'Student Dashboard' %></p>
-</div>
+<div class="max-w-6xl mx-auto space-y-6">
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-house-door text-white text-xl"></i>
+        </div>
+        <div>
+          <% if (notificationsCount > 0) { %>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
+              <i class="bi bi-bell"></i>
+              <%= notificationsCount %> <%= currentLang === 'km' ? 'សារជូនដំណឹងថ្មី' : 'new notifications' %>
+            </div>
+          <% } %>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ស្វាគមន៍' : 'Welcome' %>, <%= user.english_name %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'តារាងព័ត៌មានសិស្ស' : 'Student Dashboard' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <% if (application) { %>
-  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2"><i class="bi bi-file-earmark-text text-green-600 dark:text-green-400"></i><%= currentLang === 'km' ? 'ស្ថានភាពពាក្យសុំ' : 'Application Status' %></h2>
@@ -22,7 +39,7 @@
     </div>
   </div>
 <% } else { %>
-  <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 mb-6 text-center">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
     <i class="bi bi-file-earmark-text text-5xl text-gray-300 mb-4 block"></i>
     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'មិនទាន់មានពាក្យសុំ' : 'No Application Yet' %></h3>
     <p class="text-gray-500 dark:text-gray-400 mb-6"><%= currentLang === 'km' ? 'អ្នកមិនទាន់បានដាក់ពាក្យសុំអាហារូបករណ៍នៅឡើយទេ។' : "You haven't submitted a scholarship application yet." %></p>
@@ -35,7 +52,7 @@
 <% } %>
 
 <% if (enrollment) { %>
-  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2"><i class="bi bi-person-check text-blue-600 dark:text-blue-400"></i><%= currentLang === 'km' ? 'ស្ថានភាពការចុះឈ្មោះ' : 'Enrollment Status' %></h2>
@@ -54,7 +71,7 @@
     </div>
   </div>
 <% } else if (!enrollmentClosed) { %>
-  <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl p-6 shadow-sm mb-6 text-white">
+  <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl p-6 shadow-sm text-white">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h2 class="font-bold mb-1 flex items-center gap-2"><i class="bi bi-person-check"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះចូលរៀន' : 'Enroll Now' %></h2>
@@ -66,7 +83,7 @@
 <% } %>
 
 <% if (payments.length > 0) { %>
-  <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
     <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2"><i class="bi bi-credit-card text-amber-600 dark:text-amber-400"></i><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h2>
     <div class="flex items-center gap-4 mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
       <span class="text-sm text-gray-600 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុបប្រាក់ដែលបានផ្ទៀងផ្ទាត់៖' : 'Total Verified:' %></span>
@@ -130,4 +147,5 @@
     <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h4>
     <span class="text-sm text-amber-600 dark:text-amber-400 font-medium"><%= totalPaid.toLocaleString() %>៛</span>
   </a>
+</div>
 </div>

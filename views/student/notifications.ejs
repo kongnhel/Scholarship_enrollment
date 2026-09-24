@@ -1,15 +1,21 @@
 <div class="max-w-4xl mx-auto space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
-        <i class="bi bi-bell text-white text-lg"></i>
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-bell text-white text-xl"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
+            <i class="bi bi-collection"></i>
+            <%= notifications.length %> <%= currentLang === 'km' ? 'សារ' : 'notifications' %>
+          </div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានជូនដំណឹងពីប្រព័ន្ធអាហារូបករណ៍' : 'Updates from the scholarship system' %></p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានជូនដំណឹងពីប្រព័ន្ធអាហារូបករណ៍' : 'Updates from the scholarship system' %></p>
-      </div>
-    </div>
-    <div class="flex gap-2">
+      <div class="flex gap-2 self-start sm:self-auto">
       <% if (notifications.some(n => !n.is_read)) { %>
         <form action="/student/notifications/read-all" method="POST">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -47,7 +53,7 @@
 
   <div class="space-y-3">
     <% if (notifications.length === 0) { %>
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
         <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-4">
           <i class="bi bi-bell-slash text-3xl text-gray-300 dark:text-gray-600"></i>
         </div>

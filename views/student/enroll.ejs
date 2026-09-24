@@ -1,27 +1,31 @@
 ﻿<div class="max-w-4xl mx-auto space-y-6">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-center">
-      <div class="flex justify-center mb-3">
-        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <i class="bi bi-mortarboard text-white text-2xl"></i>
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-mortarboard text-white text-xl"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
+            <i class="bi bi-calendar3"></i>
+            <%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះ ឆ្នាំសិក្សា ២០២៦-២០២៧' : 'Registration Year 2026-2027' %>
+          </div>
+          <h1 class="text-lg font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះចូលរៀនថ្នាក់ឆ្នាំសិក្សាមូលដ្ឋាន (ឆ្នាំទី១) ជំនាន់ទី២០' : 'Enrollment Application for Foundation Studies (Year 1) Generation 20' %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យជាតិមានជ័យ' : 'National Meanchey University (NMU)' %></p>
         </div>
       </div>
-      <h1 class="text-xl font-bold text-white"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះចូលរៀនថ្នាក់ឆ្នាំសិក្សាមូលដ្ឋាន (ឆ្នាំទី១) ជំនាន់ទី២០' : 'Enrollment Application for Foundation Studies (Year 1) Generation 20' %></h1>
-      <p class="text-blue-100 text-sm mt-1"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យជាតិមានជ័យ' : 'National Meanchey University (NMU)' %></p>
-      <div class="mt-3 inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 rounded-full">
-        <i class="bi bi-calendar3 text-blue-200"></i>
-        <span class="text-sm text-white font-medium"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះ ឆ្នាំសិក្សា ២០២៦-២០២៧' : 'Registration Year 2026-2027' %></span>
-      </div>
-      <p class="text-blue-200 text-xs mt-3"><%= currentLang === 'km' ? 'សូមបេក្ខជនបំពេញព័ត៌មានខាងក្រោមឱ្យបានត្រឹមត្រូវ និងគ្រប់ជ្រុងជ្រោយ។' : 'Please fill in the following information accurately and completely.' %></p>
     </div>
+    <p class="relative px-6 pb-5 text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមបេក្ខជនបំពេញព័ត៌មានខាងក្រោមឱ្យបានត្រឹមត្រូវ និងគ្រប់ជ្រុងជ្រោយ។' : 'Please fill in the following information accurately and completely.' %></p>
   </div>
 
   <% if (enrollment) { %>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r <%= enrollment.status === 'approved' ? 'from-green-500 to-emerald-600' : enrollment.status === 'rejected' ? 'from-red-500 to-rose-600' : 'from-yellow-500 to-amber-600' %>">
-        <h3 class="text-white font-semibold flex items-center gap-2">
-          <i class="bi bi-<%= enrollment.status === 'approved' ? 'check-circle' : enrollment.status === 'rejected' ? 'x-circle' : 'hourglass-split' %>"></i><%= currentLang === 'km' ? 'ស្ថានភាពការចុះឈ្មោះ' : 'Enrollment Status' %>
-        </h3>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+        <div class="w-8 h-8 <%= enrollment.status === 'approved' ? 'bg-green-100 dark:bg-green-900/40' : enrollment.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/40' : 'bg-yellow-100 dark:bg-yellow-900/40' %> rounded-lg flex items-center justify-center">
+          <i class="bi bi-<%= enrollment.status === 'approved' ? 'check-circle text-green-600 dark:text-green-400' : enrollment.status === 'rejected' ? 'x-circle text-red-600 dark:text-red-400' : 'hourglass-split text-yellow-600 dark:text-yellow-400' %> text-sm"></i>
+        </div>
+        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ស្ថានភាពការចុះឈ្មោះ' : 'Enrollment Status' %></span>
       </div>
       <div class="p-6">
         <div class="flex items-center gap-3 mb-4">
@@ -54,7 +58,7 @@
 
   <% if (!enrollment || enrollment.status === 'rejected') { %>
     <% if (typeof enrollClosed !== 'undefined' && enrollClosed) { %>
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center">
         <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
           <i class="bi bi-x-circle text-red-500 text-3xl"></i>
         </div>
@@ -66,9 +70,12 @@
     <form action="/student/enroll" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-person"></i><%= currentLang === 'km' ? 'I. ព័ត៌មាននិស្សិត' : 'I. Student Information' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-person text-emerald-600 dark:text-emerald-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'I. ព័ត៌មាននិស្សិត' : 'I. Student Information' %></span>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,9 +131,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-600">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-people"></i><%= currentLang === 'km' ? 'ព័ត៌មានគ្រួសារ' : 'Family Information' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-people text-purple-600 dark:text-purple-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានគ្រួសារ' : 'Family Information' %></span>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,9 +171,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-telephone"></i><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-telephone text-amber-600 dark:text-amber-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></span>
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,9 +194,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-book"></i><%= currentLang === 'km' ? 'II. ព័ត៌មានអំពីប្រវត្តិសិក្សា' : 'II. Education History' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-book text-blue-600 dark:text-blue-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'II. ព័ត៌មានអំពីប្រវត្តិសិក្សា' : 'II. Education History' %></span>
         </div>
         <div class="p-6 space-y-4">
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានអំពីការសិក្សា និងការប្រឡងសញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ។' : 'Information about your education and high school diploma exam.' %></p>
@@ -214,9 +230,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-indigo-500 to-violet-600">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-mortarboard"></i><%= currentLang === 'km' ? 'III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន' : 'III. Enrollment Information' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-mortarboard text-indigo-600 dark:text-indigo-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន' : 'III. Enrollment Information' %></span>
         </div>
         <div class="p-6 space-y-4">
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមបញ្ជាក់កម្រិតសិក្សា មុខជំនាញ និងពេលសិក្សាដែលចង់ជ្រើសរើស។' : 'Specify the education level, major, and study schedule you want to choose.' %></p>
@@ -261,9 +280,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-rose-500 to-pink-600">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-file-earmark-check"></i><%= currentLang === 'km' ? 'ឯកសារភ្ជាប់' : 'Attached Documents' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-rose-100 dark:bg-rose-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-file-earmark-check text-rose-600 dark:text-rose-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ឯកសារភ្ជាប់' : 'Attached Documents' %></span>
         </div>
         <div class="p-6 space-y-3">
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមពិនិត្យ និងត្រៀមឯកសារតាមតម្រូវការរបស់សាកលវិទ្យាល័យជាតិមានជ័យ។' : 'Please check and prepare the required documents for NMU.' %></p>
@@ -317,9 +339,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-gray-600 to-gray-500">
-          <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-shield-check"></i><%= currentLang === 'km' ? 'V. កិច្ចសន្យា និងការធានាទទួលខុសត្រូវ' : 'V. Agreement & Responsibility' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-shield-check text-gray-600 dark:text-gray-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'V. កិច្ចសន្យា និងការធានាទទួលខុសត្រូវ' : 'V. Agreement & Responsibility' %></span>
         </div>
         <div class="p-6 space-y-4">
           <div>
@@ -348,9 +373,12 @@
   <% } %>
 
   <% if (payments.length > 0) { %>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500">
-        <h3 class="text-white font-semibold flex items-center gap-2"><i class="bi bi-clock-history"></i><%= currentLang === 'km' ? 'ប្រវត្តិនៃការទូទាត់' : 'Payment History' %></h3>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex items-center justify-center">
+          <i class="bi bi-clock-history text-amber-600 dark:text-amber-400 text-sm"></i>
+        </div>
+        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ប្រវត្តិនៃការទូទាត់' : 'Payment History' %></span>
       </div>
       <div class="p-6">
         <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
