@@ -141,7 +141,7 @@ router.post('/application', uploadMultiple, async (req, res) => {
 
     const {
       khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-      gender, date_of_birth, nationality, nationality_other, national_id, current_address,
+      gender, date_of_birth, nationality, nationality_other, current_address,
       phone, telegram, email,
       parent_name, parent_phone, emergency_contact, emergency_phone,
       school_name, school_province_id, graduation_year, exam_result,
@@ -151,7 +151,7 @@ router.post('/application', uploadMultiple, async (req, res) => {
 
     const finalNationality = (nationality === 'Other' && nationality_other) ? nationality_other.trim().substring(0, 50) : (nationality || 'Cambodian');
 
-    let photo = null, transcript = null, nationalIdFile = null, additionalDocuments = null;
+    let photo = null, transcript = null, additionalDocuments = null;
 
     if (req.files && req.files.photo && req.files.photo[0]) {
       const r = await uploadToImageKit(req.files.photo[0], 'application');
@@ -160,10 +160,6 @@ router.post('/application', uploadMultiple, async (req, res) => {
     if (req.files && req.files.transcript && req.files.transcript[0]) {
       const r = await uploadToImageKit(req.files.transcript[0], 'application');
       transcript = r.url;
-    }
-    if (req.files && req.files.nationalId && req.files.nationalId[0]) {
-      const r = await uploadToImageKit(req.files.nationalId[0], 'application');
-      nationalIdFile = r.url;
     }
     if (req.files && req.files.additionalDocuments) {
       const urls = [];
@@ -177,21 +173,21 @@ router.post('/application', uploadMultiple, async (req, res) => {
     const [result] = await req.db.query(
       `INSERT INTO applications (
         user_id, khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-        gender, date_of_birth, nationality, national_id, current_address,
+        gender, date_of_birth, nationality, current_address,
         phone, telegram, email,
         parent_name, parent_phone, emergency_contact, emergency_phone,
         school_name, school_province_id, graduation_year, exam_result,
         major_first_choice_id, major_second_choice_id, scholarship_type_id,
-        photo_path, transcript_path, national_id_path, additional_documents_path, status, submitted_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
+        photo_path, transcript_path, additional_documents_path, status, submitted_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
       [
         req.session.user.id, khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-        gender, date_of_birth, finalNationality, national_id, current_address,
+        gender, date_of_birth, finalNationality, current_address,
         phone, telegram, email,
         parent_name, parent_phone, emergency_contact, emergency_phone,
         school_name, school_province_id, graduation_year, exam_result,
         major_first_choice_id, major_second_choice_id || null, scholarship_type_id || null,
-        photo, transcript, nationalIdFile, additionalDocuments
+        photo, transcript, additionalDocuments
       ]
     );
 
@@ -270,7 +266,7 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
 
     const {
       khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-      gender, date_of_birth, nationality, nationality_other, national_id, current_address,
+      gender, date_of_birth, nationality, nationality_other, current_address,
       phone, telegram, email,
       parent_name, parent_phone, emergency_contact, emergency_phone,
       school_name, school_province_id, graduation_year, exam_result,
@@ -282,7 +278,6 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
 
     let photo = existing[0].photo_path;
     let transcript = existing[0].transcript_path;
-    let nationalIdFile = existing[0].national_id_path;
     let additionalDocuments = existing[0].additional_documents_path;
 
     if (req.files && req.files.photo && req.files.photo[0]) {
@@ -292,10 +287,6 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
     if (req.files && req.files.transcript && req.files.transcript[0]) {
       const r = await uploadToImageKit(req.files.transcript[0], 'application');
       transcript = r.url;
-    }
-    if (req.files && req.files.nationalId && req.files.nationalId[0]) {
-      const r = await uploadToImageKit(req.files.nationalId[0], 'application');
-      nationalIdFile = r.url;
     }
     if (req.files && req.files.additionalDocuments) {
       const urls = [];
@@ -309,22 +300,22 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
     await req.db.query(
       `UPDATE applications SET
         khmer_first_name = ?, khmer_last_name = ?, english_first_name = ?, english_last_name = ?,
-        gender = ?, date_of_birth = ?, nationality = ?, national_id = ?, current_address = ?,
+        gender = ?, date_of_birth = ?, nationality = ?, current_address = ?,
         phone = ?, telegram = ?, email = ?,
         parent_name = ?, parent_phone = ?, emergency_contact = ?, emergency_phone = ?,
         school_name = ?, school_province_id = ?, graduation_year = ?, exam_result = ?,
         major_first_choice_id = ?, major_second_choice_id = ?, scholarship_category_id = ?,
-        photo_path = ?, transcript_path = ?, national_id_path = ?, additional_documents_path = ?,
+        photo_path = ?, transcript_path = ?, additional_documents_path = ?,
         status = 'pending'
         WHERE id = ? AND user_id = ?`,
       [
         khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-        gender, date_of_birth, finalNationality2, national_id, current_address,
+        gender, date_of_birth, finalNationality2, current_address,
         phone, telegram, email,
         parent_name, parent_phone, emergency_contact, emergency_phone,
         school_name, school_province_id, graduation_year, exam_result,
         major_first_choice_id, major_second_choice_id || null, scholarship_category_id,
-        photo, transcript, nationalIdFile, additionalDocuments,
+        photo, transcript, additionalDocuments,
         req.params.id, req.session.user.id
       ]
     );

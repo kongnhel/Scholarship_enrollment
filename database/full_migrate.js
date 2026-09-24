@@ -231,12 +231,12 @@ async function migrate() {
 
     await conn.query(
       `INSERT INTO applications (user_id, status, khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-        gender, date_of_birth, nationality, national_id, current_address, phone, email, school_name,
+        gender, date_of_birth, nationality, current_address, phone, email, school_name,
         graduation_year, major_first_choice_id, major_second_choice_id, scholarship_category_id, scholarship_type_id, submitted_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [u.id, st, kF[i], kL[i], eF[i], eL[i],
         Math.random() > 0.5 ? 'male' : 'female', dob, 'Cambodian',
-        String(Math.floor(10000000 + Math.random() * 90000000)), addr, phone,
+        addr, phone,
         'student' + u.id + '@gmail.com', pick(schoolNames), 2024,
         pick(majorIds), pick(majorIds), pick(catIdArr), pick(stIdArr), subDate]
     );

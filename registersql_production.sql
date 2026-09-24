@@ -44,7 +44,6 @@ CREATE TABLE `users` (
   `role` enum('student','admin','committee') COLLATE utf8mb4_unicode_ci DEFAULT 'student',
   `khmer_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `english_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `national_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `gender` enum('male','female') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
   `place_of_birth` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -71,8 +70,7 @@ CREATE TABLE `users` (
   KEY `idx_users_email` (`email`),
   KEY `idx_users_role` (`role`),
   KEY `idx_users_verification_token` (`verification_token`),
-  KEY `idx_users_reset_token` (`reset_token`),
-  KEY `idx_users_national_id` (`national_id`)
+  KEY `idx_users_reset_token` (`reset_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===========================================================
@@ -260,7 +258,6 @@ CREATE TABLE `applications` (
   `gender` enum('male','female','other') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
   `nationality` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'Cambodian',
-  `national_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `current_address` text COLLATE utf8mb4_unicode_ci,
   `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `telegram` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -279,7 +276,6 @@ CREATE TABLE `applications` (
   `scholarship_category_id` int DEFAULT NULL,
   `photo_path` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `transcript_path` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `national_id_path` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `additional_documents_path` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `admin_remark` text COLLATE utf8mb4_unicode_ci,
   `correction_notes` text COLLATE utf8mb4_unicode_ci,
