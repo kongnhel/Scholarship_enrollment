@@ -1,16 +1,41 @@
 <div class="min-h-[80vh] flex items-center justify-center py-8">
-  <div class="w-full max-w-lg">
-    <div class="text-center mb-6">
-      <img src="/images/nmu-logo.jpg" alt="NMU" class="w-16 h-16 rounded-full mx-auto mb-4 ring-4 ring-green-100 shadow-lg">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ចូលគណនី' : 'Login' %></h1>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'ចូលដើម្បីដាក់ពាក្យសុំអាហារូបករណ៍' : 'Login to your scholarship application' %></p>
+  <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+
+    <div class="relative hidden lg:flex flex-col justify-between p-10 text-white bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 overflow-hidden">
+      <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10"></div>
+      <div class="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-emerald-300/15"></div>
+      <div class="relative">
+        <div class="flex items-center gap-3 mb-8">
+          <img src="/images/nmu-logo.jpg" alt="NMU" width="48" height="48" loading="lazy" decoding="async" class="w-12 h-12 rounded-xl ring-2 ring-white/30 object-cover">
+          <div>
+            <p class="font-bold leading-tight">NMU Scholarship</p>
+            <p class="text-xs text-green-100">& Enroll Online</p>
+          </div>
+        </div>
+        <h2 class="text-2xl font-bold mb-3 leading-snug"><%= currentLang === 'km' ? 'សូមស្វាគមន៍ត្រឡប់មកវិញ' : 'Welcome back' %></h2>
+        <p class="text-green-100 text-sm leading-relaxed mb-6"><%= currentLang === 'km' ? 'ចូលដើម្បីបន្តដាក់ពាក្យសុំអាហារូបករណ៍ ចុះឈ្មោះចូលរៀន និងតាមដានស្ថានភាពរបស់អ្នក។' : 'Sign in to continue your scholarship application, enrollment, and track your status.' %></p>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ដាក់ពាក្យអាហារូបករណ៍' : 'Apply for scholarships' %></li>
+          <li class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះជំនាញតាមអនឡាញ' : 'Enroll in majors online' %></li>
+          <li class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សាតាម KHQR' : 'Pay tuition via KHQR' %></li>
+        </ul>
+      </div>
+      <p class="relative text-xs text-green-100/80">© National Meanchey University</p>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+    <div class="p-6 sm:p-10">
+      <div class="text-center mb-7">
+        <div class="lg:hidden mb-4">
+          <img src="/images/nmu-logo.jpg" alt="NMU" width="64" height="64" loading="eager" decoding="async" class="w-16 h-16 rounded-2xl mx-auto ring-4 ring-green-100 dark:ring-green-900/40 shadow-md object-cover">
+        </div>
+        <span class="hidden lg:inline-block px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold uppercase tracking-wider mb-3"><%= currentLang === 'km' ? 'ចូល' : 'Login' %></span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ចូលគណនី' : 'Login' %></h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'ចូលដើម្បីដាក់ពាក្យសុំអាហារូបករណ៍' : 'Login to your scholarship application' %></p>
+      </div>
 
       <% if (typeof showResendPanel !== 'undefined' && showResendPanel) { %>
-        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
-          <div class="flex items-center gap-3">
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 mb-6">
+          <div class="flex items-start gap-3">
             <i class="bi bi-info-circle text-amber-500 text-xl"></i>
             <div>
               <p class="text-sm font-semibold text-amber-800 dark:text-amber-200"><%= currentLang === 'km' ? 'គណនីមិនទាន់ត្រូវបានផ្ទៀតផ្ទាត់' : 'Account Not Verified' %></p>
@@ -28,29 +53,31 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល / ឈ្មោះអ្នកប្រើប្រាស់ / ទូរស័ព្ទ' : 'Email / Username / Phone' %> *</label>
           <div class="relative">
             <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="text" name="login_identifier" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឈ្មោះអ្នកប្រើប្រាស់ ឬទូរស័ព្ទ' : 'email, username, or phone' %>" value="<%= typeof resendEmail !== 'undefined' ? resendEmail : '' %>" required>
+            <input type="text" name="login_identifier" class="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឈ្មោះអ្នកប្រើប្រាស់ ឬទូរស័ព្ទ' : 'email, username, or phone' %>" value="<%= typeof resendEmail !== 'undefined' ? resendEmail : '' %>" required autocomplete="username">
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Password' %> *</label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Password' %> *</label>
+            <a href="/auth/forgot-password" class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"><%= currentLang === 'km' ? 'ភ្លេចពាក្យសម្ងាត់?' : 'Forgot password?' %></a>
+          </div>
           <div class="relative">
             <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="password" name="password" id="loginPassword" class="w-full pl-10 pr-12 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Enter your password' %>" required>
-            <button type="button" onclick="togglePassword('loginPassword','eyeIconLogin')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><i class="bi bi-eye" id="eyeIconLogin"></i></button>
+            <input type="password" name="password" id="loginPassword" class="w-full pl-10 pr-12 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Enter your password' %>" required autocomplete="current-password">
+            <button type="button" onclick="togglePassword('loginPassword','eyeIconLogin')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1" aria-label="Toggle password"><i class="bi bi-eye" id="eyeIconLogin"></i></button>
           </div>
         </div>
-        <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm"><i class="bi bi-box-arrow-in-right mr-1"></i><%= currentLang === 'km' ? 'ចូល' : 'Sign In' %></button>
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-600 transition-colors shadow-md shadow-green-500/20"><i class="bi bi-box-arrow-in-right mr-1"></i><%= currentLang === 'km' ? 'ចូល' : 'Sign In' %></button>
       </form>
 
-      <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+      <div class="mt-6 pt-5 border-t border-gray-100 dark:border-gray-700 space-y-3">
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-          <%= currentLang === 'km' ? 'មិនមានគណនី?' : 'No account?' %> <a href="/auth/register" class="text-green-600 dark:text-green-400 font-semibold hover:text-green-700"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Sign Up' %></a>
+          <%= currentLang === 'km' ? 'មិនមានគណនី?' : 'No account?' %>
+          <a href="/auth/register" class="text-green-600 dark:text-green-400 font-semibold hover:text-green-700"><%= currentLang === 'km' ? 'បង្កើតគណនីឥឡូវនេះ' : 'Create Account' %></a>
         </p>
-        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-          <%= currentLang === 'km' ? 'គណនីមិនទាន់ផ្ទៀងផ្ទាត់?' : 'Not verified yet?' %> <a href="/auth/verify-account" class="text-orange-600 dark:text-orange-400 font-semibold hover:text-orange-700"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verify Account' %></a>
-        </p>
-        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-          <%= currentLang === 'km' ? 'ភ្លេចពាក្យសម្ងាត់?' : 'Forgot password?' %> <a href="/auth/forgot-password" class="text-blue-600 dark:text-blue-400 hover:text-blue-700"><%= currentLang === 'km' ? 'កំណត់ឡើងវិញ' : 'Reset' %></a>
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+          <%= currentLang === 'km' ? 'គណនីមិនទាន់ផ្ទៀងផ្ទាត់?' : 'Not verified yet?' %>
+          <a href="/auth/verify-account" class="text-orange-600 dark:text-orange-400 font-semibold hover:text-orange-700"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verify Account' %></a>
         </p>
       </div>
     </div>

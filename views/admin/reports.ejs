@@ -1,17 +1,20 @@
 <div class="max-w-7xl mx-auto space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
-        <i class="bi bi-graph-up text-white text-lg"></i>
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-graph-up text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'របាយការណ៍និងស្ថិតិ' : 'Reports & Statistics' %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ទិន្នន័យវិភាគស្តីពីពាក្យសុំអាហារូបករណ៍' : 'Analytics and insights on scholarship applications' %></p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'របាយការណ៍និងស្ថិតិ' : 'Reports & Statistics' %></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ទិន្នន័យវិភាគស្តីពីពាក្យសុំអាហារូបករណ៍' : 'Analytics and insights on scholarship applications' %></p>
+      <div class="flex gap-2 self-start sm:self-auto">
+        <a href="/admin/reports/export/excel" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2"><i class="bi bi-file-earmark-excel"></i><%= currentLang === 'km' ? 'Excel' : 'Export Excel' %></a>
+        <a href="/admin/reports/export/pdf" target="_blank" class="px-5 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl text-sm font-semibold hover:from-red-600 hover:to-rose-700 transition-all shadow-sm flex items-center gap-2"><i class="bi bi-file-earmark-pdf"></i><%= currentLang === 'km' ? 'PDF' : 'Preview PDF' %></a>
       </div>
-    </div>
-    <div class="flex gap-2">
-      <a href="/admin/reports/export/excel" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2"><i class="bi bi-file-earmark-excel"></i><%= currentLang === 'km' ? 'Excel' : 'Export Excel' %></a>
-      <a href="/admin/reports/export/pdf" target="_blank" class="px-5 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl text-sm font-semibold hover:from-red-600 hover:to-rose-700 transition-all shadow-sm flex items-center gap-2"><i class="bi bi-file-earmark-pdf"></i><%= currentLang === 'km' ? 'PDF' : 'Preview PDF' %></a>
     </div>
   </div>
 
@@ -35,25 +38,27 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
       <canvas id="statusChart"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
       <canvas id="genderChart"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
       <canvas id="majorChart"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
       <canvas id="categoryChart"></canvas>
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
-        <i class="bi bi-book"></i>
-        <h5 class="font-bold text-sm"><%= currentLang === 'km' ? 'ពាក្យសុំតាមជំនាញ' : 'Applications by Major' %></h5>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+          <i class="bi bi-book text-green-600 dark:text-green-400 text-sm"></i>
+        </div>
+        <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមជំនាញ' : 'Applications by Major' %></h5>
       </div>
       <div class="p-5 overflow-x-auto">
         <table class="w-full">
@@ -84,10 +89,12 @@
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
-        <i class="bi bi-tag"></i>
-        <h5 class="font-bold text-sm"><%= currentLang === 'km' ? 'ពាក្យសុំតាមប្រភេទ' : 'Applications by Category' %></h5>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
+          <i class="bi bi-tag text-emerald-600 dark:text-emerald-400 text-sm"></i>
+        </div>
+        <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមប្រភេទ' : 'Applications by Category' %></h5>
       </div>
       <div class="p-5 overflow-x-auto">
         <table class="w-full">
@@ -118,10 +125,12 @@
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
-        <i class="bi bi-geo-alt"></i>
-        <h5 class="font-bold text-sm"><%= currentLang === 'km' ? 'ពាក្យសុំតាមខេត្ត' : 'Applications by Province' %></h5>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+          <i class="bi bi-geo-alt text-blue-600 dark:text-blue-400 text-sm"></i>
+        </div>
+        <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមខេត្ត' : 'Applications by Province' %></h5>
       </div>
       <div class="p-5 overflow-x-auto">
         <table class="w-full">
@@ -152,10 +161,12 @@
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
-        <i class="bi bi-gender-ambiguous"></i>
-        <h5 class="font-bold text-sm"><%= currentLang === 'km' ? 'ពាក្យសុំតាមភេទ' : 'Applications by Gender' %></h5>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+          <i class="bi bi-gender-ambiguous text-purple-600 dark:text-purple-400 text-sm"></i>
+        </div>
+        <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមភេទ' : 'Applications by Gender' %></h5>
       </div>
       <div class="p-5 overflow-x-auto">
         <table class="w-full">

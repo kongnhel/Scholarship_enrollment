@@ -1,29 +1,32 @@
 <div class="max-w-6xl mx-auto space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
-        <i class="bi bi-book text-white text-lg"></i>
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-book text-white text-xl"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
+            <i class="bi bi-collection"></i>
+            <%= totalRecords %> <%= currentLang === 'km' ? 'ជំនាញ' : 'majors' %>
+          </div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងជំនាញ' : 'Majors Management' %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងជំនាញសិក្សាទាំងអស់' : 'Manage all academic majors' %></p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងជំនាញ' : 'Majors Management' %></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងជំនាញសិក្សាទាំងអស់' : 'Manage all academic majors' %></p>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-        <i class="bi bi-book text-gray-400"></i>
-        <span class="text-sm text-gray-600 dark:text-gray-300"><%= totalRecords %> <%= currentLang === 'km' ? 'ជំនាញ' : 'majors' %></span>
-      </div>
-      <button onclick="document.getElementById('addMajorModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
+      <button onclick="document.getElementById('addMajorModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-colors shadow-sm flex items-center gap-2 self-start sm:self-auto">
         <i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមជំនាញថ្មី' : 'Add New Major' %>
       </button>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 flex items-center gap-2">
-      <i class="bi bi-sliders text-white/80 text-sm"></i>
-      <span class="text-sm font-semibold text-white"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+        <i class="bi bi-funnel text-green-600 dark:text-green-400 text-sm"></i>
+      </div>
+      <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
     </div>
     <form action="/admin/majors" method="GET" class="p-5">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -43,12 +46,12 @@
     </form>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លេខ' : 'ID' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Name (Khmer)' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'Name (English)' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty' %></th>
@@ -67,10 +70,10 @@
               </td>
             </tr>
           <% } else { %>
-            <% majors.forEach(function(major) { %>
+            <% majors.forEach(function(major, index) { %>
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <td class="px-5 py-4">
-                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= major.id %></span>
+                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * 10 + index + 1 %></span>
                 </td>
                 <td class="px-5 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"><%= major.name_kh %></td>
                 <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= major.name_en %></td>

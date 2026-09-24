@@ -1,25 +1,31 @@
 <div class="max-w-7xl mx-auto space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
-        <i class="bi bi-file-earmark-text text-white text-lg"></i>
-      </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំ #' : 'Application #' %><%= application.id %></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតនៃពាក្យសុំ' : 'Application details' %></p>
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <a href="/admin/applications" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5 flex-shrink-0">
+          <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %>
+        </a>
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-file-earmark-text text-white text-xl"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">#<%= application.id %></div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំ #' : 'Application #' %><%= application.id %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតនៃពាក្យសុំ' : 'Application details' %></p>
+        </div>
       </div>
     </div>
-    <a href="/admin/applications" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5">
-      <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %>
-    </a>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
-          <i class="bi bi-person"></i>
-          <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន' : 'Personal Information' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-person text-green-600 dark:text-green-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន' : 'Personal Information' %></span>
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -80,10 +86,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-violet-500 text-white flex items-center gap-2">
-          <i class="bi bi-book"></i>
-          <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានការសិក្សា' : 'Education' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-book text-purple-600 dark:text-purple-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានការសិក្សា' : 'Education' %></span>
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -123,10 +131,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-green-500 text-white flex items-center gap-2">
-          <i class="bi bi-star"></i>
-          <h3 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានអាហារូបករណ៍' : 'Scholarship' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-star text-emerald-600 dark:text-emerald-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានអាហារូបករណ៍' : 'Scholarship' %></span>
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,10 +179,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white flex items-center gap-2">
-          <i class="bi bi-files"></i>
-          <h3 class="font-bold"><%= currentLang === 'km' ? 'ឯកសារដែលបានបង្ហោះ' : 'Uploaded Documents' %></h3>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-gray-100 dark:bg-gray-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-files text-gray-600 dark:text-gray-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ឯកសារដែលបានបង្ហោះ' : 'Uploaded Documents' %></span>
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -227,10 +239,12 @@
     </div>
 
     <div class="space-y-6">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-500 text-white flex items-center gap-2">
-          <i class="bi bi-clock-history"></i>
-          <h6 class="font-bold"><%= currentLang === 'km' ? 'ប្រវត្តិស្ថានភាព' : 'Status History' %></h6>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-clock-history text-blue-600 dark:text-blue-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ប្រវត្តិស្ថានភាព' : 'Status History' %></span>
         </div>
         <div class="p-6">
           <% if (history && history.length > 0) { %>
@@ -258,10 +272,12 @@
       </div>
 
       <% if (application.status === 'pending' || application.status === 'under_review') { %>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center gap-2">
-            <i class="bi bi-gear"></i>
-            <h6 class="font-bold"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></h6>
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+              <i class="bi bi-gear text-green-600 dark:text-green-400 text-sm"></i>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></span>
           </div>
           <div class="p-6 space-y-4">
             <% if (application.status === 'pending') { %>
@@ -312,10 +328,12 @@
       <% } %>
 
       <% if (application.admin_remark) { %>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div class="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center gap-2">
-            <i class="bi bi-chat-dots"></i>
-            <h6 class="font-bold"><%= currentLang === 'km' ? 'កំណត់សម្គាល់អ្នកគ្រប់គ្រង' : 'Admin Remark' %></h6>
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center">
+              <i class="bi bi-chat-dots text-orange-600 dark:text-orange-400 text-sm"></i>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'កំណត់សម្គាល់អ្នកគ្រប់គ្រង' : 'Admin Remark' %></span>
           </div>
           <div class="p-6">
             <p class="text-sm text-gray-600 dark:text-gray-300"><%= application.admin_remark %></p>
@@ -324,10 +342,12 @@
       <% } %>
 
       <% if (application.status === 'approved' && (application.exam_date || application.exam_time || application.exam_venue)) { %>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-violet-500 text-white flex items-center gap-2">
-            <i class="bi bi-calendar-check"></i>
-            <h6 class="font-bold"><%= currentLang === 'km' ? 'ព័ត៌មានប្រឡង' : 'Exam Information' %></h6>
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+              <i class="bi bi-calendar-check text-purple-600 dark:text-purple-400 text-sm"></i>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានប្រឡង' : 'Exam Information' %></span>
           </div>
           <div class="p-6 space-y-3 text-sm">
             <% if (application.exam_date) { %>

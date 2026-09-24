@@ -1,30 +1,55 @@
 <div class="min-h-[80vh] flex items-center justify-center py-8">
-  <div class="w-full max-w-lg">
-    <div class="text-center mb-6">
-      <img src="/images/nmu-logo.jpg" alt="NMU" class="w-16 h-16 rounded-full mx-auto mb-4 ring-4 ring-green-100 shadow-lg">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'បង្កើតគណនី' : 'Create Account' %></h1>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'ដើម្បីចាប់ផ្តើមដាក់ពាក្យសុំអាហារូបករណ៍' : 'Start your scholarship application' %></p>
+  <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-5 gap-0 bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+
+    <div class="relative hidden lg:flex lg:col-span-2 flex-col justify-between p-8 text-white bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 overflow-hidden">
+      <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10"></div>
+      <div class="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-emerald-300/15"></div>
+      <div class="relative">
+        <div class="flex items-center gap-3 mb-8">
+          <img src="/images/nmu-logo.jpg" alt="NMU" width="48" height="48" loading="lazy" decoding="async" class="w-12 h-12 rounded-xl ring-2 ring-white/30 object-cover">
+          <div>
+            <p class="font-bold leading-tight">NMU Scholarship</p>
+            <p class="text-xs text-green-100">& Enroll Online</p>
+          </div>
+        </div>
+        <h2 class="text-xl font-bold mb-3 leading-snug"><%= currentLang === 'km' ? 'បង្កើតគណនីឥឡូវនេះ' : 'Create your account' %></h2>
+        <p class="text-green-100 text-sm leading-relaxed mb-6"><%= currentLang === 'km' ? 'ដើម្បីដាក់ពាក្យអាហារូបករណ៍ ចុះឈ្មោះចូលរៀន និងទូទាត់ថ្លៃសិក្សាបានយ៉ាងងាយស្រួល។' : 'Apply for scholarships, enroll in majors, and pay tuition with ease.' %></p>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ដាក់ពាក្យអាហារូបករណ៍' : 'Apply for scholarships' %></li>
+          <li class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះជំនាញតាមអនឡាញ' : 'Enroll in majors online' %></li>
+          <li class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ទទួលដំណឹងស្ថានភាពពាក្យ' : 'Get application updates' %></li>
+        </ul>
+      </div>
+      <p class="relative text-xs text-green-100/80">© National Meanchey University</p>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+    <div class="lg:col-span-3 p-6 sm:p-8">
+      <div class="text-center mb-6">
+        <div class="lg:hidden mb-4">
+          <img src="/images/nmu-logo.jpg" alt="NMU" width="64" height="64" loading="eager" decoding="async" class="w-16 h-16 rounded-2xl mx-auto ring-4 ring-green-100 dark:ring-green-900/40 shadow-md object-cover">
+        </div>
+        <span class="hidden lg:inline-block px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold uppercase tracking-wider mb-3"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Register' %></span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'បង្កើតគណនី' : 'Create Account' %></h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1"><%= currentLang === 'km' ? 'ដើម្បីចាប់ផ្តើមដាក់ពាក្យសុំអាហារូបករណ៍' : 'Start your scholarship application' %></p>
+      </div>
 
       <form method="POST" action="/auth/register" id="regForm" class="space-y-4">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %> *</label>
-            <input type="text" name="khmer_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះខ្មែរ' : 'Enter Khmer name' %>" required>
+            <input type="text" name="khmer_name" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះខ្មែរ' : 'Enter Khmer name' %>" required>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %> *</label>
-            <input type="text" name="english_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះអង់គ្លេស' : 'Enter English name' %>" required>
+            <input type="text" name="english_name" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះអង់គ្លេស' : 'Enter English name' %>" required>
           </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %> *</label>
           <div class="relative">
             <i class="bi bi-at absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="text" name="username" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់ (អក្ខរា លេខ _)' : 'username (letters, numbers, _)' %>" pattern="[a-zA-Z0-9_]{3,50}" minlength="3" maxlength="50" required>
+            <input type="text" name="username" class="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់ (អក្ខរា លេខ _)' : 'username (letters, numbers, _)' %>" pattern="[a-zA-Z0-9_]{3,50}" minlength="3" maxlength="50" required autocomplete="username">
           </div>
           <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? '៣-៥០ អក្ខរា។ អាចប្រើអក្ខរា ABC លេខ និង _' : '3-50 chars. Letters, numbers, and _ only' %></p>
         </div>
@@ -32,33 +57,33 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %> *</label>
           <div class="relative">
             <i class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="email" name="email" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="your@email.com" required>
+            <input type="email" name="email" class="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="your@email.com" required autocomplete="email">
           </div>
         </div>
         <%- include('../partials/phone-input', { phoneName: 'phone', phoneValue: '', required: true, inputId: 'regPhone', helpText: currentLang === 'km' ? 'ជ្រើសរើសកូដប្រទេស និងបញ្ចូលលេខទូរស័ព្ទ' : 'Select country code and enter phone number' }) %>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពាក្យសម្ងាត់' : 'Password' %> *</label>
             <div class="relative">
               <i class="bi bi-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-              <input type="password" name="password" id="password" class="w-full pl-10 pr-12 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'ពាក្យសម្ងាត់យ៉ាងតិច ៦ អក្ខរា' : 'Min 6 characters' %>" required minlength="6">
-              <button type="button" onclick="togglePassword('password','eyeIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><i class="bi bi-eye" id="eyeIcon1"></i></button>
+              <input type="password" name="password" id="password" class="w-full pl-10 pr-12 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'ពាក្យសម្ងាត់យ៉ាងតិច ៦ អក្ខរា' : 'Min 6 characters' %>" required minlength="6" autocomplete="new-password">
+              <button type="button" onclick="togglePassword('password','eyeIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1" aria-label="Toggle password"><i class="bi bi-eye" id="eyeIcon1"></i></button>
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'បញ្ជាក់ពាក្យសម្ងាត់' : 'Confirm' %> *</label>
             <div class="relative">
               <i class="bi bi-lock-fill absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-              <input type="password" name="confirm_password" id="confirm_password" class="w-full pl-10 pr-12 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់ម្តងទៀត' : 'Re-enter your password' %>" required minlength="6">
-              <button type="button" onclick="togglePassword('confirm_password','eyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><i class="bi bi-eye" id="eyeIcon2"></i></button>
+              <input type="password" name="confirm_password" id="confirm_password" class="w-full pl-10 pr-12 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-colors" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់ម្តងទៀត' : 'Re-enter your password' %>" required minlength="6" autocomplete="new-password">
+              <button type="button" onclick="togglePassword('confirm_password','eyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1" aria-label="Toggle password"><i class="bi bi-eye" id="eyeIcon2"></i></button>
             </div>
           </div>
         </div>
 
-        <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4">
+        <div class="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4">
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3"><%= currentLang === 'km' ? 'វិធីសាស្ត្រផ្ទៀតផ្ទាត់' : 'Verification Method' %> *</label>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all verify-email-border" id="verifyEmailLabel">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors verify-email-border" id="verifyEmailLabel">
               <input type="radio" name="verify_method" value="email" checked class="w-4 h-4 text-green-600" onchange="updateVerifyMethod('email')">
               <div class="flex items-center gap-2">
                 <i class="bi bi-envelope text-green-600 dark:text-green-400 text-lg"></i>
@@ -68,7 +93,7 @@
                 </div>
               </div>
             </label>
-            <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-all" id="verifyTelegramLabel">
+            <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-colors" id="verifyTelegramLabel">
               <input type="radio" name="verify_method" value="telegram" class="w-4 h-4 text-green-600" onchange="updateVerifyMethod('telegram')">
               <div class="flex items-center gap-2">
                 <i class="bi bi-telegram text-blue-500 text-lg"></i>
@@ -82,10 +107,14 @@
           <p id="verifyHint" class="text-xs text-gray-400 dark:text-gray-500 mt-2"><%= currentLang === 'km' ? 'អ្នកនឹងទទួលបានអ៊ីមែលផ្ទៀតផ្ទាត់នៅក្នុងប្រអប់សំបុត្ររបស់អ្នក។' : 'You will receive a verification email in your inbox.' %></p>
         </div>
 
-        <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm"><i class="bi bi-person-plus mr-1"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Create Account' %></button>
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-600 transition-colors shadow-md shadow-green-500/20"><i class="bi bi-person-plus mr-1"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Create Account' %></button>
       </form>
+
+      <p class="text-center mt-6 pt-5 border-t border-gray-100 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+        <%= currentLang === 'km' ? 'មានគណនីរួចហើយ?' : 'Already have an account?' %>
+        <a href="/auth/login" class="text-green-600 dark:text-green-400 font-semibold hover:text-green-700"><%= currentLang === 'km' ? 'ចូល' : 'Sign In' %></a>
+      </p>
     </div>
-    <p class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មានគណនីរួចហើយ?' : 'Already have an account?' %> <a href="/auth/login" class="text-green-600 dark:text-green-400 font-semibold hover:text-green-700"><%= currentLang === 'km' ? 'ចូល' : 'Sign In' %></a></p>
   </div>
 </div>
 <script>
@@ -105,12 +134,12 @@ function updateVerifyMethod(method) {
   var telegramLabel = document.getElementById('verifyTelegramLabel');
   var hint = document.getElementById('verifyHint');
   if (method === 'email') {
-    emailLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-900/20 cursor-pointer transition-all';
-    telegramLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-all';
+    emailLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-900/20 cursor-pointer transition-colors';
+    telegramLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-colors';
     hint.textContent = '<%= currentLang === "km" ? "អ្នកនឹងទទួលបានអ៊ីមែលផ្ទៀតផ្ទាត់នៅក្នុងប្រអប់សំបុត្ររបស់អ្នក។" : "You will receive a verification email in your inbox." %>';
   } else {
-    telegramLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-pointer transition-all';
-    emailLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-all';
+    telegramLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-pointer transition-colors';
+    emailLabel.className = 'flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-pointer transition-colors';
     hint.textContent = '<%= currentLang === "km" ? "អ្នកនឹងទទួលបានលេខកូដ ៦ ខ្ទង់តាម Telegram ពីគណនី 777000។" : "You will receive a 6-digit code via Telegram from 777000." %>';
   }
 }
