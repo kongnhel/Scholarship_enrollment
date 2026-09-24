@@ -7,13 +7,18 @@ const sendEmail = async (to, subject, html) => {
     try {
       const { Resend } = require('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
-      await resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to,
         subject,
         html
       });
-      return true;
+      if (error) {
+        console.error('Resend email error:', error.message);
+        // Fall through to SMTP
+      } else {
+        return true;
+      }
     } catch (error) {
       console.error('Resend email error:', error.message);
       // Fall through to SMTP
