@@ -1,17 +1,18 @@
 <div class="max-w-3xl mx-auto">
   <div class="text-center mb-8">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សំណួរដែលគេសួរញឹកញាប់' : 'Frequently Asked Questions' %></h1>
-    <p class="text-gray-500 dark:text-gray-400 mt-2"><%= currentLang === 'km' ? 'ស្វែងរកចម្លើយចំពោះសំណួរទូទៅ' : 'Find answers to common questions about the scholarship program' %></p>
+    <p class="text-gray-500 dark:text-gray-400 mt-2"><%= currentLang === 'km' ? 'ស្វែងរកចម្លើយចំពោះសំណួរទូទៅ សម្រាប់អាហារូបករណ៍ និងការចុះឈ្មោះឆ្នាំសិក្សាមូលដ្ឋាន' : 'Find answers to common questions about scholarships and Foundation Year registration' %></p>
   </div>
 
   <div class="space-y-4">
     <% var faqs = [
-      { q_km: 'តើអ្នកណាអាចដាក់ពាក្យសុំអាហារូបករណ៍បាន?', q_en: 'Who can apply for this scholarship?', a_km: 'សិស្សានុសិស្សដែលបានបញ្ចប់ការសិក្សាថ្នាក់ទី១២ និងមានបំណងចង់សិក្សានៅសាកលវិទ្យាល័យជាតិគ្រប់គ្រង (NMU) អាចដាក់ពាក្យសុំបាន។', a_en: 'Students who have completed Grade 12 and wish to study at the National Management University (NMU) are eligible to apply.' },
-      { q_km: 'តើត្រូវការឯកសារអ្វីខ្លះសម្រាប់ការដាក់ពាក្យ?', q_en: 'What documents are required for application?', a_km: 'ឯកសារដែលត្រូវការរួមមាន៖ រូបថត, សំណុំបែបបទ, អត្តសញ្ញាណប័ណ្ណ, និងឯកសារបន្ថែមផ្សេងទៀត។', a_en: 'Required documents include: photo, transcript, national ID, and additional supporting documents.' },
+      { q_km: 'តើអ្នកណាអាចដាក់ពាក្យសុំអាហារូបករណ៍ ឬចុះឈ្មោះឆ្នាំសិក្សាមូលដ្ឋានបាន?', q_en: 'Who can apply for scholarships or register for the Foundation Year?', a_km: 'សិស្សានុសិស្សដែលបានបញ្ចប់ការសិក្សាថ្នាក់ទី១២ និងមានបំណងចង់សិក្សានៅសាកលវិទ្យាល័យជាតិមានជ័យ (NMU) អាចដាក់ពាក្យសុំអាហារូបករណ៍ ឬចុះឈ្មោះសិក្សាឆ្នាំសិក្សាមូលដ្ឋានបាន។', a_en: 'Students who have completed Grade 12 and wish to study at the National Management University (NMU) are eligible to apply for scholarships or register for the Foundation Year.' },
+      { q_km: 'តើអាហារូបករណ៍ និងការចុះឈ្មោះឆ្នាំសិក្សាមូលដ្ឋានខុសគ្នាដូចម្តេច?', q_en: 'What is the difference between scholarships and Foundation Year registration?', a_km: 'អាហារូបករណ៍ជួយដល់សិស្សក្នុងការចំណាយថ្លៃសិក្សា។ ឆ្នាំសិក្សាគោលនយោបាយ (Foundation Year) គឺជាឆ្នាំទី១នៃការសិក្សាមុនពេលចូលសិក្សាថ្នាក់បរិញ្ញាបត្រ។', a_en: 'Scholarships help students with tuition costs. The Foundation Year is the first year of study before entering the bachelor\'s degree program.' },
+      { q_km: 'តើត្រូវការឯកសារអ្វីខ្លះសម្រាប់ការដាក់ពាក្យ?', q_en: 'What documents are required for application?', a_km: 'ឯកសារដែលត្រូវការរួមមាន៖ រូបថត, សំណុំបែបបទ,  និងឯកសារបន្ថែមផ្សេងទៀត។', a_en: 'Required documents include: photo, transcript, and additional supporting documents.' },
       { q_km: 'តើខ្ញុំអាចដឹងលទ្ធផលនៃពាក្យសុំរបស់ខ្ញុំដោយរបៀបណា?', q_en: 'How can I check my application result?', a_km: 'អ្នកអាចពិនិត្យស្ថានភាពពាក្យសុំរបស់អ្នកតាមរយៈទំព័រ "ស្ថានភាព" នៅក្នុងគណនីរបស់អ្នក។', a_en: 'You can check your application status through the "Status" page in your account.' },
-      { q_km: 'តើរយៈពេលនៃការដាក់ពាក្យមានរយៈពេលប៉ុន្មាន?', q_en: 'How long is the application period?', a_km: 'ការដាក់ពាក្យជាធម្មតាបើកពីខែមិថុនាដល់ខែសីហា។ សូមពិនិត្យមើលកាលបរិច្ឆេទពិតប្រាកដនៅលើទំព័រដើម។', a_en: 'Applications typically open from June to August. Please check the exact dates on the homepage.' },
+      { q_km: 'តើរយៈពេលនៃការដាក់ពាក្យមានរយៈពេលប៉ុន្មាន?', q_en: 'How long is the application period?', a_km: 'ការដាក់ពាក្យជាធម្មតាបើកពីខែដែលបានកំណត់។ សូមពិនិត្យមើលកាលបរិច្ឆេទពិតប្រាកដនៅលើទំព័រដើម។', a_en: 'Applications typically open from June to August. Please check the exact dates on the homepage.' },
       { q_km: 'តើខ្ញុំអាចកែប្រែពាក្យសុំបានទេបន្ទាប់ពីដាក់ស្នើ?', q_en: 'Can I edit my application after submission?', a_km: 'បាទ/ចាស ប្រសិនបើអ្នកគ្រប់គ្រងស្នើសុំឱ្យអ្នកកែប្រែ អ្នកអាចកែប្រែនិងដាក់ស្នើឡើងវិញបាន។', a_en: 'Yes, if an admin requests corrections, you can edit and resubmit your application.' },
-      { q_km: 'តើត្រូវចំណាយថ្លៃដាក់ពាក្យទេ?', q_en: 'Is there an application fee?', a_km: 'ទេ ការដាក់ពាក្យសុំអាហារូបករណ៍នេះគឺឥតគិតថ្លៃទាំងស្រុង។', a_en: 'No, applying for this scholarship is completely free of charge.' },
+      { q_km: 'តើត្រូវចំណាយថ្លៃដាក់ពាក្យទេ?', q_en: 'Is there an application fee?', a_km: 'ទេ ការដាក់ពាក្យសុំអាហារូបករណ៍ ឬការចុះឈ្មោះឆ្នាំសិក្សាមូលដ្ឋានគឺឥតគិតថ្លៃទាំងស្រុង។', a_en: 'No, applying for scholarships or registering for the Foundation Year is completely free of charge.' },
     ]; %>
     <% faqs.forEach(function(faq) { %>
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
