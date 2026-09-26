@@ -1,0 +1,887 @@
+<%
+  var a = application || {};
+
+  var khmerDigitMap = { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' };
+  function toKhmerDigits(str) {
+    return String(str == null ? '' : str).replace(/[0-9]/g, function(d) { return khmerDigitMap[d]; });
+  }
+
+  var KHMER_MONTHS = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  var dobDay = '', dobMonth = '', dobYear = '', dobLongKh = '';
+  if (a.date_of_birth) {
+    var dob = new Date(a.date_of_birth);
+    if (!isNaN(dob.getTime())) {
+      dobDay = dob.getDate();
+      dobMonth = dob.getMonth() + 1;
+      dobYear = dob.getFullYear();
+      dobLongKh = 'ថ្ងៃទី' + toKhmerDigits(dobDay) + ' ខែ' + KHMER_MONTHS[dob.getMonth()] + ' ឆ្នាំ' + toKhmerDigits(dobYear);
+    }
+  }
+
+  var sigDateBlank = 'ថ្ងៃ...................ខែ...................ឆ្នាំ....................ព.ស.២៥៦...';
+  var sigPlaceBlank = 'ធ្វើនៅ........................ ថ្ងៃទី....... ខែ............ ឆ្នាំ២០២...';
+  var sigDateLine = '', sigPlaceLine = '';
+  if (a.submitted_at) {
+    var sigDate = new Date(a.submitted_at);
+    if (!isNaN(sigDate.getTime())) {
+      var sigDayKh = toKhmerDigits(sigDate.getDate());
+      var sigMonthKh = KHMER_MONTHS[sigDate.getMonth()] || '';
+      var sigYearKh = toKhmerDigits(sigDate.getFullYear());
+      sigDateLine = 'ថ្ងៃទី' + sigDayKh + ' ខែ' + sigMonthKh + ' ឆ្នាំ' + sigYearKh + ' ព.ស.' + toKhmerDigits(sigDate.getFullYear() + 543);
+      sigPlaceLine = 'ធ្វើនៅ........................ ថ្ងៃទី' + sigDayKh + ' ខែ' + sigMonthKh + ' ឆ្នាំ' + sigYearKh;
+    }
+  }
+
+  var genderKh = a.gender === 'male' ? 'ប្រុស' : (a.gender === 'female' ? 'ស្រី' : '');
+  var khmerName = [a.khmer_last_name, a.khmer_first_name].filter(Boolean).join(' ');
+  var englishName = [a.english_first_name, a.english_last_name].filter(Boolean).join(' ');
+
+  // scholarship option combo stored as "p/y" (e.g. "100/4")
+  var optParts = String(a.scholarship_option || '').split('/');
+  var optPct = optParts[0] || '';
+  var optYears = optParts[1] || '';
+  var programKh = a.scholarship_name_kh || 'អាហារូបករណ៍';
+  var parenTitle = '( ' + programKh + ' )';
+  var requestLabel = optPct
+    ? 'អាហារូបករណ៍' + toKhmerDigits(optPct) + '% សម្រាប់រយៈពេល ' + (optYears ? toKhmerDigits(optYears) + ' ឆ្នាំ' : '')
+    : programKh;
+  var fundingLabelP2 = optPct
+    ? 'អាហារូបករណ៍' + toKhmerDigits(optPct) + '% រយៈពេល' + (optYears ? toKhmerDigits(optYears) + 'ឆ្នាំ' : '')
+    : programKh;
+
+  var majorKh = a.major_name_kh || '';
+  var levelText = a.study_level === 'bachelor' ? 'បរិញ្ញាបត្រ' : (a.study_level === 'associate' ? 'បរិញ្ញាបត្ររង' : (a.study_level || ''));
+
+  var EDUCATION_LEVEL_KH = {
+    none: 'គ្មាន',
+    primary: 'បឋមសិក្សា (ថ្នាក់ទី ១ ដល់ ៦)',
+    lower_secondary: 'មធ្យមសិក្សាបឋមភូមិ (ឌីប្លូម) ថ្នាក់ទី ៧ ដល់ ៩',
+    upper_secondary: 'មធ្យមសិក្សាទុតិយភូមិ (បាក់ឌុប) ថ្នាក់ទី ១០ ដល់ ១២',
+    higher_education: 'ឧត្តមសិក្សា (បរិញ្ញាបត្ររង បរិញ្ញាបត្រ អនុបណ្ឌិត)',
+    bachelor: 'បរិញ្ញាបត្រ',
+    master: 'បរិញ្ញាបត្ររង',
+    phd: 'បណ្ឌិត'
+  };
+  var levelCultureText = EDUCATION_LEVEL_KH[a.education_level] || a.education_level || '';
+
+  function chk(on) {
+    return on
+      ? '<span class="inline-block border border-black w-3.5 h-3.5 align-middle mx-1 text-center" style="line-height:13px;font-weight:bold;font-size:11px;">✓</span>'
+      : '<span class="inline-block border border-black w-3.5 h-3.5 align-middle mx-1"></span>';
+  }
+
+  var photoSrc = a.photo_path || a.photo_3x4_path || '';
+%>
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ពាក្យសុំអាហារូបករណ៍ - សាកលវិទ្យាល័យជាតិមានជ័យ (A4)</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Battambang', cursive, sans-serif;
+      background-color: #f1f5f9;
+      color: #000000;
+      line-height: 1.5;
+      margin: 0;
+      padding: 20px 0;
+    }
+
+    .font-moul {
+      font-family: 'Moul', serif;
+      letter-spacing: 0px;
+    }
+
+    .font-battambang {
+      font-family: 'Battambang', cursive, sans-serif;
+    }
+
+    .print-toolbar {
+      width: 210mm;
+      margin: 0 auto 15px auto;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .print-toolbar a, .print-toolbar button {
+      font-family: 'Battambang', cursive, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .print-toolbar button {
+      background: linear-gradient(to right, #16a34a, #10b981);
+      color: #ffffff;
+    }
+
+    .print-toolbar a {
+      background: #ffffff;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    /* Strict A4 Dimensions (210mm x 297mm) */
+    .a4-page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      padding: 12mm 15mm 12mm 15mm;
+      margin: 0 auto 25px auto;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Dotted underline styling for form fields */
+    .dotted-line {
+      border-bottom: 1.5px dotted #111827;
+      display: inline-block;
+      min-height: 1.25rem;
+      vertical-align: bottom;
+    }
+
+    .dotted-line-fill {
+      border-bottom: 1.5px dotted #111827;
+      flex-grow: 1;
+      display: inline-block;
+      min-height: 1.25rem;
+    }
+
+    /* Photo attachment boxes */
+    .photo-box {
+      width: 3.2cm;
+      height: 4.2cm;
+      border: 1.5px solid #374151;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #374151;
+      background-color: #fafafa;
+    }
+
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Form Table styling */
+    .form-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+
+    .form-table th, .form-table td {
+      border: 1px solid #111827;
+      padding: 5px 8px;
+      text-align: center;
+      font-size: 13.5px;
+    }
+
+    .form-table th {
+      font-weight: bold;
+      background-color: #f8fafc;
+    }
+
+    /* Print settings strictly for A4 portrait */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      body {
+        background-color: #ffffff;
+        padding: 0;
+        margin: 0;
+      }
+
+      .print-toolbar {
+        display: none !important;
+      }
+
+      .a4-page {
+        box-shadow: none;
+        margin: 0;
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TOOLBAR ================= -->
+  <div class="print-toolbar">
+    <a href="/admin/applications/<%= a.id %>">ត្រឡប់ / Back</a>
+    <button onclick="window.print()">បោះពុម្ព / Print</button>
+  </div>
+
+  <!-- ================= PAGE 1 ================= -->
+  <div class="a4-page flex flex-col justify-between text-[14px]">
+    <div>
+      <!-- Header Section -->
+      <div class="grid grid-cols-12 mb-4">
+        <div class="col-span-5 text-center leading-tight">
+          <p class="font-moul text-[13px] mb-1">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
+          <p class="font-moul text-[13px]">សាកលវិទ្យាល័យជាតិមានជ័យ</p>
+        </div>
+        <div class="col-span-7 text-center leading-tight">
+          <p class="font-moul text-[14px] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</p>
+          <p class="font-moul text-[13px]">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+        </div>
+      </div>
+
+      <!-- Title Section -->
+      <div class="text-center my-4 leading-relaxed">
+        <h1 class="font-moul text-[15px] mb-1">
+          ពាក្យសុំចុះឈ្មោះអាហារូបករណ៍ចូលរៀនថ្នាក់ឆ្នាំសិក្សាមូលដ្ឋាន (ឆ្នាំទី១)
+        </h1>
+        <h2 class="font-moul text-[14px] mb-1">
+          នៅសាកលវិទ្យាល័យជាតិមានជ័យ
+        </h2>
+        <p class="font-moul text-[14px] mb-1">
+          ឆ្នាំសិក្សា <%= toKhmerDigits(new Date().getFullYear()) %> - <%= toKhmerDigits(new Date().getFullYear() + 1) %>
+        </p>
+        <p class="font-moul text-[13px]">
+          <%= parenTitle %>
+        </p>
+      </div>
+
+      <!-- Applicant Details Section -->
+      <div class="space-y-2 mt-5 text-[14px] leading-relaxed">
+        <div class="flex items-baseline">
+          <span class="whitespace-nowrap">ខ្ញុំបាទ-នាងខ្ញុំឈ្មោះ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= khmerName %></span>
+          <span class="whitespace-nowrap ml-2">អក្សរឡាតាំង៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= englishName %></span>
+          <span class="whitespace-nowrap ml-2">ភេទ៖</span>
+          <span class="dotted-line w-16 text-center font-semibold"><%= genderKh %></span>
+        </div>
+
+        <div class="flex items-baseline">
+          <span class="whitespace-nowrap">សញ្ជាតិ៖</span>
+          <span class="dotted-line w-28 text-center font-semibold">ខ្មែរ</span>
+          <span class="whitespace-nowrap ml-2">កើតនៅថ្ងៃទី៖</span>
+          <span class="dotted-line w-16 text-center font-semibold"><%= toKhmerDigits(dobDay) %></span>
+          <span class="whitespace-nowrap ml-1">ខែ៖</span>
+          <span class="dotted-line w-24 text-center font-semibold"><%= toKhmerDigits(dobMonth) %></span>
+          <span class="whitespace-nowrap ml-1">ឆ្នាំ៖</span>
+          <span class="dotted-line w-20 text-center font-semibold"><%= toKhmerDigits(dobYear) %></span>
+          <span class="whitespace-nowrap ml-2">នៅភូមិ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.birth_place || '' %></span>
+        </div>
+
+        <div class="flex items-baseline">
+          <span class="whitespace-nowrap">ឃុំ/សង្កាត់៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_commune || '' %></span>
+          <span class="whitespace-nowrap ml-2">ស្រុក/ក្រុង៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_district || '' %></span>
+          <span class="whitespace-nowrap ml-2">ខេត្ត/រាជធានី៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_province || '' %></span>
+        </div>
+
+        <div class="flex items-baseline">
+          <span class="whitespace-nowrap">ជាអតីតសិស្សមកពីវិទ្យាល័យ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.school_name || '' %></span>
+          <span class="whitespace-nowrap ml-2">ខេត្ត/រាជធានី៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.province_name_kh || '' %></span>
+        </div>
+
+        <div class="flex items-baseline">
+          <span class="whitespace-nowrap">ជាមន្ត្រីរាជការ-បុគ្គលិកមកពីក្រសួងគ្រឹះ អង្គភាព៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-2">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line w-40 text-center font-semibold"><%= a.phone || '' %></span>
+        </div>
+      </div>
+
+      <!-- Addressed To Section -->
+      <div class="text-center my-5 leading-loose">
+        <p class="font-moul text-[14px]">សូមគោរពជូន</p>
+        <p class="font-moul text-[14px]">
+          ឯកឧត្តមបណ្ឌិតសភាចារ្យ ឧបនាយករដ្ឋមន្ត្រី រដ្ឋមន្ត្រីក្រសួងអប់រំ យុវជន និងកីឡា
+        </p>
+      </div>
+
+      <!-- Application Request Text -->
+      <div class="space-y-3 leading-relaxed text-[14px]">
+        <p class="indent-10 text-justify">
+          ខ្ញុំបាទ-នាងខ្ញុំ មានបំណងចូលរៀនថ្នាក់ឆ្នាំសិក្សាមូលដ្ឋាន(ឆ្នាំទី១) នៅសាកលវិទ្យាល័យជាតិមានជ័យ ជំនាញ<span class="dotted-line min-w-[260px] text-center font-semibold"><%= majorKh %></span> <%= requestLabel %> ។
+        </p>
+        <p class="indent-10 text-justify">
+          អាស្រ័យហេតុនេះ សូម<span class="font-moul text-[13px]">ឯកឧត្តមបណ្ឌិតសភាចារ្យ ឧបនាយករដ្ឋមន្ត្រី រដ្ឋមន្ត្រី</span> មេត្តាពិនិត្យនិងស្ដារលទ្ធភាពអនុញ្ញាត ឱ្យខ្ញុំបាទ-នាងខ្ញុំ បានចុះឈ្មោះក្នុងបញ្ជីបេក្ខជនចូលរៀនដោយអនុគ្រោះ ។
+        </p>
+      </div>
+
+      <!-- Required Documents List -->
+      <div class="mt-4 space-y-1.5 text-[13.5px]">
+        <p class="font-moul text-[13.5px] underline mb-1">សូមគោរពជូនភ្ជាប់មកជាមួយ៖</p>
+        <div class="flex justify-between items-baseline pl-4">
+          <span>- ព្រឹត្តិបត្រពិន្ទុ ឬ សញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ ឬ សញ្ញាបត្រដែលមានតម្លៃស្មើ</span>
+          <span>ចំនួន ០១ច្បាប់</span>
+        </div>
+        <div class="flex justify-between items-baseline pl-4">
+          <span>- ជីវប្រវត្តិសង្ខេប ( បិទរូបថត ៤x៦ )</span>
+          <span>ចំនួន ០១ច្បាប់</span>
+        </div>
+        <div class="flex justify-between items-baseline pl-4">
+          <span>- បង្កាន់ដៃបង់ថ្លៃសិក្សា និងសលាកបត្រកត្អជន</span>
+          <span>ចំនួន ០១សន្លឹក</span>
+        </div>
+        <div class="flex justify-between items-baseline pl-4">
+          <span>- សលាកបត្រឯកត្តជន</span>
+          <span>ចំនួន ០២ច្បាប់</span>
+        </div>
+        <div class="flex justify-between items-baseline pl-4">
+          <span>- រូបថតទំហំ ៤x៦ ( ថតចំពីមុខ ឥតពាក់វ៉ែនតា )</span>
+          <span>ចំនួន ០២សន្លឹក</span>
+        </div>
+        <div class="flex justify-between items-baseline pl-4">
+          <span>- រូបថតទំហំ ៣x៤ ( ថតចំពីមុខ ឥតពាក់វ៉ែនតា )</span>
+          <span>ចំនួន ០២សន្លឹក</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sign-off Block Page 1 -->
+    <div class="mt-4 mb-6">
+      <p class="font-moul text-[13px] text-justify mb-2">
+        សូម<span class="font-moul">ឯកឧត្តមបណ្ឌិតសភាចារ្យ ឧបនាយករដ្ឋមន្ត្រី រដ្ឋមន្ត្រី</span> មេត្តាទទួលនូវការគោរពដ៏ខ្ពង់ខ្ពស់អំពីខ្ញុំបាទ ៖
+      </p>
+      <div class="flex justify-between items-start mt-2">
+        <div class="w-1/3">
+          <p class="text-xs">ស្នាមផ្ដិតមេដៃ</p>
+        </div>
+        <div class="w-2/3 text-right space-y-1 leading-tight text-[13.5px]">
+          <p><%= sigDateLine || sigDateBlank %></p>
+          <p><%= sigPlaceLine || sigPlaceBlank %></p>
+          <p class="font-moul text-[13px] pr-8 mt-2">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= PAGE 2 ================= -->
+  <div class="a4-page flex flex-col justify-between text-[13.5px]">
+    <div>
+      <!-- Header -->
+      <div class="flex justify-between items-start mb-2">
+        <div class="w-full text-center pl-16">
+          <h1 class="font-moul text-[18px] tracking-wide mt-2">ជីវប្រវត្តិសង្ខេប</h1>
+        </div>
+        <div class="photo-box shrink-0">
+          <% if (photoSrc) { %><img src="<%= photoSrc %>" alt="4x6"><% } else { %>4x6<% } %>
+        </div>
+      </div>
+
+      <!-- Section I -->
+      <div class="space-y-2 mt-1">
+        <h2 class="font-moul text-[13.5px]">I. ព័ត៌មាននិស្សិត</h2>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">១.គោត្តនាម-នាម៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= khmerName %></span>
+          <span class="whitespace-nowrap ml-2">អក្សរឡាតាំង៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= englishName %></span>
+          <span class="whitespace-nowrap ml-2">ភេទ៖</span>
+          <span class="dotted-line w-16 text-center font-semibold"><%= genderKh %></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">២.ថ្ងៃខែឆ្នាំកំណើត៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= dobLongKh %></span>
+          <span class="whitespace-nowrap ml-1">ជនជាតិ៖</span>
+          <span class="dotted-line w-20 text-center font-semibold">ខ្មែរ</span>
+          <span class="whitespace-nowrap ml-1">សញ្ជាតិ៖</span>
+          <span class="dotted-line w-20 text-center font-semibold">ខ្មែរ</span>
+          <span class="whitespace-nowrap ml-1">មុខរបរ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.occupation || '' %></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">៣.ទីកន្លែងកំណើត៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.birth_place || '' %></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">៤.ទីលំនៅបច្ចុប្បន្ន៖ផ្ទះលេខ៖</span>
+          <span class="dotted-line w-16 text-center"></span>
+          <span class="whitespace-nowrap ml-1">ផ្លូវ៖</span>
+          <span class="dotted-line w-16 text-center"></span>
+          <span class="whitespace-nowrap ml-1">ភូមិ/ក្រុម៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_village || '' %></span>
+          <span class="whitespace-nowrap ml-1">ឃុំ/សង្កាត់៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_commune || '' %></span>
+        </div>
+
+        <div class="flex items-baseline pl-7">
+          <span class="whitespace-nowrap">ស្រុក/ក្រុង៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_district || '' %></span>
+          <span class="whitespace-nowrap ml-2">ខេត្ត៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.address_province || '' %></span>
+          <span class="whitespace-nowrap ml-2">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line w-40 text-center font-semibold"><%= a.phone || '' %></span>
+        </div>
+      </div>
+
+      <!-- Section II -->
+      <div class="space-y-2 mt-3">
+        <h2 class="font-moul text-[13.5px]">II. ព័ត៌មានអំពីគ្រឹះស្ថានចំណេះដឹងទូទៅ</h2>
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">លេខសញ្ញាបត្រ ឬវិញ្ញាបនបត្របណ្ដោះអាសន្នមធ្យមសិក្សាទុតិយភូមិ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">និទ្ទេសរួម៖</span>
+          <span class="dotted-line w-16 text-center font-semibold"><%= a.exam_result || '' %></span>
+        </div>
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">មកពីវិទ្យាល័យ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.school_name || '' %></span>
+          <span class="whitespace-nowrap ml-2">ខេត្ត៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.province_name_kh || '' %></span>
+        </div>
+      </div>
+
+      <!-- Section III -->
+      <div class="space-y-2 mt-3">
+        <h2 class="font-moul text-[13.5px]">III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន</h2>
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">១. កម្រិតបណ្តុះបណ្តាល៖</span>
+          <span class="dotted-line w-32 text-center font-semibold"><%= levelText %></span>
+          <span class="whitespace-nowrap ml-2">មុខជំនាញ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= majorKh %></span>
+          <span class="whitespace-nowrap ml-2"><%= fundingLabelP2 %></span>
+        </div>
+        <div class="flex items-center pl-3 space-x-6">
+          <span class="whitespace-nowrap">២. ពេលសិក្សា៖</span>
+          <label class="flex items-center space-x-1">
+            <%- chk(a.study_period === 'mon_fri') %>
+            <span>ចន្ទ-សុក្រ</span>
+          </label>
+          <label class="flex items-center space-x-1">
+            <%- chk(a.study_period === 'sat_sun') %>
+            <span>សៅរ៍-អាទិត្យ</span>
+          </label>
+          <span class="ml-4">វេនសិក្សា៖</span>
+          <label class="flex items-center space-x-1">
+            <%- chk(a.study_shift === 'morning') %>
+            <span>ព្រឹក</span>
+          </label>
+          <label class="flex items-center space-x-1">
+            <%- chk(a.study_shift === 'afternoon') %>
+            <span>រសៀល</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Section IV -->
+      <div class="space-y-2 mt-3">
+        <h2 class="font-moul text-[13.5px]">IV. ព័ត៌មានឪពុកម្តាយ ឬអាណាព្យាបាល</h2>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">១. ឪពុកឈ្មោះ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.parent_name || '' %></span>
+          <span class="whitespace-nowrap ml-2">ស្ថានភាព៖</span>
+          <label class="inline-flex items-center mx-1"><%- chk(false) %>រស់</label>
+          <label class="inline-flex items-center mx-1"><%- chk(false) %>ស្លាប់</label>
+          <span class="whitespace-nowrap ml-2">មុខរបរ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.occupation || '' %></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">អង្គភាព៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-2">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.parent_phone || '' %></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">២. ម្ដាយឈ្មោះ៖</span>
+          <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.mother_name || '' %></span>
+          <span class="whitespace-nowrap ml-2">ស្ថានភាព៖</span>
+          <label class="inline-flex items-center mx-1"><%- chk(false) %>រស់</label>
+          <label class="inline-flex items-center mx-1"><%- chk(false) %>ស្លាប់</label>
+          <span class="whitespace-nowrap ml-2">មុខរបរ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">អង្គភាព៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-2">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+        </div>
+      </div>
+
+      <!-- Section V -->
+      <div class="space-y-2 mt-3">
+        <h2 class="font-moul text-[13.5px]">V. ព័ត៌មានបងប្អូនបង្កើត <span class="font-battambang font-normal text-xs">(សូមដាក់ឈ្មោះបងខាងលើគេ និងប្អូនដាក់បន្តបន្ទាប់)</span></h2>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">១. ឈ្មោះ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">ភេទ៖</span>
+          <span class="dotted-line w-14 text-center"></span>
+          <span class="whitespace-nowrap ml-1">មុខរបរ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line w-32 text-center"></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">២. ឈ្មោះ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">ភេទ៖</span>
+          <span class="dotted-line w-14 text-center"></span>
+          <span class="whitespace-nowrap ml-1">មុខរបរ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line w-32 text-center"></span>
+        </div>
+
+        <div class="flex items-baseline pl-3">
+          <span class="whitespace-nowrap">៣. ឈ្មោះ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">ភេទ៖</span>
+          <span class="dotted-line w-14 text-center"></span>
+          <span class="whitespace-nowrap ml-1">មុខរបរ៖</span>
+          <span class="dotted-line-fill mx-1"></span>
+          <span class="whitespace-nowrap ml-1">លេខទូរស័ព្ទ៖</span>
+          <span class="dotted-line w-32 text-center"></span>
+        </div>
+      </div>
+
+      <!-- Section VI Table -->
+      <div class="mt-3">
+        <h2 class="font-moul text-[13.5px] mb-1">VI. ប្រវត្តិការសិក្សា</h2>
+        <table class="form-table">
+          <thead>
+            <tr>
+              <th class="w-1/5 font-moul font-normal">កម្រិតសិក្សា</th>
+              <th class="w-1/5 font-moul font-normal">ឆ្នាំចូលនិងបញ្ចប់</th>
+              <th class="w-1/6 font-moul font-normal">ថ្នាក់ទី</th>
+              <th class="w-1/4 font-moul font-normal">ឈ្មោះសាលា</th>
+              <th class="w-1/5 font-moul font-normal">កម្រិតសញ្ញាបត្រ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left font-semibold">បឋមសិក្សា</td>
+              <td>-</td>
+              <td>-</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="text-left font-semibold">អនុវិទ្យាល័យ</td>
+              <td>-</td>
+              <td>-</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="text-left font-semibold">វិទ្យាល័យ</td>
+              <td>-</td>
+              <td>-</td>
+              <td class="font-semibold"><%= a.school_name || '' %></td>
+              <td class="font-semibold"><%= a.exam_result || '' %></td>
+            </tr>
+            <tr>
+              <td class="text-left font-semibold">សាកលវិទ្យាល័យ</td>
+              <td>-</td>
+              <td>-</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= PAGE 3 ================= -->
+  <div class="a4-page flex flex-col justify-between text-[14px]">
+    <div>
+      <!-- Section VII -->
+      <div class="mt-2 space-y-4">
+        <h2 class="font-moul text-[14px]">VII. កិច្ចសន្យានិងការធានាខុសត្រូវរបស់សាមីខ្លួន</h2>
+
+        <div class="space-y-4 pt-2">
+          <div class="dotted-line w-full h-5"></div>
+          <div class="dotted-line w-full h-5"></div>
+          <div class="dotted-line w-full h-5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date and Signature Block -->
+    <div class="mb-12">
+      <div class="flex justify-end">
+        <div class="text-right space-y-1.5 leading-relaxed text-[14px]">
+          <p><%= sigDateLine || sigDateBlank %></p>
+          <p><%= sigPlaceLine || sigPlaceBlank %></p>
+          <p class="font-moul text-[13.5px] pr-8 pt-2">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= PAGE 4 ================= -->
+  <div class="a4-page flex flex-col justify-between text-[12.5px] leading-relaxed text-black">
+
+    <!-- ================= TOP HALF FORM ================= -->
+    <div class="flex-1 flex flex-col justify-between pb-2">
+      <div>
+        <!-- Header Section -->
+        <div class="grid grid-cols-2 text-center mb-1">
+          <div class="text-left leading-tight">
+            <p class="font-moul text-[11px] font-normal">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
+            <p class="font-moul text-[11px] font-normal mt-1">សាកលវិទ្យាល័យជាតិមានជ័យ</p>
+          </div>
+          <div class="text-center leading-tight">
+            <p class="font-moul text-[12px] font-normal">ព្រះរាជាណាចក្រកម្ពុជា</p>
+            <p class="font-moul text-[11px] font-normal mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+          </div>
+        </div>
+
+        <!-- Form Title & Reg No -->
+        <div class="relative text-center my-3">
+          <h2 class="font-moul text-[14px] text-center">សលាកបត្រឯកត្តជន</h2>
+          <div class="absolute right-0 top-0 text-[12px] flex items-center">
+            <span>លេខបញ្ជី</span>
+            <span class="dotted-line w-28 text-center font-semibold"><%= toKhmerDigits(a.id) %></span>
+          </div>
+        </div>
+
+        <!-- Form Inputs Container -->
+        <div class="space-y-2 mt-4 relative">
+          <!-- Photo Box Positioned Absolutely on Right -->
+          <div class="absolute right-0 top-1 w-[80px] h-[110px] border-2 border-black flex items-center justify-center font-bold text-sm bg-white overflow-hidden">
+            <% if (photoSrc) { %><img src="<%= photoSrc %>" alt="4x6" class="w-full h-full object-cover"><% } else { %>4 x 6<% } %>
+          </div>
+
+          <!-- Row 1 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">នាមត្រកូល និងនាមខ្លួន</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= khmerName %></span>
+            <span class="whitespace-nowrap ml-1">អក្សរឡាតាំង</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= englishName %></span>
+            <span class="whitespace-nowrap ml-1">ភេទ</span>
+            <span class="dotted-line w-12 mx-1 text-center font-semibold"><%= genderKh %></span>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">ថ្ងៃខែឆ្នាំកំណើត</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= dobLongKh %></span>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">ទីកន្លែងកំណើត</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.birth_place || '' %></span>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">កម្រិតវប្បធម៌</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= levelCultureText %></span>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">មុខរបរសព្វថ្ងៃ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.occupation || '' %></span>
+          </div>
+
+          <!-- Row 6 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">ឪពុកឈ្មោះ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.parent_name || '' %></span>
+            <span class="whitespace-nowrap ml-1">ម្តាយឈ្មោះ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.mother_name || '' %></span>
+          </div>
+
+          <!-- Row 7 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">អតីតបេក្ខជនមកពី វិទ្យាល័យ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.school_name || '' %></span>
+            <span class="whitespace-nowrap ml-1">ខេត្ត/រាជធានី</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.province_name_kh || '' %></span>
+          </div>
+
+          <!-- Row 8 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">សម័យប្រឡងសញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.exam_session || '' %></span>
+            <span class="whitespace-nowrap ml-1">មណ្ឌលប្រឡង</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.exam_center || '' %></span>
+          </div>
+        </div>
+
+        <!-- Signatures & Dates Section -->
+        <div class="grid grid-cols-2 gap-4 mt-4 text-[11.5px] leading-relaxed">
+          <div class="text-center flex flex-col justify-between h-full">
+            <div>
+              <p>ថ្ងៃ..............ខែ..............ឆ្នាំ.................ព.ស.២៥៦...</p>
+              <p class="mt-1">ធ្វើនៅ....................... ថ្ងៃទី...... ខែ......... ឆ្នាំ២០២...</p>
+              <p class="font-bold mt-2">អ្នកទទួលពាក្យ</p>
+            </div>
+            <div class="mt-12 text-sm font-bold">-</div>
+          </div>
+          <div class="text-center flex flex-col justify-between h-full">
+            <div>
+              <p><%= sigDateLine || sigDateBlank %></p>
+              <p class="mt-1"><%= sigPlaceLine || sigPlaceBlank %></p>
+              <p class="font-bold mt-2">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVIDER LINE WITH CUT ICON -->
+    <div class="relative my-2 py-1 flex items-center justify-center">
+      <div class="w-full border-t border-dashed border-gray-400"></div>
+      <span class="absolute bg-white px-2 text-gray-400 text-xs flex items-center gap-1">✂------------------------------------------------------------------------------------------------------</span>
+    </div>
+
+    <!-- ================= BOTTOM HALF FORM (IDENTICAL DUP) ================= -->
+    <div class="flex-1 flex flex-col justify-between pt-2">
+      <div>
+        <!-- Header Section -->
+        <div class="grid grid-cols-2 text-center mb-1">
+          <div class="text-left leading-tight">
+            <p class="font-moul text-[11px] font-normal">ក្រសួងអប់រំ យុវជន និងកីឡា</p>
+            <p class="font-moul text-[11px] font-normal mt-1">សាកលវិទ្យាល័យជាតិមានជ័យ</p>
+          </div>
+          <div class="text-center leading-tight">
+            <p class="font-moul text-[12px] font-normal">ព្រះរាជាណាចក្រកម្ពុជា</p>
+            <p class="font-moul text-[11px] font-normal mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+          </div>
+        </div>
+
+        <!-- Form Title & Reg No -->
+        <div class="relative text-center my-3">
+          <h2 class="font-moul text-[14px] text-center">សលាកបត្រឯកត្តជន</h2>
+          <div class="absolute right-0 top-0 text-[12px] flex items-center">
+            <span>លេខបញ្ជី</span>
+            <span class="dotted-line w-28 text-center font-semibold"><%= toKhmerDigits(a.id) %></span>
+          </div>
+        </div>
+
+        <!-- Form Inputs Container -->
+        <div class="space-y-2 mt-4 relative">
+          <!-- Photo Box Positioned Absolutely on Right -->
+          <div class="absolute right-0 top-1 w-[80px] h-[110px] border-2 border-black flex items-center justify-center font-bold text-sm bg-white overflow-hidden">
+            <% if (photoSrc) { %><img src="<%= photoSrc %>" alt="4x6" class="w-full h-full object-cover"><% } else { %>4 x 6<% } %>
+          </div>
+
+          <!-- Row 1 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">នាមត្រកូល និងនាមខ្លួន</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= khmerName %></span>
+            <span class="whitespace-nowrap ml-1">អក្សរឡាតាំង</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= englishName %></span>
+            <span class="whitespace-nowrap ml-1">ភេទ</span>
+            <span class="dotted-line w-12 mx-1 text-center font-semibold"><%= genderKh %></span>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">ថ្ងៃខែឆ្នាំកំណើត</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= dobLongKh %></span>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">ទីកន្លែងកំណើត</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.birth_place || '' %></span>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="flex items-end pr-[95px]">
+            <span class="whitespace-nowrap">កម្រិតវប្បធម៌</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= levelCultureText %></span>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">មុខរបរសព្វថ្ងៃ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.occupation || '' %></span>
+          </div>
+
+          <!-- Row 6 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">ឪពុកឈ្មោះ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.parent_name || '' %></span>
+            <span class="whitespace-nowrap ml-1">ម្តាយឈ្មោះ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.mother_name || '' %></span>
+          </div>
+
+          <!-- Row 7 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">អតីតបេក្ខជនមកពី វិទ្យាល័យ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.school_name || '' %></span>
+            <span class="whitespace-nowrap ml-1">ខេត្ត/រាជធានី</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.province_name_kh || '' %></span>
+          </div>
+
+          <!-- Row 8 -->
+          <div class="flex items-end">
+            <span class="whitespace-nowrap">សម័យប្រឡងសញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.exam_session || '' %></span>
+            <span class="whitespace-nowrap ml-1">មណ្ឌលប្រឡង</span>
+            <span class="dotted-line-fill mx-1 text-center font-semibold"><%= a.exam_center || '' %></span>
+          </div>
+        </div>
+
+        <!-- Signatures & Dates Section -->
+        <div class="grid grid-cols-2 gap-4 mt-4 text-[11.5px] leading-relaxed">
+          <div class="text-center flex flex-col justify-between h-full">
+            <div>
+              <p>ថ្ងៃ..............ខែ..............ឆ្នាំ.................ព.ស.២៥៦...</p>
+              <p class="mt-1">ធ្វើនៅ....................... ថ្ងៃទី...... ខែ......... ឆ្នាំ២០២...</p>
+              <p class="font-bold mt-2">អ្នកទទួលពាក្យ</p>
+            </div>
+            <div class="mt-12 text-sm font-bold">-</div>
+          </div>
+          <div class="text-center flex flex-col justify-between h-full">
+            <div>
+              <p><%= sigDateLine || sigDateBlank %></p>
+              <p class="mt-1"><%= sigPlaceLine || sigPlaceBlank %></p>
+              <p class="font-bold mt-2">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

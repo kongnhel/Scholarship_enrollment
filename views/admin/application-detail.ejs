@@ -15,6 +15,9 @@
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតនៃពាក្យសុំ' : 'Application details' %></p>
         </div>
       </div>
+      <a href="/admin/applications/<%= application.id %>/print" target="_blank" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto">
+        <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ព' : 'Print' %>
+      </a>
     </div>
   </div>
 
