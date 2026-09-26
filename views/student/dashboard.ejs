@@ -87,7 +87,7 @@
     <h2 class="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2"><i class="bi bi-credit-card text-amber-600 dark:text-amber-400"></i><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h2>
     <div class="flex items-center gap-4 mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
       <span class="text-sm text-gray-600 dark:text-gray-400"><%= currentLang === 'km' ? 'សរុបប្រាក់ដែលបានផ្ទៀងផ្ទាត់៖' : 'Total Verified:' %></span>
-      <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400"><%= totalPaid.toLocaleString() %>៛</span>
+      <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400"><%= Math.round(Number(totalPaid) / 4000).toLocaleString() %>$</span>
     </div>
     <div class="space-y-2">
       <% payments.slice(0, 3).forEach(function(p) { %>
@@ -102,7 +102,7 @@
             </div>
           </div>
           <div class="text-right">
-            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400"><%= Number(p.amount).toLocaleString() %>៛</p>
+            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400"><%= Math.round(Number(p.amount) / 4000).toLocaleString() %>$</p>
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full <%= p.status === 'verified' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : p.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' %>"><%= p.status === 'verified' ? (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់' : 'Verified') : p.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'Rejected') : (currentLang === 'km' ? 'រង់ចាំ' : 'Pending') %></span>
           </div>
         </div>
@@ -145,7 +145,7 @@
   <a href="/student/payments" class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md transition-all">
     <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="bi bi-credit-card text-amber-600 dark:text-amber-400 text-xl"></i></div>
     <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h4>
-    <span class="text-sm text-amber-600 dark:text-amber-400 font-medium"><%= totalPaid.toLocaleString() %>៛</span>
+    <span class="text-sm text-amber-600 dark:text-amber-400 font-medium"><%= Math.round(Number(totalPaid) / 4000).toLocaleString() %>$</span>
   </a>
 </div>
 </div>

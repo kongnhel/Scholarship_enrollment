@@ -1,0 +1,135 @@
+<%
+  var hasPosters = (typeof posters !== 'undefined' && posters && posters.length > 0);
+  var selectedId = typeof selectedScholarshipId !== 'undefined' ? selectedScholarshipId : null;
+  var selectedOpt = typeof selectedOption !== 'undefined' && selectedOption !== null ? String(selectedOption) : null;
+  var kmDigits = function (s) { return String(s).replace(/[0-9]/g, function (d) { return { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' }[d]; }); };
+  var parseTiers = function (raw, defY0) {
+    var defY = (Number(defY0) >= 1 && Number(defY0) <= 10) ? Number(defY0) : null;
+    var s = String(raw == null ? '' : raw).trim();
+    var out = [];
+    if (s.charAt(0) === '[') {
+      try {
+        var arr = JSON.parse(s);
+        if (Array.isArray(arr)) {
+          arr.forEach(function (t) {
+            var p = Number(t && t.p), y = Number(t && t.y), q = Number(t && t.s);
+            if (p >= 1 && p <= 100) out.push({ p: p, y: (y >= 1 && y <= 10) ? y : defY, s: (q >= 1 && q <= 999) ? q : null });
+          });
+        }
+      } catch (e) { out = []; }
+    } else {
+      s.split(/[^0-9]+/).filter(Boolean).map(Number).filter(function (n) { return n >= 1 && n <= 100; })
+        .forEach(function (p) { out.push({ p: p, y: defY, s: null }); });
+    }
+    if (!out.length) [100, 60, 40].forEach(function (p) { out.push({ p: p, y: defY, s: null }); });
+    var seen = {}, uniq = [];
+    out.forEach(function (t) { var k = t.p + '/' + (t.y || 0); if (!seen[k]) { seen[k] = 1; uniq.push(t); } });
+    return uniq.slice(0, 12);
+  };
+%>
+<div class="max-w-6xl mx-auto space-y-6">
+  <div class="relative overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-700 shadow-md" style="background:linear-gradient(120deg,#052e1d 0%,#06432c 55%,#0a5c3a 100%);">
+    <div class="relative z-10 px-6 py-6 sm:px-8 sm:py-7">
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold mb-3" style="background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#d1fae5;">
+        <i class="bi bi-1-circle"></i>
+        <%= currentLang === 'km' ? 'ជំហានទី ១' : 'Step 1 of 2' %>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight" style="text-shadow:0 2px 10px rgba(0,0,0,.35);"><%= currentLang === 'km' ? 'ជ្រើសរើសកម្មវិធីអាហារូបករណ៍' : 'Choose Your Scholarship Program' %></h1>
+      <p class="mt-2 text-sm sm:text-[15px] leading-relaxed max-w-3xl" style="color:rgba(255,255,255,.88);">
+        <%= currentLang === 'km' ? 'កម្មវិធីអាហារូបករណ៍ទាំងអស់ផ្តល់ដោយសាកលវិទ្យាល័យជាតិមានជ័យ ហើយខុសគ្នាតែអ្នកផ្តល់ជំនួយប៉ុណ្ណោះ។ សូមជ្រើសរើសកម្មវិធីមួយ រួមជាមួយកម្រិតអាហារូបករណ៍ បន្ទាប់មកជម្រើសទាំងពីរនឹងត្រូវបានបំពេញជូនក្នុងពាក្យរបស់អ្នក។' : 'All scholarship programs are offered by National Meanchey University and differ only by their sponsor. Please pick one program together with a scholarship level; both choices will be pre-filled in your application form.' %>
+      </p>
+      <a href="/student/dashboard" class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl text-sm font-semibold transition-all" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;">
+        <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់ទៅទំព័រដើម' : 'Back to dashboard' %>
+      </a>
+    </div>
+    <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full" style="background:rgba(255,255,255,.06);"></div>
+    <div class="absolute -right-6 top-24 w-40 h-40 rounded-full" style="background:rgba(52,211,153,.10);"></div>
+  </div>
+
+  <% if (!scholarshipTypes || scholarshipTypes.length === 0) { %>
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+      <%= currentLang === 'km' ? 'មិនមានកម្មវិធីអាហារូបករណ៍ដែលអាចជ្រើសរើសបានឡើយ។' : 'No scholarship programs are available for selection.' %>
+    </div>
+  <% } %>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <% scholarshipTypes.forEach(function(st, i) {
+      var poster = st.poster_path || (hasPosters && posters[i] ? posters[i] : null);
+      var isSelected = selectedId && Number(selectedId) === Number(st.id);
+      var isNmuProvider = (st.provider_name || '').indexOf('សាកលវិទ្យាល័យជាតិមានជ័យ') !== -1;
+      var typeOptions = parseTiers(st.tier_options, st.duration_years);
+    %>
+    <form method="POST" action="/student/application/select" class="h-full">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="scholarship_type_id" value="<%= st.id %>">
+      <div class="scholarship-card group w-full h-full flex flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border-2 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-xl <%= isSelected ? 'border-green-500 shadow-lg shadow-green-500/20' : 'border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700' %>">
+        <div class="relative w-full overflow-hidden bg-gray-900" style="aspect-ratio:4/5;">
+          <% if (poster) { %>
+            <img src="<%= poster %>" alt="" class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105">
+          <% } else { %>
+            <div class="w-full h-full" style="background:linear-gradient(135deg,#06432c,#0a5c3a);"></div>
+          <% } %>
+          <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style="background:linear-gradient(to top, rgba(2,14,9,.92), rgba(2,14,9,0));"></div>
+          <div class="absolute top-3 left-3 flex items-center gap-1.5">
+            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold text-white shadow" style="background:linear-gradient(135deg,#16a34a,#10b981);"><%= st.coverage_percentage %>%</span>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold text-white" style="background:rgba(2,14,9,.65);border:1px solid rgba(255,255,255,.22);"><%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'years' %></span>
+          </div>
+          <% if (isSelected) { %>
+          <div class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg" style="background:#22c55e;">
+            <i class="bi bi-check-lg text-lg"></i>
+          </div>
+          <% } %>
+          <div class="absolute inset-x-0 bottom-0 p-4">
+            <p class="text-[11px] font-extrabold uppercase tracking-wider" style="color:rgba(255,255,255,.95);"><%= currentLang === 'km' ? 'ផ្តល់ដោយ សាកលវិទ្យាល័យជាតិមានជ័យ' : 'Offered by National Meanchey University' %></p>
+            <% if (st.provider_name && !isNmuProvider) { %>
+            <p class="text-[10px] font-bold uppercase tracking-wider mt-0.5" style="color:rgba(255,255,255,.72);"><%= currentLang === 'km' ? 'ការឧបត្ថម្ភ៖ ' : 'Sponsored by ' %><%= st.provider_name %></p>
+            <% } %>
+          </div>
+        </div>
+        <div class="flex flex-col grow p-4 gap-2">
+          <h3 class="text-[15px] font-bold leading-snug text-gray-900 dark:text-gray-100 line-clamp-3"><%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %></h3>
+          <% if (st.leader_name) { %>
+          <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5"><i class="bi bi-person-badge text-green-600 dark:text-green-400"></i><span class="truncate"><%= st.leader_name %></span></p>
+          <% } %>
+          <% if (st.major_names) { %>
+          <p class="text-xs text-gray-500 dark:text-gray-400 flex items-start gap-1.5 line-clamp-2"><i class="bi bi-mortarboard text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0"></i><span><%= st.major_names %></span></p>
+          <% } %>
+          <% if (st.description) { %>
+          <p class="text-xs leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-3"><%= st.description %></p>
+          <% } %>
+
+          <fieldset class="mt-1 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <legend class="sr-only"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍' : 'Scholarship level' %></legend>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍' : 'Scholarship level' %> <span class="text-red-500">*</span></p>
+            <div class="flex flex-wrap gap-2">
+              <% typeOptions.forEach(function(opt) {
+                   var val = opt.y ? opt.p + '/' + opt.y : String(opt.p);
+                   var checked = (selectedOpt !== null && selectedOpt === val) ? ' checked' : '';
+                   var label = currentLang === 'km'
+                     ? kmDigits(opt.p) + '%' + (opt.y ? ' · ' + kmDigits(opt.y) + ' ឆ្នាំ' : '') + (opt.s ? ' · ' + kmDigits(opt.s) + ' កន្លែង' : '')
+                     : opt.p + '%' + (opt.y ? ' · ' + opt.y + ' yrs' : '') + (opt.s ? ' · ' + opt.s + ' seats' : '');
+                 %>
+                <label class="cursor-pointer">
+                  <input type="radio" name="scholarship_option" value="<%= val %>" class="sr-only peer" required<%= checked %>>
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/40 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-green-400">
+                    <%= label %>
+                  </span>
+                </label>
+              <% }); %>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all <%= isSelected ? 'bg-green-600 text-white' : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 group-hover:bg-green-600 group-hover:text-white' %>">
+            <i class="bi <%= isSelected ? 'bi-check2-circle' : 'bi-arrow-right-circle' %>"></i>
+            <%= isSelected ? (currentLang === 'km' ? 'បានជ្រើសរើស' : 'Selected') : (currentLang === 'km' ? 'ជ្រើសរើសកម្មវិធីនេះ' : 'Choose this program') %>
+          </button>
+        </div>
+      </div>
+    </form>
+    <% }); %>
+  </div>
+
+  <p class="text-center text-xs text-gray-400 dark:text-gray-500">
+    <%= currentLang === 'km' ? 'បន្ទាប់ពីជ្រើសរើសរួច អ្នកនឹងត្រូវបាននាំទៅកាន់ពាក្យសុំអាហារូបករណ៍។' : 'After making your selection, you will be taken to the scholarship application form.' %>
+  </p>
+</div>

@@ -197,6 +197,11 @@ async function autoSetup() {
       "ALTER TABLE enrollments ADD COLUMN photo_path VARCHAR(500) AFTER bank_account_name",
       "ALTER TABLE enrollments ADD COLUMN student_signature_date DATE AFTER photo_path",
       "ALTER TABLE enrollments ADD COLUMN parent_signature_date DATE AFTER student_signature_date",
+      // Funding type selection (Foundation Year)
+      "ALTER TABLE enrollments ADD COLUMN funding_type ENUM('gov_scholarship','nmu_scholarship','nmu_scholarship_100','nmu_scholarship_50_4y','nmu_scholarship_50_2y','mekong_scholarship_40_4y','self_pay') NULL AFTER major_choice",
+      "ALTER TABLE enrollments ADD COLUMN funding_payment_mode ENUM('full_pay','partial_pay') NULL AFTER funding_type",
+      "ALTER TABLE enrollments ADD COLUMN major_choice_id INT NULL AFTER funding_payment_mode",
+      "CREATE INDEX idx_enrollments_funding ON enrollments(funding_type)",
       // Enrollment settings
       "ALTER TABLE settings ADD COLUMN enrollment_open VARCHAR(1) DEFAULT '0' AFTER registration_end",
       "ALTER TABLE settings ADD COLUMN enrollment_start DATETIME DEFAULT NULL AFTER enrollment_open",
@@ -205,9 +210,67 @@ async function autoSetup() {
       "ALTER TABLE payments ADD COLUMN khqr_md5 VARCHAR(255) AFTER proof_path",
       "ALTER TABLE payments ADD COLUMN khqr_string TEXT AFTER khqr_md5",
       "ALTER TABLE payments MODIFY COLUMN payment_method ENUM('bank_transfer','aba','acleda','wing','cash','bakong_khqr') DEFAULT 'bakong_khqr'",
+      // Family / sibling / study-history details (printable letter IV, V, VI)
+      "ALTER TABLE enrollments ADD COLUMN father_alive VARCHAR(10) NULL AFTER guardian_phone",
+      "ALTER TABLE enrollments ADD COLUMN father_job VARCHAR(255) NULL AFTER father_alive",
+      "ALTER TABLE enrollments ADD COLUMN father_org VARCHAR(255) NULL AFTER father_job",
+      "ALTER TABLE enrollments ADD COLUMN father_phone VARCHAR(30) NULL AFTER father_org",
+      "ALTER TABLE enrollments ADD COLUMN mother_alive VARCHAR(10) NULL AFTER father_phone",
+      "ALTER TABLE enrollments ADD COLUMN mother_job VARCHAR(255) NULL AFTER mother_alive",
+      "ALTER TABLE enrollments ADD COLUMN mother_org VARCHAR(255) NULL AFTER mother_job",
+      "ALTER TABLE enrollments ADD COLUMN mother_phone VARCHAR(30) NULL AFTER mother_org",
+      "ALTER TABLE enrollments ADD COLUMN siblings_info TEXT NULL AFTER mother_phone",
+      "ALTER TABLE enrollments ADD COLUMN study_history TEXT NULL AFTER study_history",
+      // Official Google enrollment form fields (applications)
+      "ALTER TABLE applications ADD COLUMN birth_place VARCHAR(255) NULL AFTER date_of_birth",
+      "ALTER TABLE applications ADD COLUMN address_village VARCHAR(255) NULL AFTER current_address",
+      "ALTER TABLE applications ADD COLUMN address_commune VARCHAR(255) NULL AFTER address_village",
+      "ALTER TABLE applications ADD COLUMN address_district VARCHAR(255) NULL AFTER address_commune",
+      "ALTER TABLE applications ADD COLUMN address_province VARCHAR(255) NULL AFTER address_district",
+      "ALTER TABLE applications ADD COLUMN mother_name VARCHAR(255) NULL AFTER parent_name",
+      "ALTER TABLE applications ADD COLUMN occupation VARCHAR(255) NULL AFTER mother_name",
+      "ALTER TABLE applications ADD COLUMN education_level VARCHAR(100) NULL AFTER occupation",
+      "ALTER TABLE applications ADD COLUMN exam_session VARCHAR(100) NULL AFTER school_name",
+      "ALTER TABLE applications ADD COLUMN exam_center VARCHAR(255) NULL AFTER exam_result",
+      "ALTER TABLE applications ADD COLUMN study_level VARCHAR(50) NULL AFTER scholarship_type_id",
+      "ALTER TABLE applications ADD COLUMN study_period VARCHAR(50) NULL AFTER study_level",
+      "ALTER TABLE applications ADD COLUMN study_shift VARCHAR(50) NULL AFTER study_period",
+      "ALTER TABLE applications ADD COLUMN documents_ready TEXT NULL AFTER study_shift",
+      "ALTER TABLE applications ADD COLUMN additional_info TEXT NULL AFTER documents_ready",
+      "ALTER TABLE applications ADD COLUMN declaration_confirmed TINYINT DEFAULT 0 NULL AFTER additional_info",
+      "ALTER TABLE applications ADD COLUMN photo_3x4_path VARCHAR(500) NULL AFTER photo_path",
+      // Scholarship option (tier) chosen on Step 1 selection page
+      "ALTER TABLE applications ADD COLUMN scholarship_option VARCHAR(20) NULL AFTER scholarship_type_id",
+      "ALTER TABLE applications DROP COLUMN scholarship_option_note",
+      // Poster / leader / majors shown on the scholarship card
+      "ALTER TABLE scholarship_types ADD COLUMN poster_path VARCHAR(600) NULL AFTER ministry_fee",
+      "ALTER TABLE scholarship_types ADD COLUMN leader_name VARCHAR(300) NULL AFTER poster_path",
+      // Per-scholarship levels (tiers) entered 1 by 1 in the admin form.
+      // JSON combos of {p: percent, y: years, s: seats}, e.g.
+      // [{"p":100,"y":4,"s":5},{"p":50,"y":4,"s":5},{"p":50,"y":2,"s":5}]
+      "ALTER TABLE scholarship_types ADD COLUMN tier_options TEXT NULL AFTER poster_path",
+      "ALTER TABLE scholarship_types MODIFY COLUMN tier_options TEXT NULL",
+      // Majors picked from the majors table (comma separated ids)
+      "ALTER TABLE scholarship_types ADD COLUMN major_ids VARCHAR(200) NULL AFTER tier_options",
+      "ALTER TABLE scholarship_types DROP COLUMN majors_kh",
     ];
     for (const sql of existingDbMigrations) {
       await safeQuery(conn, sql);
+    }
+
+    // Convert legacy tier lists ("100,60,40") into JSON combos [{p,y,s}]
+    try {
+      const [legacyTiers] = await conn.query(
+        "SELECT id, duration_years, tier_options FROM scholarship_types WHERE tier_options IS NOT NULL AND TRIM(tier_options) <> '' AND TRIM(tier_options) NOT LIKE '[%'"
+      );
+      for (const r of legacyTiers) {
+        const parts = String(r.tier_options).split(/[^0-9]+/).filter(Boolean).map(Number).filter(n => n >= 1 && n <= 100);
+        const seen = new Set(); const uniq = [];
+        parts.forEach(p => { if (!seen.has(p)) { seen.add(p); uniq.push({ p, y: r.duration_years || null, s: null }); } });
+        await conn.query('UPDATE scholarship_types SET tier_options = ? WHERE id = ?', [JSON.stringify(uniq.slice(0, 12)), r.id]);
+      }
+    } catch (e) {
+      console.log('  WARN tier conversion: ' + e.message.substring(0, 80));
     }
 
     console.log('  All missing tables and migrations applied.');
@@ -309,6 +372,11 @@ async function autoSetup() {
     "ALTER TABLE enrollments ADD COLUMN photo_path VARCHAR(500) AFTER bank_account_name",
     "ALTER TABLE enrollments ADD COLUMN student_signature_date DATE AFTER photo_path",
     "ALTER TABLE enrollments ADD COLUMN parent_signature_date DATE AFTER student_signature_date",
+    // Funding type selection (Foundation Year)
+    "ALTER TABLE enrollments ADD COLUMN funding_type ENUM('gov_scholarship','nmu_scholarship','nmu_scholarship_100','nmu_scholarship_50_4y','nmu_scholarship_50_2y','mekong_scholarship_40_4y','self_pay') NULL AFTER major_choice",
+    "ALTER TABLE enrollments ADD COLUMN funding_payment_mode ENUM('full_pay','partial_pay') NULL AFTER funding_type",
+    "ALTER TABLE enrollments ADD COLUMN major_choice_id INT NULL AFTER funding_payment_mode",
+    "CREATE INDEX idx_enrollments_funding ON enrollments(funding_type)",
     // Enrollment settings
     "ALTER TABLE settings ADD COLUMN enrollment_open VARCHAR(1) DEFAULT '0' AFTER registration_end",
     "ALTER TABLE settings ADD COLUMN enrollment_start DATETIME DEFAULT NULL AFTER enrollment_open",
@@ -331,6 +399,17 @@ async function autoSetup() {
       UNIQUE KEY unique_major_year (major_id, academic_year),
       INDEX idx_major_tuition_active (is_active)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    // Family / sibling / study-history details (printable letter IV, V, VI)
+    "ALTER TABLE enrollments ADD COLUMN father_alive VARCHAR(10) NULL AFTER guardian_phone",
+    "ALTER TABLE enrollments ADD COLUMN father_job VARCHAR(255) NULL AFTER father_alive",
+    "ALTER TABLE enrollments ADD COLUMN father_org VARCHAR(255) NULL AFTER father_job",
+    "ALTER TABLE enrollments ADD COLUMN father_phone VARCHAR(30) NULL AFTER father_org",
+    "ALTER TABLE enrollments ADD COLUMN mother_alive VARCHAR(10) NULL AFTER father_phone",
+    "ALTER TABLE enrollments ADD COLUMN mother_job VARCHAR(255) NULL AFTER mother_alive",
+    "ALTER TABLE enrollments ADD COLUMN mother_org VARCHAR(255) NULL AFTER mother_job",
+    "ALTER TABLE enrollments ADD COLUMN mother_phone VARCHAR(30) NULL AFTER mother_org",
+    "ALTER TABLE enrollments ADD COLUMN siblings_info TEXT NULL AFTER mother_phone",
+    "ALTER TABLE enrollments ADD COLUMN study_history TEXT NULL AFTER siblings_info",
   ];
   for (const sql of migrations) {
     await safeQuery(conn, sql);
@@ -399,9 +478,9 @@ async function autoSetup() {
   // Seed scholarship types
   if (await isTableEmpty(conn, 'scholarship_types')) {
     const scholarshipTypes = [
-      ['អាហារូបករណ៍៤០% សិក្សារយៈពេល៤ឆ្នាំ របស់អង្គការកុមារមេគង្គកម្ពុជា','40% Scholarship for 4 Years - Mekong Child Organization',40,4,'អង្គការកុមារមេគង្គកម្ពុជា','អាហារូបករណ៍៤០% សម្រាប់សិស្សដែលមានលទ្ធផលសិក្សាល្អ',0],
-      ['អាហារូបករណ៍៥០% សិក្សារយៈពេល២ឆ្នាំ របស់សាកលវិទ្យាល័យជាតិមានជ័យ','50% Scholarship for 2 Years - NMU',50,2,'សាកលវិទ្យាល័យជាតិមានជ័យ','អាហារូបករណ៍៥០% សម្រាប់និស្សិតសាកលវិទ្យាល័យជាតិមានជ័យ',0],
-      ['អាហារូបករណ៍១០០% សិក្សារយៈពេល៤ឆ្នាំ របស់រដ្ឋាភិបាល','100% Full Scholarship for 4 Years - Government',100,4,'រដ្ឋាភិបាលកម្ពុជា','អាហារូបករណ៍ពេញ១០០% សម្រាប់សិស្សពូកែ',0]
+      ['អាហារូបករណ៍ ៤០% សម្រាប់រយៈពេល ៤ ឆ្នាំ - សាកលវិទ្យាល័យជាតិមានជ័យ','40% Scholarship for 4 Years - National Meanchey University',40,4,'សាកលវិទ្យាល័យជាតិមានជ័យ','អាហារូបករណ៍ ៤០% សម្រាប់រយៈពេល ៤ ឆ្នាំ ផ្តល់ដោយសាកលវិទ្យាល័យជាតិមានជ័យ',0],
+      ['អាហារូបករណ៍ ៥០% សម្រាប់រយៈពេល ២ ឆ្នាំ - សាកលវិទ្យាល័យជាតិមានជ័យ','50% Scholarship for 2 Years - National Meanchey University',50,2,'សាកលវិទ្យាល័យជាតិមានជ័យ','អាហារូបករណ៍ ៥០% សម្រាប់រយៈពេល ២ ឆ្នាំ ផ្តល់ដោយសាកលវិទ្យាល័យជាតិមានជ័យ',0],
+      ['អាហារូបករណ៍ ១០០% សម្រាប់រយៈពេល ៤ ឆ្នាំ - សាកលវិទ្យាល័យជាតិមានជ័យ','100% Full Scholarship for 4 Years - National Meanchey University',100,4,'សាកលវិទ្យាល័យជាតិមានជ័យ','អាហារូបករណ៍ពេញ ១០០% សម្រាប់រយៈពេល ៤ ឆ្នាំ ផ្តល់ដោយសាកលវិទ្យាល័យជាតិមានជ័យ',0]
     ];
     for (const [nkh, nen, cov, dur, prov, desc, mfee] of scholarshipTypes) {
       await conn.query('INSERT INTO scholarship_types (name_kh, name_en, coverage_percentage, duration_years, provider_name, description, ministry_fee) VALUES (?, ?, ?, ?, ?, ?, ?)', [nkh, nen, cov, dur, prov, desc, mfee]);

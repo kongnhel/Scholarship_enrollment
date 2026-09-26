@@ -109,11 +109,14 @@ router.get('/applications/:id', async (req, res) => {
              m2.name_kh as major2_name_kh, m2.name_en as major2_name_en,
              c.name_kh as category_name_kh, c.name_en as category_name_en,
              p.name_kh as province_name_kh, p.name_en as province_name_en,
+             st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
+             st.coverage_percentage as scholarship_percentage, st.duration_years as scholarship_duration,
              u.english_name as student_name, u.khmer_name as student_khmer_name
              FROM applications a
              LEFT JOIN majors m ON a.major_first_choice_id = m.id
              LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id
              LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
+             LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
              LEFT JOIN provinces p ON a.school_province_id = p.id
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.id = ?`, [req.params.id]

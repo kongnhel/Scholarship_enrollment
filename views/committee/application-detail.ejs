@@ -56,9 +56,21 @@
           <div class="space-y-3">
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ជម្រើសទី ១' : 'First Choice' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.major_name_kh : application.major_name_en %></span></p>
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ជម្រើសទី ២' : 'Second Choice' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.major2_name_kh : (application.major2_name_en || 'N/A') %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'កម្មវិធីអាហារូបករណ៍' : 'Scholarship Program' %>:</span> <span class="text-gray-600 dark:text-gray-300 break-words"><%= currentLang === 'km' ? (application.scholarship_name_kh || 'N/A') : (application.scholarship_name_en || application.scholarship_name_kh || 'N/A') %><% if (application.scholarship_percentage) { %> (<%= application.scholarship_percentage %>% · <%= application.scholarship_duration %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %>)<% } %></span></p>
           </div>
           <div class="space-y-3">
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= currentLang === 'km' ? application.category_name_kh : application.category_name_en %></span></p>
+            <%
+              var optVal = application.scholarship_option ? String(application.scholarship_option) : '';
+              var kmDigitMap = { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' };
+              var optParts = optVal.split('/');
+              var optPct = optParts[0] || '';
+              var optYears = optParts[1] || '';
+              var optLabel = optPct ? (currentLang === 'km'
+                ? optPct.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + '%' + (optYears ? ' · ' + optYears.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + ' ឆ្នាំ' : '')
+                : optPct + '%' + (optYears ? ' · ' + optYears + ' years' : '')) : '';
+            %>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍' : 'Scholarship Level' %>:</span> <span class="text-gray-600 dark:text-gray-300 break-words"><%= optLabel || 'N/A' %></span></p>
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %>:</span> <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-full <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= application.status.replace('_', ' ').toUpperCase() %></span></p>
           </div>
         </div>

@@ -1,3 +1,7 @@
+<%
+  var fundingType = (typeof enrollment !== 'undefined' && enrollment) ? enrollment.funding_type : null;
+  var isScholarship = fundingType && fundingType !== 'self_pay';
+%>
 <div class="max-w-2xl mx-auto space-y-6">
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-8 bg-gradient-to-br from-green-500 to-emerald-600 text-center">
@@ -5,10 +9,15 @@
         <i class="bi bi-check-circle-fill text-green-600 text-4xl"></i>
       </div>
       <h1 class="text-2xl font-bold text-white"><%= currentLang === 'km' ? 'ការចុះឈ្មោះជោគជ័យ' : 'Enrollment Successful' %></h1>
-      <p class="text-green-100 text-sm mt-2"><%= currentLang === 'km' ? 'សូមបញ្ចូលប្រាក់ដើម្បីបញ្ជាក់ការចុះឈ្មោះរបស់អ្នក' : 'Please make a payment to confirm your enrollment' %></p>
+      <% if (isScholarship) { %>
+        <p class="text-green-100 text-sm mt-2"><%= currentLang === 'km' ? 'សូមរង់ចាំការអនុម័តពីគណៈកម្មការ។ អ្នកអាចបោះពុម្ពពាក្យសុំរបស់អ្នកបាន។' : 'Please wait for committee approval. You can print your application letter below.' %></p>
+      <% } else { %>
+        <p class="text-green-100 text-sm mt-2"><%= currentLang === 'km' ? 'សូមបញ្ចូលប្រាក់ដើម្បីបញ្ជាក់ការចុះឈ្មោះរបស់អ្នក' : 'Please make a payment to confirm your enrollment' %></p>
+      <% } %>
     </div>
 
     <div class="p-6 text-center">
+      <% if (!isScholarship) { %>
       <div class="bg-gray-50 dark:bg-gray-700/30 rounded-3xl p-6 mb-6 border border-gray-100 dark:border-gray-700">
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-3"><%= currentLang === 'km' ? 'ស្គែន QR Code ដើម្បីបង់ប្រាក់' : 'Scan QR Code to Pay' %></p>
         <img src="<%= qrPath %>" alt="KHQR Payment" width="256" height="256" loading="lazy" decoding="async" class="mx-auto rounded-xl shadow-md max-w-[280px]">
@@ -22,14 +31,20 @@
           <%= currentLang === 'km' ? 'សូមផ្ញើរូបភាពបង្កាក់ការបង់ប្រាក់មក admin ដើម្បីផ្ទៀងផ្ទាត់' : 'Please send your payment confirmation screenshot to admin for verification' %>
         </p>
       </div>
+      <% } %>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="/student/enroll" class="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl hover:from-green-700 hover:to-emerald-600 transition-all font-semibold shadow-sm text-sm flex items-center justify-center gap-2">
+        <a href="/student/enroll/print" target="_blank" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-semibold shadow-sm text-sm flex items-center justify-center gap-2">
+          <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ពពាក្យសុំ' : 'Print Form' %>
+        </a>
+        <a href="/student/enroll" class="px-6 py-2.5 border border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all font-semibold text-sm flex items-center justify-center gap-2">
           <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់ទៅចុះឈ្មោះ' : 'Back to Enrollment' %>
         </a>
+        <% if (!isScholarship) { %>
         <a href="/student/payments" class="px-6 py-2.5 border border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-all font-semibold text-sm flex items-center justify-center gap-2">
           <i class="bi bi-credit-card"></i><%= currentLang === 'km' ? 'មើលការទូទាត់' : 'View Payments' %>
         </a>
+        <% } %>
         <a href="/student/dashboard" class="px-6 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-medium text-sm flex items-center justify-center gap-2">
           <i class="bi bi-house"></i><%= currentLang === 'km' ? 'ទំព័រដើម' : 'Dashboard' %>
         </a>

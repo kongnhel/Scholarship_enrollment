@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
-const { uploadToImageKit } = require('../utils/imagekit');
+const { uploadToImageKit, extractFileId, deleteFromImageKit } = require('../utils/imagekit');
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 
@@ -150,11 +150,15 @@ router.get('/applications/:id', async (req, res) => {
              m2.name_kh as major2_name_kh, m2.name_en as major2_name_en,
              c.name_kh as category_name_kh, c.name_en as category_name_en,
              p.name_kh as province_name_kh, p.name_en as province_name_en,
+             st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
+             st.coverage_percentage as scholarship_percentage, st.duration_years as scholarship_duration,
+             st.provider_name as scholarship_provider,
              u.english_name as student_name, u.khmer_name as student_khmer_name, u.email as user_email
              FROM applications a
              LEFT JOIN majors m ON a.major_first_choice_id = m.id
              LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id
              LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
+             LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
              LEFT JOIN provinces p ON a.school_province_id = p.id
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.id = ?`, [req.params.id]
@@ -775,6 +779,32 @@ router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
 
 // â”€â”€â”€ Scholarship Types CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+// tier_options is a JSON list of combos {p: percent, y: years, s: seats}, e.g.
+// [{"p":100,"y":4,"s":5},{"p":50,"y":4,"s":5},{"p":50,"y":2,"s":5}]
+function parseTierInput(raw) {
+    const list = [];
+    try {
+        const parsed = JSON.parse(String(raw == null ? '' : raw));
+        if (Array.isArray(parsed)) {
+            parsed.forEach(t => {
+                const p = Number(t && t.p), y = Number(t && t.y), s = Number(t && t.s);
+                if (p >= 1 && p <= 100) list.push({ p, y: (y >= 1 && y <= 10) ? y : null, s: (s >= 1 && s <= 999) ? s : null });
+            });
+        }
+    } catch (e) { /* non-JSON input ignored */ }
+    const uniq = [];
+    list.forEach(t => { if (!uniq.some(u => u.p === t.p && u.y === t.y)) uniq.push(t); });
+    return uniq.length ? JSON.stringify(uniq.slice(0, 12)) : '';
+}
+
+function parseMajorIds(raw) {
+    const arr = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    const ids = arr.map(v => parseInt(v, 10)).filter(n => Number.isInteger(n) && n > 0);
+    const uniq = [];
+    ids.forEach(n => { if (uniq.indexOf(n) === -1) uniq.push(n); });
+    return uniq.slice(0, 30).join(',');
+}
+
 router.get('/scholarship-types', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -810,9 +840,12 @@ router.get('/scholarship-types', async (req, res) => {
         params.push(limit, offset);
         const [types] = await req.db.query(query, params);
 
+        const [majorsList] = await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1 ORDER BY name_kh ASC');
+
         res.render('admin/scholarship-types', {
             title: 'Manage Scholarship Types',
             types,
+            majorsList,
             currentPage: page,
             totalPages,
             totalRecords,
@@ -825,12 +858,33 @@ router.get('/scholarship-types', async (req, res) => {
     }
 });
 
-router.post('/scholarship-types', async (req, res) => {
+// Coverage % and duration are no longer entered separately in the form:
+// they are derived from the tier combos (highest %, longest years).
+function deriveCoverageDuration(tierOptions, fallbackCov, fallbackDur) {
+    let tiers = [];
+    try { const parsed = JSON.parse(tierOptions); if (Array.isArray(parsed)) tiers = parsed; } catch (e) { /* ignore */ }
+    if (!tiers.length) return { coverage: fallbackCov, duration: fallbackDur };
+    const ps = tiers.map(t => Number(t && t.p)).filter(n => n >= 1 && n <= 100);
+    const ys = tiers.map(t => Number(t && t.y)).filter(n => n >= 1 && n <= 10);
+    return {
+        coverage: ps.length ? Math.max(...ps) : fallbackCov,
+        duration: ys.length ? Math.max(...ys) : fallbackDur
+    };
+}
+
+router.post('/scholarship-types', upload.single('poster_file'), async (req, res) => {
     try {
-        const { name_kh, name_en, coverage_percentage, duration_years, provider_name, description } = req.body;
+        const { name_kh, name_en, provider_name, leader_name, description } = req.body;
+        let posterPath = null;
+        if (req.file) {
+            const uploaded = await uploadToImageKit(req.file, 'poster');
+            posterPath = uploaded.url;
+        }
+        const tierOptions = parseTierInput(req.body.tier_options);
+        const derived = deriveCoverageDuration(tierOptions, 0, 1);
         await req.db.query(
-            'INSERT INTO scholarship_types (name_kh, name_en, coverage_percentage, duration_years, provider_name, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [name_kh, name_en || '', parseInt(coverage_percentage) || 0, parseInt(duration_years) || 1, provider_name, description || '']
+            'INSERT INTO scholarship_types (name_kh, name_en, coverage_percentage, duration_years, provider_name, leader_name, description, poster_path, tier_options, major_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [name_kh, name_en || '', derived.coverage, derived.duration, provider_name || '', leader_name || null, description || '', posterPath, tierOptions, parseMajorIds(req.body.major_ids)]
         );
         req.flash('success', t(req, 'បានបន្ថែមប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type added successfully'));
         res.redirect('/admin/scholarship-types');
@@ -841,12 +895,26 @@ router.post('/scholarship-types', async (req, res) => {
     }
 });
 
-router.post('/scholarship-types/:id/edit', async (req, res) => {
+router.post('/scholarship-types/:id/edit', upload.single('poster_file'), async (req, res) => {
     try {
-        const { name_kh, name_en, coverage_percentage, duration_years, provider_name, description } = req.body;
+        const { name_kh, name_en, provider_name, leader_name, description, current_poster_path } = req.body;
+        let posterPath = current_poster_path || null;
+        if (req.file) {
+            const uploaded = await uploadToImageKit(req.file, 'poster');
+            posterPath = uploaded.url;
+            const oldFileId = extractFileId(current_poster_path);
+            if (oldFileId) deleteFromImageKit(oldFileId);
+        }
+        const tierOptions = parseTierInput(req.body.tier_options);
+        const [existingRows] = await req.db.query('SELECT coverage_percentage, duration_years FROM scholarship_types WHERE id = ?', [req.params.id]);
+        const derived = deriveCoverageDuration(
+            tierOptions,
+            existingRows.length ? existingRows[0].coverage_percentage : 0,
+            existingRows.length ? existingRows[0].duration_years : 1
+        );
         await req.db.query(
-            'UPDATE scholarship_types SET name_kh = ?, name_en = ?, coverage_percentage = ?, duration_years = ?, provider_name = ?, description = ? WHERE id = ?',
-            [name_kh, name_en || '', parseInt(coverage_percentage) || 0, parseInt(duration_years) || 1, provider_name, description || '', req.params.id]
+            'UPDATE scholarship_types SET name_kh = ?, name_en = ?, coverage_percentage = ?, duration_years = ?, provider_name = ?, leader_name = ?, description = ?, poster_path = ?, tier_options = ?, major_ids = ? WHERE id = ?',
+            [name_kh, name_en || '', derived.coverage, derived.duration, provider_name || '', leader_name || null, description || '', posterPath, tierOptions, parseMajorIds(req.body.major_ids), req.params.id]
         );
         req.flash('success', t(req, 'បានកែសម្រួលប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type updated successfully'));
         res.redirect('/admin/scholarship-types');
@@ -1101,12 +1169,60 @@ router.get('/enrollments/:id', async (req, res) => {
     }
 });
 
+router.get('/enrollments/:id/print', async (req, res) => {
+    try {
+        const [rows] = await req.db.query('SELECT * FROM enrollments WHERE id = ?', [req.params.id]);
+        if (rows.length === 0) {
+            req.flash('error', t(req, 'រកមិនឃើញព័ត៌មានចុះឈ្មោះ', 'Enrollment not found'));
+            return res.redirect('/admin/enrollments');
+        }
+        const enrollment = rows[0];
+        let major = null;
+        if (enrollment.major_choice_id) {
+            const [m] = await req.db.query('SELECT name_kh, name_en FROM majors WHERE id = ?', [enrollment.major_choice_id]);
+            if (m.length > 0) major = m[0];
+        } else if (enrollment.major_choice) {
+            const [m] = await req.db.query('SELECT name_kh, name_en FROM majors WHERE name_kh = ? OR name_en = ? LIMIT 1', [enrollment.major_choice, enrollment.major_choice]);
+            if (m.length > 0) major = m[0];
+        }
+        const [users] = await req.db.query('SELECT * FROM users WHERE id = ?', [enrollment.user_id]);
+        res.render('student/enroll-print', {
+            title: 'Print Enrollment Letter',
+            layout: false,
+            enrollment,
+            major,
+            userData: users[0] || null
+        });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកព័ត៌មានចុះឈ្មោះ', 'Error loading enrollment'));
+        res.redirect('/admin/enrollments');
+    }
+});
+
 router.post('/enrollments/:id/approve', async (req, res) => {
     try {
+        const [current] = await req.db.query(
+            'SELECT e.status, e.user_id, u.email, u.khmer_name FROM enrollments e JOIN users u ON e.user_id = u.id WHERE e.id = ?',
+            [req.params.id]
+        );
         await req.db.query(
             "UPDATE enrollments SET status = 'approved', admin_notes = ? WHERE id = ?",
             [req.body.notes || '', req.params.id]
         );
+        if (current[0]?.user_id) {
+            let notificationMessage = 'Your enrollment has been approved.';
+            if (req.body.notes) notificationMessage += '\n\nNotes: ' + req.body.notes;
+            await req.db.query(
+                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+                [current[0].user_id, 'Enrollment Approved', notificationMessage, 'approval']
+            );
+            await sendEmail(
+                current[0].email,
+                'Enrollment Approved - Scholarship Program',
+                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your enrollment has been approved.</p>' + (req.body.notes ? '<p><strong>Notes:</strong> ' + escapeHtml(req.body.notes) + '</p>' : '') + '<br><p>Best regards,<br>Scholarship Committee</p>'
+            );
+        }
         req.flash('success', t(req, 'ព័ត៌មានចុះឈ្មោះត្រូវបានអនុម័ត', 'Enrollment approved'));
         res.redirect('/admin/enrollments');
     } catch (err) {
@@ -1118,10 +1234,26 @@ router.post('/enrollments/:id/approve', async (req, res) => {
 
 router.post('/enrollments/:id/reject', async (req, res) => {
     try {
+        const [current] = await req.db.query(
+            'SELECT e.status, e.user_id, u.email, u.khmer_name FROM enrollments e JOIN users u ON e.user_id = u.id WHERE e.id = ?',
+            [req.params.id]
+        );
         await req.db.query(
             "UPDATE enrollments SET status = 'rejected', admin_notes = ? WHERE id = ?",
             [req.body.notes || '', req.params.id]
         );
+        if (current[0]?.user_id) {
+            const notificationMessage = 'Your enrollment has been rejected. Reason: ' + (req.body.notes || 'No reason provided');
+            await req.db.query(
+                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+                [current[0].user_id, 'Enrollment Rejected', notificationMessage, 'rejection']
+            );
+            await sendEmail(
+                current[0].email,
+                'Enrollment Rejected - Scholarship Program',
+                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your enrollment has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(req.body.notes || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
+            );
+        }
         req.flash('success', t(req, 'ព័ត៌មានចុះឈ្មោះត្រូវបានបដិសេធ', 'Enrollment rejected'));
         res.redirect('/admin/enrollments');
     } catch (err) {

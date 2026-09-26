@@ -13,6 +13,12 @@ function t(req, km, en) {
   return req.session.lang === 'km' ? km : en;
 }
 
+function redirectBackToLogin(res, identifier) {
+  return identifier
+    ? res.redirect('/auth/login?email=' + encodeURIComponent(identifier))
+    : res.redirect('/auth/login');
+}
+
 // ==================== LOGIN ====================
 
 router.get('/login', (req, res) => {
@@ -29,7 +35,7 @@ router.post('/login', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       req.flash('error', t(req, 'អ៊ីមែល ឬពាក្យសម្ងាត់ ឬទូរស័ព្ទត្រូវបំពេញ', 'Email, username, or phone is required'));
-      return res.redirect('/auth/login');
+      return redirectBackToLogin(res, req.body.login_identifier);
     }
     const { login_identifier, password } = req.body;
     const [users] = await req.db.query(
@@ -38,13 +44,13 @@ router.post('/login', [
     );
     if (users.length === 0) {
       req.flash('error', t(req, 'ព័ត៌មានចូលមិនត្រឹមត្រូវ', 'Invalid credentials'));
-      return res.redirect('/auth/login');
+      return redirectBackToLogin(res, login_identifier);
     }
     const user = users[0];
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       req.flash('error', t(req, 'ព័ត៌មានចូលមិនត្រឹមត្រូវ', 'Invalid credentials'));
-      return res.redirect('/auth/login');
+      return redirectBackToLogin(res, login_identifier);
     }
     if (!user.is_verified) {
       req.flash('error', t(req, 'សូមផ្ទៀងផ្ទាត់គណនីរបស់អ្នកមុនពេលចូល', 'Please verify your account before logging in'));
@@ -72,7 +78,7 @@ router.post('/login', [
   } catch (error) {
     console.error('Login error:', error);
     req.flash('error', t(req, 'មានកំហុសក្នុងការចូល', 'An error occurred during login'));
-    return res.redirect('/auth/login');
+    return redirectBackToLogin(res, req.body && req.body.login_identifier);
   }
 });
 

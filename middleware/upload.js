@@ -20,6 +20,7 @@ const upload = multer({
 const uploadPhoto = upload.single('photo');
 const uploadMultiple = upload.fields([
   { name: 'photo', maxCount: 1 },
+  { name: 'photo_3x4', maxCount: 1 },
   { name: 'transcript', maxCount: 1 },
   { name: 'additionalDocuments', maxCount: 5 }
 ]);

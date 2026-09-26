@@ -15,9 +15,9 @@
           <p class="text-sm text-gray-500 dark:text-gray-400">#<%= enrollment.id %></p>
         </div>
       </div>
-      <button onclick="window.print()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all flex items-center gap-2 self-start sm:self-auto">
+      <a href="/admin/enrollments/<%= enrollment.id %>/print" target="_blank" rel="noopener" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all flex items-center gap-2 self-start sm:self-auto">
         <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'ព្រីន' : 'Print' %>
-      </button>
+      </a>
     </div>
   </div>
 
@@ -61,7 +61,7 @@
       <div><label class="text-xs text-gray-500">ឈ្មោះឪពុក</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.father_name || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">ឈ្មោះម្តាយ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.mother_name || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">មុខរបរ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.occupation || 'N/A' %></p></div>
-      <div><label class="text-xs text-gray-500">កម្រិតវប្បធម៌</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.education_level || 'N/A' %></p></div>
+      <div><label class="text-xs text-gray-500">កម្រិតវប្បធម៌</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= ({none:'គ្មាន', primary:'បឋមសិក្សា (ថ្នាក់ទី ១ ដល់ ៦)', lower_secondary:'មធ្យមសិក្សាបឋមភូមិ (ឌីប្លូម) ថ្នាក់ទី ៧ ដល់ ៩', upper_secondary:'មធ្យមសិក្សាទុតិយភូមិ (បាក់ឌុប) ថ្នាក់ទី ១០ ដល់ ១២', higher_education:'ឧត្តមសិក្សា (បរិញ្ញាបត្ររង បរិញ្ញាបត្រ អនុបណ្ឌិត)', bachelor:'បរិញ្ញាបត្រ', master:'បរិញ្ញាបត្ររង', phd:'បណ្ឌិត'})[enrollment.education_level] || enrollment.education_level || 'N/A' %></p></div>
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -196,237 +196,6 @@
   </div>
 </div>
 
-<div id="printContent" style="display:none;">
-<link href="https://fonts.googleapis.com/css2?family=Moul&family=Noto+Sans+Khmer:wght@400;700&display=swap" rel="stylesheet">
-
-<!-- ==================== PAGE 1: ពាក្យសុំចុះឈ្មោះចូលរៀន ==================== -->
-<div class="print-page" style="width:210mm; height:297mm; background:#fff; padding:15mm 18mm; box-sizing:border-box; position:relative; display:flex; flex-direction:column; justify-content:space-between; page-break-after:always; page-break-inside:avoid; font-family:'Noto Sans Khmer',Khmer,sans-serif; font-size:13.5px; color:#000; line-height:1.5;">
-
-  <% if (enrollment.doc_photo_4x6_path) { %>
-    <img src="<%= enrollment.doc_photo_4x6_path %>" style="position:absolute; right:18mm; top:20mm; width:105px; height:135px; border:1px solid #333; object-fit:cover; background:#fff;">
-  <% } else { %>
-    <div style="position:absolute; right:18mm; top:20mm; width:105px; height:135px; border:1px solid #333; display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff;">4x6</div>
-  <% } %>
-
-  <div>
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-      <div style="text-align:center; font-family:'Moul',serif; font-size:13px; line-height:1.8;">
-        ក្រសួងអប់រំ យុវជន និងកីឡា<br>
-        សាកលវិទ្យាល័យជាតិមានជ័យ
-      </div>
-      <div style="text-align:center; font-family:'Moul',serif; font-size:13px; line-height:1.8; margin-right:120px;">
-        ព្រះរាជាណាចក្រកម្ពុជា<br>
-        ជាតិ សាសនា ព្រះមហាក្សត្រ
-      </div>
-    </div>
-
-    <div style="text-align:center; margin:10px 0 15px 0;">
-      <div style="font-family:'Moul',serif; font-size:14px; line-height:1.8;">ពាក្យសុំចុះឈ្មោះចូលរៀនឆ្នាំសិក្សាមូលដ្ឋាន (ឆ្នាំទី១)</div>
-      <div style="font-family:'Moul',serif; font-size:14px; line-height:1.8;">ជំនាន់ទី១៩ នៅសាកលវិទ្យាល័យជាតិមានជ័យ</div>
-      <div style="font-weight:bold; font-size:14px;">ឆ្នាំសិក្សា <b><%= enrollment.academic_year %></b></div>
-      <div style="display:flex; width:60%; margin:5px auto 0 auto; align-items:baseline;">
-        <span>ជាសិស្សប្រភេទ</span>
-        <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"></span>
-      </div>
-    </div>
-
-    <div style="font-family:'Moul',serif; font-size:13px; margin-top:8px; margin-bottom:4px;">I. ព័ត៌មាននិស្សិត</div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span style="margin-left:30px;">ខ្ញុំបាទ-នាងខ្ញុំឈ្មោះ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.khmer_first_name || '' %></span>
-      <span>អក្សរឡាតាំង</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.english_first_name || '' %></span>
-      <span>ភេទ</span>
-      <span style="flex-grow:0; width:80px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.gender === 'male' ? 'ប្រុស' : enrollment.gender === 'female' ? 'ស្រី' : '' %></span>
-    </div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span>ទីលំនៅបច្ចុប្បន្ន៖ ភូមិ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.village || '' %></span>
-      <span>ឃុំ/សង្កាត់</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.commune || '' %></span>
-      <span>ស្រុក/ក្រុង</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.district || '' %></span>
-      <span>ខេត្ត</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.province || '' %></span>
-    </div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span>ឪពុកឈ្មោះ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.father_name || '' %></span>
-      <span>ម្ដាយឈ្មោះ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.mother_name || '' %></span>
-    </div>
-
-    <div style="font-family:'Moul',serif; font-size:13px; margin-top:8px; margin-bottom:4px;">II. ព័ត៌មានអំពីគ្រឹះស្ថានចំណេះដឹងទូទៅ</div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span>សម័យប្រឡងមធ្យមសិក្សាទុតិយភូមិ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.exam_session || '' %></span>
-      <span>និទ្ទេសរួម</span>
-      <span style="flex-grow:0; width:150px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.overall_grade || '' %></span>
-    </div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span>មកពីវិទ្យាល័យ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.high_school || '' %></span>
-      <span>ខេត្ត</span>
-      <span style="flex-grow:0; width:350px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.high_school_province || '' %></span>
-    </div>
-
-    <div style="font-family:'Moul',serif; font-size:13px; margin-top:8px; margin-bottom:4px;">III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន</div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span style="margin-left:15px;">១. កម្រិត</span>
-      <span style="flex-grow:0; width:250px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= ({bachelor:'បរិញ្ញាបត្រ',associate:'បរិញ្ញាបត្ររង',lower_secondary:'មធ្យមសិក្សា',upper_secondary:'មធ្យមសិក្សាទុតិយភូមិ'})[enrollment.education_level_enroll] || enrollment.education_level_enroll || '' %></span>
-      <span>មុខជំនាញ</span>
-      <span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.major_choice || '' %></span>
-    </div>
-    <div style="display:flex; align-items:baseline; margin-bottom:5px; width:100%;">
-      <span style="margin-left:15px;">២. វេនសិក្សា៖</span>
-      <div style="display:flex; align-items:center; gap:15px; margin-left:20px;">
-        <div style="display:flex; align-items:center; gap:5px;">
-          <span style="width:12px; height:12px; border:1px solid #000; display:inline-block; <% if (enrollment.study_schedule === 'mon_fri') { %>background:#000;<% } %>"></span> ចន្ទ-សុក្រ
-        </div>
-        <div style="display:flex; align-items:center; gap:5px;">
-          <span style="width:12px; height:12px; border:1px solid #000; display:inline-block; <% if (enrollment.study_schedule === 'sat_sun') { %>background:#000;<% } %>"></span> សៅរ៍-អាទិត្យ
-        </div>
-      </div>
-      <span style="margin-left:20px;">វេនសិក្សា៖</span>
-      <div style="display:flex; align-items:center; gap:15px; margin-left:20px;">
-        <div style="display:flex; align-items:center; gap:5px;">
-          <span style="width:12px; height:12px; border:1px solid #000; display:inline-block; <% if (enrollment.study_shift === 'morning') { %>background:#000;<% } %>"></span> ព្រឹក
-        </div>
-        <div style="display:flex; align-items:center; gap:5px;">
-          <span style="width:12px; height:12px; border:1px solid #000; display:inline-block; <% if (enrollment.study_shift === 'afternoon') { %>background:#000;<% } %>"></span> រសៀល
-        </div>
-      </div>
-    </div>
-
-    <div style="font-family:'Moul',serif; font-size:13px; margin-top:8px; margin-bottom:4px;">IV. កិច្ចសន្យាធានាខុសត្រូវ</div>
-    <div style="display:flex; margin-top:8px; margin-bottom:5px;"><span style="flex-grow:1; border-bottom:1px dotted #000;"></span></div>
-    <div style="display:flex; margin-bottom:5px;"><span style="flex-grow:1; border-bottom:1px dotted #000;"></span></div>
-
-    <div style="margin-top:10px;">
-      <div style="text-align:center; text-decoration:underline; font-weight:bold; margin-bottom:6px;">សូមគោរពភ្ជាប់មកជាមួយនូវ៖</div>
-      <div style="width:85%; margin:0 auto;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>- ព្រឹត្តិបត្រពិន្ទុ ឬ សញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ ឬ សញ្ញាបត្រដែលមានតម្លៃស្មើ</span><span>ចំនួន ០១ច្បាប់</span></div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>- សាលាកប័ត្របេក្ខជន</span><span>ចំនួន ០២ច្បាប់</span></div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>- រូបថតទំហំ ៤x៦ ( ថតពីមុខ ឥតពាក់វ៉ែនតា )</span><span>ចំនួន ០២សន្លឹក</span></div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>- រូបថតទំហំ ៣x៤ ( ថតពីមុខ ឥតពាក់វ៉ែនតា )</span><span>ចំនួន ០២សន្លឹក</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div style="margin-top:15px;">
-    <div style="text-align:right; margin-bottom:10px;">
-      <div>ថ្ងៃ<span style="display:inline-block; width:60px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:60px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ<span style="display:inline-block; width:60px; border-bottom:1px dotted #000; margin:0 2px;"></span>ព.ស.២៥៦...</div>
-      <div style="margin-top:3px;">ធ្វើនៅ<span style="display:inline-block; width:100px; border-bottom:1px dotted #000; margin:0 2px;"></span>ថ្ងៃទី<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ២០២...</div>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:5px;">
-      <div style="width:45%;">
-        <div style="font-weight:bold;">លេខទូរស័ព្ទទំនាក់ទំនង៖</div>
-        <div style="display:flex; align-items:baseline; margin-top:5px;"><span>លេខសាមីខ្លួន</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.phone || '' %></span></div>
-        <div style="display:flex; margin-top:5px;"><span style="flex-grow:1; border-bottom:1px dotted #000;"></span></div>
-        <div style="display:flex; align-items:baseline; margin-top:5px;"><span>លេខអាណាព្យាបាល</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.guardian_phone || '' %></span></div>
-        <div style="display:flex; margin-top:5px;"><span style="flex-grow:1; border-bottom:1px dotted #000;"></span></div>
-      </div>
-      <div style="width:45%; text-align:center;">
-        <div style="font-weight:bold;">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== PAGE 2: សាលាកប័ត្របេក្ខជន (x2) ==================== -->
-<div class="print-page" style="width:210mm; height:297mm; background:#fff; padding:15mm; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; position:relative; page-break-after:avoid; page-break-inside:avoid; font-family:'Noto Sans Khmer',Khmer,sans-serif; font-size:13px; color:#000;">
-
-  <div style="height:48%; display:flex; flex-direction:column; justify-content:space-between; position:relative;">
-    <div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
-        <div style="text-align:center; font-family:'Moul',serif; font-size:12px; line-height:1.8;">ក្រសួងអប់រំ យុវជន និងកីឡា<br>សាកលវិទ្យាល័យជាតិមានជ័យ</div>
-        <div style="text-align:center; font-family:'Moul',serif; font-size:12px; line-height:1.8;">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-      </div>
-      <div style="text-align:center; font-family:'Moul',serif; font-size:15px; margin:5px 0 10px 0;">សាលាកប័ត្របេក្ខជន</div>
-      <div style="text-align:right; margin-bottom:5px; font-size:13px;">លេខបញ្ជី<span style="display:inline-block; width:130px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"></span></div>
-    </div>
-    <div style="position:relative;">
-      <% if (enrollment.doc_photo_4x6_path) { %>
-        <img src="<%= enrollment.doc_photo_4x6_path %>" style="position:absolute; right:0; top:0; width:100px; height:130px; border:1px solid #777; object-fit:cover; background:#fff; z-index:2;">
-      <% } else { %>
-        <div style="position:absolute; right:0; top:0; width:100px; height:130px; border:1px solid #777; display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff; z-index:2;">4 x 6</div>
-      <% } %>
-      <div style="padding-right:110px;">
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>នាមត្រកូល និងនាមខ្លួន</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.khmer_first_name || '' %></span><span>អក្សរឡាតាំង</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.english_first_name || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>ភេទ</span><span style="flex-grow:0; width:80px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.gender === 'male' ? 'ប្រុស' : enrollment.gender === 'female' ? 'ស្រី' : '' %></span><span>ថ្ងៃខែឆ្នាំកំណើត</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.date_of_birth ? new Date(enrollment.date_of_birth).toLocaleDateString('km-KH',{year:'numeric',month:'long',day:'numeric'}) : '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>ទីកន្លែងកំណើត</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.place_of_birth || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>កម្រិតវប្បធម៌</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.education_level || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>មុខរបរសព្វថ្ងៃ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.occupation || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>ឪពុកឈ្មោះ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.father_name || '' %></span><span>ម្ដាយឈ្មោះ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.mother_name || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>អតីតបេក្ខជនមកពី វិទ្យាល័យ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.high_school || '' %></span><span>ខេត្ត/រាជធានី</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.high_school_province || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>សម័យប្រឡងសម្រាប់ការប្រឡងទុតិយភូមិ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.exam_session || '' %></span><span>មណ្ឌលប្រឡង</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.exam_center || '' %></span></div>
-      </div>
-    </div>
-    <div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-        <div style="width:48%;">ថ្ងៃ<span style="display:inline-block; width:50px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:50px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ<span style="display:inline-block; width:50px; border-bottom:1px dotted #000; margin:0 2px;"></span>ព.ស.២៥៦...</div>
-        <div style="width:48%; text-align:right;">ថ្ងៃ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ព.ស.២៥៦...</div>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-        <div style="width:48%;">ធ្វើនៅ<span style="display:inline-block; width:80px; border-bottom:1px dotted #000; margin:0 2px;"></span>ថ្ងៃទី<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ២០២...</div>
-        <div style="width:48%; text-align:right;">ធ្វើនៅ<span style="display:inline-block; width:60px; border-bottom:1px dotted #000; margin:0 2px;"></span>ថ្ងៃទី<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ២០២...</div>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-top:5px; text-align:center;">
-        <div style="width:48%;"><div style="font-weight:bold;">អ្នកទទួលពាក្យ</div></div>
-        <div style="width:48%;"><div style="font-weight:bold;">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div style="border-top:1px dashed #666; margin:5px 0; position:relative;">
-    <span style="position:absolute; left:50%; top:-12px; background:#fff; padding:0 5px; font-size:16px;">-</span>
-  </div>
-
-  <div style="height:48%; display:flex; flex-direction:column; justify-content:space-between; position:relative;">
-    <div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
-        <div style="text-align:center; font-family:'Moul',serif; font-size:12px; line-height:1.8;">ក្រសួងអប់រំ យុវជន និងកីឡា<br>សាកលវិទ្យាល័យជាតិមានជ័យ</div>
-        <div style="text-align:center; font-family:'Moul',serif; font-size:12px; line-height:1.8;">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
-      </div>
-      <div style="text-align:center; font-family:'Moul',serif; font-size:15px; margin:5px 0 10px 0;">សាលាកប័ត្របេក្ខជន</div>
-      <div style="text-align:right; margin-bottom:5px; font-size:13px;">លេខបញ្ជី<span style="display:inline-block; width:130px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"></span></div>
-    </div>
-    <div style="position:relative;">
-      <% if (enrollment.doc_photo_4x6_path) { %>
-        <img src="<%= enrollment.doc_photo_4x6_path %>" style="position:absolute; right:0; top:0; width:100px; height:130px; border:1px solid #777; object-fit:cover; background:#fff; z-index:2;">
-      <% } else { %>
-        <div style="position:absolute; right:0; top:0; width:100px; height:130px; border:1px solid #777; display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff; z-index:2;">4 x 6</div>
-      <% } %>
-      <div style="padding-right:110px;">
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>នាមត្រកូល និងនាមខ្លួន</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.khmer_first_name || '' %></span><span>អក្សរឡាតាំង</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.english_first_name || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>ភេទ</span><span style="flex-grow:0; width:80px; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.gender === 'male' ? 'ប្រុស' : enrollment.gender === 'female' ? 'ស្រី' : '' %></span><span>ថ្ងៃខែឆ្នាំកំណើត</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.date_of_birth ? new Date(enrollment.date_of_birth).toLocaleDateString('km-KH',{year:'numeric',month:'long',day:'numeric'}) : '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>ទីកន្លែងកំណើត</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.place_of_birth || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>កម្រិតវប្បធម៌</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.education_level || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>មុខរបរសព្វថ្ងៃ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.occupation || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>ឪពុកឈ្មោះ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.father_name || '' %></span><span>ម្ដាយឈ្មោះ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.mother_name || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>អតីតបេក្ខជនមកពី វិទ្យាល័យ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.high_school || '' %></span><span>ខេត្ត/រាជធានី</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.high_school_province || '' %></span></div>
-        <div style="display:flex; align-items:baseline; margin-bottom:6px;"><span>សម័យប្រឡងសម្រាប់ការប្រឡងទុតិយភូមិ</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.exam_session || '' %></span><span>មណ្ឌលប្រឡង</span><span style="flex-grow:1; border-bottom:1px dotted #000; margin:0 4px; position:relative; top:-2px;"><%= enrollment.exam_center || '' %></span></div>
-      </div>
-    </div>
-    <div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-        <div style="width:48%;">ថ្ងៃ<span style="display:inline-block; width:50px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:50px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ<span style="display:inline-block; width:50px; border-bottom:1px dotted #000; margin:0 2px;"></span>ព.ស.២៥៦...</div>
-        <div style="width:48%; text-align:right;">ថ្ងៃ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ<span style="display:inline-block; width:40px; border-bottom:1px dotted #000; margin:0 2px;"></span>ព.ស.២៥៦...</div>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-        <div style="width:48%;">ធ្វើនៅ<span style="display:inline-block; width:80px; border-bottom:1px dotted #000; margin:0 2px;"></span>ថ្ងៃទី<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ២០២...</div>
-        <div style="width:48%; text-align:right;">ធ្វើនៅ<span style="display:inline-block; width:60px; border-bottom:1px dotted #000; margin:0 2px;"></span>ថ្ងៃទី<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ខែ<span style="display:inline-block; width:30px; border-bottom:1px dotted #000; margin:0 2px;"></span>ឆ្នាំ២០២...</div>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-top:5px; text-align:center;">
-        <div style="width:48%;"><div style="font-weight:bold;">អ្នកទទួលពាក្យ</div></div>
-        <div style="width:48%;"><div style="font-weight:bold;">ហត្ថលេខា និងឈ្មោះសាមីខ្លួន</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div>
-
 <div id="docModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeDocModal()">
   <button onclick="closeDocModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all z-10"><i class="bi bi-x-lg text-lg"></i></button>
   <div class="max-w-full max-h-[90vh] flex items-center justify-center">
@@ -462,26 +231,8 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
 
 <style>
 @media print {
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-  html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
-  aside, nav, footer, #screenContent, #docModal, .swal2-container { display: none !important; }
-  #printContent { display: block !important; }
-  #printContent > div { margin: 0 !important; }
-  .print-page {
-    width: 210mm !important;
-    height: 297mm !important;
-    box-sizing: border-box !important;
-    background: white !important;
-    overflow: hidden !important;
-    page-break-after: always !important;
-    page-break-inside: avoid !important;
-  }
-  .print-page:last-child {
-    page-break-after: avoid !important;
-  }
-  @page {
-    margin: 0 !important;
-    size: A4 portrait !important;
-  }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { background: white !important; }
+  aside, nav, footer, #docModal, .swal2-container { display: none !important; }
 }
 </style>

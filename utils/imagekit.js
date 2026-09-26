@@ -6,7 +6,8 @@ const FOLDER_MAP = {
   profile: 'scholarship/profiles',
   enrollment: 'scholarship/enrollments',
   application: 'scholarship/applications',
-  payment: 'scholarship/payments'
+  payment: 'scholarship/payments',
+  poster: 'scholarship/posters'
 };
 
 async function uploadToImageKit(file, folderType) {

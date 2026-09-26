@@ -23,21 +23,21 @@
       <div class="flex items-center justify-between mb-3">
         <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-wallet2 text-blue-600 dark:text-blue-400"></i></div>
       </div>
-      <div class="text-2xl font-extrabold text-gray-900 dark:text-gray-100 leading-none mb-1"><%= Number(totalDue).toLocaleString() %>៛</div>
+      <div class="text-2xl font-extrabold text-gray-900 dark:text-gray-100 leading-none mb-1"><%= Math.round(Number(totalDue) / 4000).toLocaleString() %>$</div>
       <div class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'សរុបថ្លៃដែលត្រូវបង់' : 'Total Due' %></div>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-green-500">
       <div class="flex items-center justify-between mb-3">
         <div class="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-check-circle text-green-600 dark:text-green-400"></i></div>
       </div>
-      <div class="text-2xl font-extrabold text-green-600 dark:text-green-400 leading-none mb-1"><%= Number(totalPaid).toLocaleString() %>៛</div>
+      <div class="text-2xl font-extrabold text-green-600 dark:text-green-400 leading-none mb-1"><%= Math.round(Number(totalPaid) / 4000).toLocaleString() %>$</div>
       <div class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'សរុបបានបង់' : 'Total Paid' %></div>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-amber-500">
       <div class="flex items-center justify-between mb-3">
         <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-clock-history text-amber-600 dark:text-amber-400"></i></div>
       </div>
-      <div class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 leading-none mb-1"><%= Number(totalDue - totalPaid).toLocaleString() %>៛</div>
+      <div class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 leading-none mb-1"><%= Math.round(Number(totalDue - totalPaid) / 4000).toLocaleString() %>$</div>
       <div class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'នៅសល់' : 'Remaining' %></div>
     </div>
   </div>
@@ -114,13 +114,15 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រយៈពេលបង់' : 'Pay Period' %> *</label>
               <select id="pay_period" required onchange="autoFillAmount()" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                 <option value="year"><%= currentLang === 'km' ? '១ឆ្នាំ (១០០%)' : '1 Year (100%)' %></option>
+                <% if (!(typeof yearlyOnly !== 'undefined' && yearlyOnly)) { %>
                 <option value="semester"><%= currentLang === 'km' ? '១ឆមាស (៥០%)' : '1 Semester (50%)' %></option>
+                <% } %>
               </select>
             </div>
           </div>
           <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 flex items-center justify-between">
             <p class="text-sm text-emerald-800 dark:text-emerald-300"><i class="bi bi-cash-stack mr-1"></i><%= currentLang === 'km' ? 'ចំនួនត្រូវបង់៖ ' : 'Amount to pay: ' %></p>
-            <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400" id="displayAmount"><%= yearlyTuition ? Number(yearlyTuition).toLocaleString() : '0' %>៛</p>
+            <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400" id="displayAmount"><%= Math.round(Number(yearlyTuition || 0) / 4000).toLocaleString() %>$</p>
           </div>
           <input type="hidden" id="yearlyTuition" value="<%= yearlyTuition || 0 %>">
           <input type="hidden" name="amount" id="payment_amount" value="<%= yearlyTuition || 0 %>">
@@ -143,7 +145,7 @@
           var period = document.getElementById('pay_period').value;
           var amount = period === 'semester' ? Math.round(yearly / 2) : yearly;
           document.getElementById('payment_amount').value = amount;
-          document.getElementById('displayAmount').textContent = amount.toLocaleString() + '៛';
+          document.getElementById('displayAmount').textContent = Math.round(amount / 4000).toLocaleString() + '$';
         }
         </script>
       </div>
@@ -180,7 +182,7 @@
                   </td>
                   <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100"><%= p.fee_name_kh %></td>
                   <td class="px-4 py-3">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"><%= Number(p.amount).toLocaleString() %>៛</span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"><%= Math.round(Number(p.amount) / 4000).toLocaleString() %>$</span>
                   </td>
                   <td class="px-4 py-3">
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"><i class="bi bi-qr-code"></i>KHQR</span>

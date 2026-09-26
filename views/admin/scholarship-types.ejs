@@ -1,3 +1,24 @@
+<%
+  var majorNameMap = {}; (typeof majorsList !== 'undefined' ? majorsList : []).forEach(function(m) { majorNameMap[m.id] = m; });
+  var parseTierList = function (raw, defY0) {
+    var defY = (Number(defY0) >= 1 && Number(defY0) <= 10) ? Number(defY0) : null;
+    var s = String(raw == null ? '' : raw).trim();
+    var out = [];
+    if (s.charAt(0) === '[') {
+      try {
+        var arr = JSON.parse(s);
+        if (Array.isArray(arr)) arr.forEach(function (t) {
+          var p = Number(t && t.p), y = Number(t && t.y), q = Number(t && t.s);
+          if (p >= 1 && p <= 100) out.push({ p: p, y: (y >= 1 && y <= 10) ? y : defY, s: (q >= 1 && q <= 999) ? q : null });
+        });
+      } catch (e) { out = []; }
+    } else {
+      s.split(/[^0-9]+/).filter(Boolean).map(Number).filter(function (n) { return n >= 1 && n <= 100; })
+        .forEach(function (p) { out.push({ p: p, y: defY, s: null }); });
+    }
+    return out;
+  };
+%>
 <div class="max-w-6xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
@@ -15,7 +36,7 @@
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងប្រភេទអាហារូបករណ៍ទាំងអស់' : 'Manage all scholarship types' %></p>
         </div>
       </div>
-      <button onclick="document.getElementById('addTypeModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto">
+      <button onclick="openAddTypeModal()" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto">
         <i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមប្រភេទថ្មី' : 'Add New Type' %>
       </button>
     </div>
@@ -63,6 +84,7 @@
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ថ្លៃសិក្សា' : 'Coverage' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'រយៈពេល' : 'Duration' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'អ្នកផ្តល់' : 'Provider' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ជំនាញ' : 'Majors' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
           </tr>
@@ -70,7 +92,7 @@
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
           <% if (types.length === 0) { %>
             <tr>
-              <td colspan="7" class="px-5 py-12 text-center">
+              <td colspan="8" class="px-5 py-12 text-center">
                 <div class="flex flex-col items-center gap-2">
                   <i class="bi bi-award text-4xl text-gray-300 dark:text-gray-600"></i>
                   <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានប្រភេទទេ' : 'No scholarship types found' %></p>
@@ -84,11 +106,18 @@
                   <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * 10 + index + 1 %></span>
                 </td>
                 <td class="px-5 py-4">
-                  <div class="max-w-xs">
-                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %></p>
-                    <% if (st.name_en && currentLang === 'km') { %>
-                      <p class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5"><%= st.name_en %></p>
+                  <div class="flex items-center gap-3">
+                    <% if (st.poster_path) { %>
+                      <img src="<%= st.poster_path %>" alt="" class="w-10 h-14 object-cover object-top rounded-lg border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                    <% } else { %>
+                      <div class="w-10 h-14 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0"><i class="bi bi-image text-gray-300 dark:text-gray-600"></i></div>
                     <% } %>
+                    <div class="max-w-xs">
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %></p>
+                      <% if (st.name_en && currentLang === 'km') { %>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5"><%= st.name_en %></p>
+                      <% } %>
+                    </div>
                   </div>
                 </td>
                 <td class="px-5 py-4">
@@ -96,8 +125,23 @@
                     <%= st.coverage_percentage %>%
                   </span>
                 </td>
-                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yr' %></td>
-                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 max-w-[200px] truncate"><%= st.provider_name %></td>
+                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200">
+                  <p><%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yr' %></p>
+                  <% var stTiers = parseTierList(st.tier_options, st.duration_years); %>
+                  <% if (stTiers.length) { %>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><%= stTiers.map(function(t) { return t.p + '%' + (t.y ? ' · ' + t.y + (currentLang === 'km' ? 'ឆ្នាំ' : 'y') : '') + (t.s ? ' · ' + t.s + (currentLang === 'km' ? 'កន្លែង' : ' seats') : ''); }).join(' / ') %></p>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 max-w-[200px]">
+                  <p class="truncate"><%= st.provider_name || '—' %></p>
+                  <% if (st.leader_name) { %>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5"><i class="bi bi-person-badge"></i> <%= st.leader_name %></p>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 max-w-[220px] truncate">
+                  <% var stMajors = String(st.major_ids || '').split(',').filter(Boolean).map(function(id) { var m = majorNameMap[id]; return m ? (currentLang === 'km' ? m.name_kh : (m.name_en || m.name_kh)) : ''; }).filter(Boolean).join(', '); %>
+                  <%= stMajors || '—' %>
+                </td>
                 <td class="px-5 py-4">
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= st.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400' %>">
                     <span class="w-1.5 h-1.5 rounded-full <%= st.is_active ? 'bg-green-500' : 'bg-gray-400' %>"></span>
@@ -168,7 +212,7 @@
 
 <div id="addTypeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg" onclick="event.stopPropagation()">
-    <form action="/admin/scholarship-types" method="POST">
+    <form action="/admin/scholarship-types" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
         <h5 class="font-bold flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមប្រភេទអាហារូបករណ៍ថ្មី' : 'Add New Scholarship Type' %></h5>
@@ -183,23 +227,64 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះប្រភេទ (អង់គ្លេស)' : 'Scholarship Name (English)' %></label>
           <input type="text" name="name_en" placeholder="e.g. 50% Scholarship for 2 Years - NMU" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ភាគរយថ្លៃសិក្សា (%)' : 'Coverage Percentage (%)' %> <span class="text-red-500">*</span></label>
-            <input type="number" name="coverage_percentage" min="0" max="100" required placeholder="0-100" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍ (%) — បញ្ចូលម្តងមួយៗ' : 'Scholarship levels (%) — add one by one' %> <span class="text-red-500">*</span></label>
+          <div class="flex gap-2">
+            <input type="number" id="add_tier_input" min="1" max="100" oninput="renderTierSuggestions('add')" placeholder="<%= currentLang === 'km' ? 'ភាគរយ' : '%' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('add');}">
+            <input type="number" id="add_tier_years" min="1" max="10" oninput="renderTierSuggestions('add')" placeholder="<%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('add');}">
+            <input type="number" id="add_tier_seats" min="1" placeholder="<%= currentLang === 'km' ? 'កន្លែង' : 'seats' %>" class="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('add');}">
+            <button type="button" onclick="addTier('add')" class="px-3.5 py-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-xl text-sm font-bold hover:bg-green-100 dark:hover:bg-green-900/50 transition-all"><i class="bi bi-plus-lg"></i></button>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រយៈពេល (ឆ្នាំ)' : 'Duration (Years)' %> <span class="text-red-500">*</span></label>
-            <input type="number" name="duration_years" min="1" max="10" required placeholder="1-10" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+          <div class="flex flex-wrap items-center gap-1.5 mt-2">
+            <span class="text-[11px] font-semibold text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ជម្រើសរួចរាល់តាមភាគរយថ្លៃសិក្សា (ចុចដើម្បីបន្ថែម)' : 'Suggested from coverage % (click to add)' %></span>
+            <span id="add_tier_suggest" class="flex flex-wrap gap-1.5"></span>
           </div>
+          <div id="add_tier_chips" class="flex flex-wrap gap-1.5 mt-2"></div>
+          <input type="hidden" name="tier_options" id="add_tier_options" value="">
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'បញ្ចូលកម្រិតច្រើនតាមត្រូវការ — ឧ. ១០០% ៤ ឆ្នាំ (៥ កន្លែង), ៥០% ៤ ឆ្នាំ (៥ កន្លែង), ៥០% ២ ឆ្នាំ (៥ កន្លែង)។' : 'Add as many combos as needed — e.g. 100% 4y (5 seats), 50% 4y (5 seats), 50% 2y (5 seats).' %></p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ្នកផ្តល់អាហារូបករណ៍' : 'Scholarship Provider' %> <span class="text-red-500">*</span></label>
-          <input type="text" name="provider_name" required placeholder="<%= currentLang === 'km' ? 'ឧ. សាកលវិទ្យាល័យជាតិមានជ័យ' : 'e.g. National Meanchey University' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះមេដឹកនាំដែលផ្តល់អាហារូបករណ៍' : 'Leader offering the scholarship' %></label>
+          <input type="text" name="leader_name" placeholder="<%= currentLang === 'km' ? 'ឧ. ឯកឧត្តម បណ្ឌិត ឈ្មោះ' : 'e.g. H.E. Dr. Leader Name' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ជំនាញដែលមានក្នុងកម្មវិធី (ជ្រើសពីបញ្ជីជំនាញ)' : 'Majors covered (pick from the majors list)' %></label>
+          <div class="relative">
+            <button type="button" onclick="toggleMajorDropdown('add')" class="w-full flex items-center justify-between gap-2 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-green-400 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-left">
+              <span id="add_major_summary" class="truncate text-gray-400"><%= currentLang === 'km' ? 'ជ្រើសរើសជំនាញ...' : 'Select majors...' %></span>
+              <i class="bi bi-chevron-down flex-shrink-0 text-gray-400"></i>
+            </button>
+            <div id="add_major_panel" class="hidden absolute left-0 right-0 z-20 mt-1 max-h-44 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5">
+              <% (typeof majorsList !== 'undefined' ? majorsList : []).forEach(function(m) { %>
+                <label class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer text-sm text-gray-700 dark:text-gray-200">
+                  <input type="checkbox" name="major_ids" value="<%= m.id %>" onchange="updateMajorSummary('add')" class="w-4 h-4 accent-green-600 flex-shrink-0">
+                  <span class="truncate"><%= currentLang === 'km' ? m.name_kh : (m.name_en || m.name_kh) %></span>
+                </label>
+              <% }) %>
+              <% if (!(typeof majorsList !== 'undefined' ? majorsList : []).length) { %>
+                <p class="px-3 py-2 text-xs text-gray-400"><%= currentLang === 'km' ? 'មិនមានជំនាញទេ' : 'No majors yet' %></p>
+              <% } %>
+            </div>
+          </div>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'ជ្រើសរើសមួយឬច្រើន — បន្ថែមជំនាញថ្មីបាននៅទំព័រគ្រប់គ្រងជំនាញ' : 'Select one or more — add new majors on the Majors page' %></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ្នកឧបត្ថម្ភ (ស្ថាប័ន) — ស្រេចចិត្ត' : 'Sponsor (Organization) — optional' %></label>
+          <input type="text" name="provider_name" placeholder="<%= currentLang === 'km' ? 'ឧ. សាកលវិទ្យាល័យជាតិមានជ័យ / អង្គការ' : 'e.g. National Meanchey University / Organization' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពិពណ៌នា' : 'Description' %></label>
           <textarea name="description" rows="3" placeholder="<%= currentLang === 'km' ? 'ពិពណ៌នាអំពីអាហារូបករណ៍នេះ...' : 'Describe this scholarship type...' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រូបភាពផ្សព្វផ្សាយ (Poster)' : 'Scholarship Poster Image' %></label>
+          <div class="flex items-start gap-3">
+            <img id="add_poster_preview" src="" alt="" class="hidden w-20 h-28 object-cover object-top rounded-lg border border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div class="flex-1">
+              <input type="file" name="poster_file" accept="image/jpeg,image/png" onchange="previewPoster(this, 'add_poster_preview')" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-green-50 dark:file:bg-green-900/30 file:text-green-700 dark:file:text-green-300 file:text-xs file:font-semibold">
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'JPEG ឬ PNG — រូបភាពដែលមានឈ្មោះមេដឹកនាំ ភាគរយ និងជំនាញ' : 'JPEG or PNG — poster showing the leader name, percentage and majors' %></p>
+            </div>
+          </div>
         </div>
       </div>
       <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
@@ -212,7 +297,7 @@
 
 <div id="editTypeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg" onclick="event.stopPropagation()">
-    <form id="editTypeForm" method="POST">
+    <form id="editTypeForm" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
         <h5 class="font-bold flex items-center gap-2"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែប្រភេទអាហារូបករណ៍' : 'Edit Scholarship Type' %></h5>
@@ -227,23 +312,65 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះប្រភេទ (អង់គ្លេស)' : 'Scholarship Name (English)' %></label>
           <input type="text" name="name_en" id="edit_name_en" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ភាគរយថ្លៃសិក្សា (%)' : 'Coverage (%)' %> <span class="text-red-500">*</span></label>
-            <input type="number" name="coverage_percentage" id="edit_coverage" min="0" max="100" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍ (%) — បញ្ចូលម្តងមួយៗ' : 'Scholarship levels (%) — add one by one' %> <span class="text-red-500">*</span></label>
+          <div class="flex gap-2">
+            <input type="number" id="edit_tier_input" min="1" max="100" oninput="renderTierSuggestions('edit')" placeholder="<%= currentLang === 'km' ? 'ភាគរយ' : '%' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('edit');}">
+            <input type="number" id="edit_tier_years" min="1" max="10" oninput="renderTierSuggestions('edit')" placeholder="<%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('edit');}">
+            <input type="number" id="edit_tier_seats" min="1" placeholder="<%= currentLang === 'km' ? 'កន្លែង' : 'seats' %>" class="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('edit');}">
+            <button type="button" onclick="addTier('edit')" class="px-3.5 py-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-xl text-sm font-bold hover:bg-green-100 dark:hover:bg-green-900/50 transition-all"><i class="bi bi-plus-lg"></i></button>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រយៈពេល (ឆ្នាំ)' : 'Duration (Years)' %> <span class="text-red-500">*</span></label>
-            <input type="number" name="duration_years" id="edit_duration" min="1" max="10" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+          <div class="flex flex-wrap items-center gap-1.5 mt-2">
+            <span class="text-[11px] font-semibold text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ជម្រើសរួចរាល់តាមភាគរយថ្លៃសិក្សា (ចុចដើម្បីបន្ថែម)' : 'Suggested from coverage % (click to add)' %></span>
+            <span id="edit_tier_suggest" class="flex flex-wrap gap-1.5"></span>
           </div>
+          <div id="edit_tier_chips" class="flex flex-wrap gap-1.5 mt-2"></div>
+          <input type="hidden" name="tier_options" id="edit_tier_options" value="">
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'បញ្ចូលកម្រិតច្រើនតាមត្រូវការ — ឧ. ១០០% ៤ ឆ្នាំ (៥ កន្លែង), ៥០% ៤ ឆ្នាំ (៥ កន្លែង), ៥០% ២ ឆ្នាំ (៥ កន្លែង)។' : 'Add as many combos as needed — e.g. 100% 4y (5 seats), 50% 4y (5 seats), 50% 2y (5 seats).' %></p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ្នកផ្តល់អាហារូបករណ៍' : 'Provider' %> <span class="text-red-500">*</span></label>
-          <input type="text" name="provider_name" id="edit_provider" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះមេដឹកនាំដែលផ្តល់អាហារូបករណ៍' : 'Leader offering the scholarship' %></label>
+          <input type="text" name="leader_name" id="edit_leader" placeholder="<%= currentLang === 'km' ? 'ឧ. ឯកឧត្តម បណ្ឌិត ឈ្មោះ' : 'e.g. H.E. Dr. Leader Name' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ជំនាញដែលមានក្នុងកម្មវិធី (ជ្រើសពីបញ្ជីជំនាញ)' : 'Majors covered (pick from the majors list)' %></label>
+          <div class="relative">
+            <button type="button" onclick="toggleMajorDropdown('edit')" class="w-full flex items-center justify-between gap-2 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-green-400 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-left">
+              <span id="edit_major_summary" class="truncate text-gray-400"><%= currentLang === 'km' ? 'ជ្រើសរើសជំនាញ...' : 'Select majors...' %></span>
+              <i class="bi bi-chevron-down flex-shrink-0 text-gray-400"></i>
+            </button>
+            <div id="edit_major_panel" class="hidden absolute left-0 right-0 z-20 mt-1 max-h-44 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5">
+              <% (typeof majorsList !== 'undefined' ? majorsList : []).forEach(function(m) { %>
+                <label class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer text-sm text-gray-700 dark:text-gray-200">
+                  <input type="checkbox" name="major_ids" value="<%= m.id %>" onchange="updateMajorSummary('edit')" class="w-4 h-4 accent-green-600 flex-shrink-0">
+                  <span class="truncate"><%= currentLang === 'km' ? m.name_kh : (m.name_en || m.name_kh) %></span>
+                </label>
+              <% }) %>
+              <% if (!(typeof majorsList !== 'undefined' ? majorsList : []).length) { %>
+                <p class="px-3 py-2 text-xs text-gray-400"><%= currentLang === 'km' ? 'មិនមានជំនាញទេ' : 'No majors yet' %></p>
+              <% } %>
+            </div>
+          </div>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'ជ្រើសរើសមួយឬច្រើន — បន្ថែមជំនាញថ្មីបាននៅទំព័រគ្រប់គ្រងជំនាញ' : 'Select one or more — add new majors on the Majors page' %></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ្នកឧបត្ថម្ភ (ស្ថាប័ន) — ស្រេចចិត្ត' : 'Sponsor (Organization) — optional' %></label>
+          <input type="text" name="provider_name" id="edit_provider" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពិពណ៌នា' : 'Description' %></label>
           <textarea name="description" id="edit_description" rows="3" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រូបភាពផ្សព្វផ្សាយ (Poster)' : 'Scholarship Poster Image' %></label>
+          <input type="hidden" name="current_poster_path" id="edit_poster_path" value="">
+          <div class="flex items-start gap-3">
+            <img id="edit_poster_preview" src="" alt="" class="hidden w-20 h-28 object-cover object-top rounded-lg border border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div class="flex-1">
+              <input type="file" name="poster_file" accept="image/jpeg,image/png" onchange="previewPoster(this, 'edit_poster_preview')" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-green-50 dark:file:bg-green-900/30 file:text-green-700 dark:file:text-green-300 file:text-xs file:font-semibold">
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'JPEG ឬ PNG — បើមិនជ្រើសរើសថ្មី រូបភាពចាស់នឹងត្រូវបានរក្សាទុក' : 'JPEG or PNG — leave empty to keep the current poster' %></p>
+            </div>
+          </div>
         </div>
       </div>
       <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
@@ -274,14 +401,174 @@
 </div>
 
 <script>
+function openAddTypeModal() {
+  document.querySelectorAll('#addTypeModal input[name="major_ids"]').forEach(function(cb) { cb.checked = false; });
+  document.getElementById('add_major_panel').classList.add('hidden');
+  updateMajorSummary('add');
+  document.getElementById('add_tier_options').value = '[]';
+  ['add_tier_input', 'add_tier_years', 'add_tier_seats'].forEach(function(id) { document.getElementById(id).value = ''; });
+  renderTiers('add');
+  document.getElementById('addTypeModal').classList.remove('hidden');
+}
+
+function previewPoster(input, previewId) {
+  var img = document.getElementById(previewId);
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function (e) { img.src = e.target.result; img.classList.remove('hidden'); };
+    reader.readAsDataURL(input.files[0]);
+  } else {
+    img.src = '';
+    img.classList.add('hidden');
+  }
+}
+
+var LANG_KM = <%= currentLang === 'km' ? 'true' : 'false' %>;
+
+function parseTierRaw(raw) {
+  var s = String(raw == null ? '' : raw).trim();
+  if (!s) return [];
+  if (s.charAt(0) === '[') {
+    try { var a = JSON.parse(s); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+  }
+  return s.split(/[^0-9]+/).filter(Boolean).map(Number).filter(function (n) { return n >= 1 && n <= 100; })
+    .map(function (p) { return { p: p, y: null, s: null }; });
+}
+
+function tierList(prefix) {
+  var hidden = document.getElementById(prefix + '_tier_options');
+  return parseTierRaw(hidden ? hidden.value : '');
+}
+
+function tierKey(t) { return t.p + '/' + (t.y || 0); }
+
+function saveTiers(prefix, list) {
+  var clean = [];
+  list.forEach(function (t) {
+    if (t && Number(t.p) >= 1 && Number(t.p) <= 100) {
+      var y = Number(t.y), s = Number(t.s);
+      clean.push({ p: Number(t.p), y: (y >= 1 && y <= 10) ? y : null, s: (s >= 1 && s <= 999) ? s : null });
+    }
+  });
+  var uniq = [];
+  clean.forEach(function (t) {
+    if (!uniq.some(function (u) { return u.p === t.p && u.y === t.y; })) uniq.push(t);
+  });
+  document.getElementById(prefix + '_tier_options').value = JSON.stringify(uniq.slice(0, 12));
+  renderTiers(prefix);
+}
+
+function tierLabel(t) {
+  var label = t.p + '%';
+  if (t.y) label += ' · ' + t.y + (LANG_KM ? 'ឆ្នាំ' : 'y');
+  if (t.s) label += ' · ' + t.s + (LANG_KM ? 'កន្លែង' : ' seats');
+  return label;
+}
+
+function renderTiers(prefix) {
+  var box = document.getElementById(prefix + '_tier_chips');
+  var list = tierList(prefix);
+  box.innerHTML = list.map(function (t) {
+    return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800">' + tierLabel(t) +
+      '<button type="button" onclick="removeTier(\'' + prefix + '\',\'' + tierKey(t) + '\')" class="text-green-500 hover:text-red-500 font-bold">&times;</button></span>';
+  }).join('');
+}
+
+function addTier(prefix) {
+  var pEl = document.getElementById(prefix + '_tier_input');
+  var yEl = document.getElementById(prefix + '_tier_years');
+  var sEl = document.getElementById(prefix + '_tier_seats');
+  var p = parseInt(pEl.value, 10), y = parseInt(yEl.value, 10), s = parseInt(sEl.value, 10);
+  if (!p || p < 1 || p > 100) { pEl.classList.add('border-red-400'); return; }
+  pEl.classList.remove('border-red-400');
+  var list = tierList(prefix);
+  var entry = { p: p, y: (y >= 1 && y <= 10) ? y : null, s: (s >= 1 && s <= 999) ? s : null };
+  if (!list.some(function (t) { return tierKey(t) === tierKey(entry); })) {
+    list.push(entry);
+    list.sort(function (a, b) { return (b.y || 0) - (a.y || 0) || b.p - a.p; });
+  }
+  pEl.value = ''; yEl.value = ''; sEl.value = '';
+  saveTiers(prefix, list);
+  renderTierSuggestions(prefix);
+}
+
+function removeTier(prefix, key) {
+  var list = tierList(prefix).filter(function (t) { return tierKey(t) !== key; });
+  saveTiers(prefix, list);
+}
+
+function renderTierSuggestions(prefix) {
+  var pInput = document.getElementById(prefix + '_tier_input');
+  var yInput = document.getElementById(prefix + '_tier_years');
+  var box = document.getElementById(prefix + '_tier_suggest');
+  if (!box) return;
+  var base = parseInt(pInput && pInput.value, 10);
+  if (!base || base < 1 || base > 100) { box.innerHTML = ''; return; }
+  var y = parseInt(yInput && yInput.value, 10) || null;
+  var vals = [1, 0.6, 0.4].map(function (f) { return Math.round(base * f); }).filter(function (v, i, a) { return v >= 1 && a.indexOf(v) === i; });
+  box.innerHTML = vals.map(function (v) {
+    var label = v + '%' + (y ? ' · ' + y + (LANG_KM ? 'ឆ្នាំ' : 'y') : '');
+    return '<button type="button" onclick="suggestCombo(\'' + prefix + '\',' + v + ',' + (y || 0) + ')" class="px-2 py-0.5 rounded-lg text-xs font-bold border border-dashed border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 bg-green-50/60 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all">' + label + '</button>';
+  }).join('');
+}
+
+function suggestCombo(prefix, p, y) {
+  var list = tierList(prefix);
+  var entry = { p: p, y: (y >= 1 && y <= 10) ? y : null, s: null };
+  if (!list.some(function (t) { return tierKey(t) === tierKey(entry); })) {
+    list.push(entry);
+    list.sort(function (a, b) { return (b.y || 0) - (a.y || 0) || b.p - a.p; });
+  }
+  saveTiers(prefix, list);
+}
+
+function toggleMajorDropdown(prefix) {
+  document.getElementById(prefix + '_major_panel').classList.toggle('hidden');
+}
+
+var MAJOR_PLACEHOLDER = '<%= currentLang === "km" ? "ជ្រើសរើសជំនាញ..." : "Select majors..." %>';
+
+function updateMajorSummary(prefix) {
+  var modalId = prefix === 'add' ? 'addTypeModal' : 'editTypeModal';
+  var boxes = document.querySelectorAll('#' + modalId + ' input[name="major_ids"]');
+  var picked = [];
+  boxes.forEach(function (cb) {
+    if (cb.checked) picked.push(cb.parentNode.querySelector('span').textContent.trim());
+  });
+  var el = document.getElementById(prefix + '_major_summary');
+  if (!picked.length) {
+    el.textContent = MAJOR_PLACEHOLDER;
+    el.classList.add('text-gray-400');
+  } else {
+    var txt = picked.slice(0, 2).join(', ');
+    if (picked.length > 2) txt += ' +' + (picked.length - 2);
+    el.textContent = txt;
+    el.classList.remove('text-gray-400');
+  }
+}
+
 function editType(st) {
   document.getElementById('editTypeForm').action = '/admin/scholarship-types/' + st.id + '/edit';
   document.getElementById('edit_name_kh').value = st.name_kh;
   document.getElementById('edit_name_en').value = st.name_en || '';
-  document.getElementById('edit_coverage').value = st.coverage_percentage;
-  document.getElementById('edit_duration').value = st.duration_years;
+  document.getElementById('edit_tier_options').value = JSON.stringify(parseTierRaw(st.tier_options || ''));
+  document.getElementById('edit_tier_input').value = '';
+  document.getElementById('edit_tier_years').value = '';
+  document.getElementById('edit_tier_seats').value = '';
+  renderTiers('edit');
+  renderTierSuggestions('edit');
+  var editMajorIds = String(st.major_ids || '').split(',').filter(Boolean);
+  document.querySelectorAll('#editTypeModal input[name="major_ids"]').forEach(function(cb) {
+    cb.checked = editMajorIds.indexOf(cb.value) !== -1;
+  });
+  document.getElementById('edit_major_panel').classList.add('hidden');
+  updateMajorSummary('edit');
+  document.getElementById('edit_leader').value = st.leader_name || '';
   document.getElementById('edit_provider').value = st.provider_name;
   document.getElementById('edit_description').value = st.description || '';
+  document.getElementById('edit_poster_path').value = st.poster_path || '';
+  var pv = document.getElementById('edit_poster_preview');
+  if (st.poster_path) { pv.src = st.poster_path; pv.classList.remove('hidden'); } else { pv.src = ''; pv.classList.add('hidden'); }
   document.getElementById('editTypeModal').classList.remove('hidden');
 }
 
@@ -312,6 +599,15 @@ document.addEventListener('click', function(e) {
     closeDeleteTypePopover();
   }
 });
+document.addEventListener('click', function(e) {
+  ['add', 'edit'].forEach(function(p) {
+    var panel = document.getElementById(p + '_major_panel');
+    if (panel && !panel.classList.contains('hidden') && !panel.contains(e.target) && !e.target.closest('[onclick*="toggleMajorDropdown"]')) {
+      panel.classList.add('hidden');
+    }
+  });
+});
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeDeleteTypePopover();
 });
