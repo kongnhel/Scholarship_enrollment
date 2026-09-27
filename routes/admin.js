@@ -4,7 +4,6 @@ const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { uploadToImageKit, extractFileId, deleteFromImageKit } = require('../utils/imagekit');
 const XLSX = require('xlsx');
-const PDFDocument = require('pdfkit');
 
 
 function t(req, km, en) {
@@ -595,35 +594,68 @@ router.post('/users/:id/delete', async (req, res) => {
     }
 });
 
+async function getReportStats(db) {
+    const [total] = await db.query('SELECT COUNT(*) as count FROM applications');
+    const [byMajor] = await db.query(
+        `SELECT m.name_kh, m.name_en, COUNT(a.id) as count
+         FROM applications a LEFT JOIN majors m ON a.major_first_choice_id = m.id
+         GROUP BY a.major_first_choice_id`
+    );
+    const [byCategory] = await db.query(
+        `SELECT st.name_kh, st.name_en, COUNT(a.id) as count
+         FROM applications a LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
+         WHERE a.scholarship_type_id IS NOT NULL
+         GROUP BY a.scholarship_type_id`
+    );
+    const [byProvince] = await db.query(
+        `SELECT p.name_kh, p.name_en, COUNT(a.id) as count
+         FROM applications a LEFT JOIN provinces p ON a.school_province_id = p.id
+         GROUP BY a.school_province_id`
+    );
+    const [byGender] = await db.query('SELECT gender, COUNT(*) as count FROM applications GROUP BY gender');
+    const [byStatus] = await db.query('SELECT status, COUNT(*) as count FROM applications GROUP BY status');
+    return { total: total[0].count, byMajor, byCategory, byProvince, byGender, byStatus };
+}
+
+const REPORT_APPLICATIONS_SQL = `SELECT a.*, m.name_kh as major1_name_kh, m.name_en as major1_name_en,
+     m2.name_kh as major2_name_kh, m2.name_en as major2_name_en,
+     c.name_kh as category_name_kh, c.name_en as category_name_en,
+     st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
+     st.coverage_percentage, st.duration_years, st.provider_name,
+     p.name_kh as province_name_kh, p.name_en as province_name_en,
+     u.email as user_email, u.khmer_name as account_khmer_name, u.english_name as account_english_name
+     FROM applications a
+     LEFT JOIN majors m ON a.major_first_choice_id = m.id
+     LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id
+     LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
+     LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
+     LEFT JOIN provinces p ON a.school_province_id = p.id
+     LEFT JOIN users u ON a.user_id = u.id
+     ORDER BY a.submitted_at DESC`;
+
+function fmtDate(v) {
+    if (!v) return '';
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB');
+}
+
+function fmtDateTime(v) {
+    if (!v) return '';
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
 router.get('/reports', async (req, res) => {
     try {
-        const [total] = await req.db.query('SELECT COUNT(*) as count FROM applications');
-        const [byMajor] = await req.db.query(
-            `SELECT m.name_kh, m.name_en, COUNT(a.id) as count
-             FROM applications a LEFT JOIN majors m ON a.major_first_choice_id = m.id
-             GROUP BY a.major_first_choice_id`
-        );
-        const [byCategory] = await req.db.query(
-            `SELECT st.name_kh, st.name_en, COUNT(a.id) as count
-             FROM applications a LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
-             WHERE a.scholarship_type_id IS NOT NULL
-             GROUP BY a.scholarship_type_id`
-        );
-        const [byProvince] = await req.db.query(
-            `SELECT p.name_kh, p.name_en, COUNT(a.id) as count
-             FROM applications a LEFT JOIN provinces p ON a.school_province_id = p.id
-             GROUP BY a.school_province_id`
-        );
-        const [byGender] = await req.db.query('SELECT gender, COUNT(*) as count FROM applications GROUP BY gender');
-        const [byStatus] = await req.db.query('SELECT status, COUNT(*) as count FROM applications GROUP BY status');
+        const stats = await getReportStats(req.db);
         res.render('admin/reports', {
             title: 'Reports',
-            total: total[0].count,
-            byMajor,
-            byCategory,
-            byProvince,
-            byGender,
-            byStatus
+            total: stats.total,
+            byMajor: stats.byMajor,
+            byCategory: stats.byCategory,
+            byProvince: stats.byProvince,
+            byGender: stats.byGender,
+            byStatus: stats.byStatus
         });
     } catch (err) {
         console.error(err);
@@ -634,31 +666,71 @@ router.get('/reports', async (req, res) => {
 
 router.get('/reports/export/excel', async (req, res) => {
     try {
-        const [applications] = await req.db.query(
-            `SELECT a.id, a.english_first_name, a.english_last_name, a.khmer_first_name, a.khmer_last_name,
-             a.gender, a.email, a.phone, m.name_en as major, c.name_en as category, a.status, a.submitted_at
-             FROM applications a
-             LEFT JOIN majors m ON a.major_first_choice_id = m.id
-             LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
-             ORDER BY a.submitted_at DESC`
-        );
+        const [applications] = await req.db.query(REPORT_APPLICATIONS_SQL);
         const data = applications.map(a => ({
             ID: a.id,
-            'English First Name': a.english_first_name,
-            'English Last Name': a.english_last_name,
-            'Khmer First Name': a.khmer_first_name,
-            'Khmer Last Name': a.khmer_last_name,
-            Gender: a.gender,
-            Email: a.email,
-            Phone: a.phone,
-            Major: a.major || '',
-            Category: a.category || '',
             Status: a.status,
-            'Submitted Date': a.submitted_at ? new Date(a.submitted_at).toLocaleDateString('en-GB') : ''
+            'Khmer First Name': a.khmer_first_name || '',
+            'Khmer Last Name': a.khmer_last_name || '',
+            'English First Name': a.english_first_name || '',
+            'English Last Name': a.english_last_name || '',
+            Gender: a.gender || '',
+            'Date of Birth': fmtDate(a.date_of_birth),
+            'Birth Place': a.birth_place || '',
+            Nationality: a.nationality || '',
+            Email: a.email || a.user_email || '',
+            Phone: a.phone || '',
+            Telegram: a.telegram || '',
+            'Current Address': a.current_address || '',
+            Village: a.address_village || '',
+            Commune: a.address_commune || '',
+            District: a.address_district || '',
+            Province: a.address_province || '',
+            "Father/Guardian Name": a.parent_name || '',
+            'Mother Name': a.mother_name || '',
+            Occupation: a.occupation || '',
+            'Education Level': a.education_level || '',
+            'Parent Phone': a.parent_phone || '',
+            'School Name': a.school_name || '',
+            'School Province': a.province_name_en || a.province_name_kh || '',
+            'Graduation Year': a.graduation_year || '',
+            'Major Choice 1': a.major1_name_en || a.major1_name_kh || '',
+            'Major Choice 2': a.major2_name_en || a.major2_name_kh || '',
+            Category: a.category_name_en || a.category_name_kh || '',
+            'Scholarship Program': a.scholarship_name_en || a.scholarship_name_kh || '',
+            'Scholarship Provider': a.provider_name || '',
+            'Coverage %': a.coverage_percentage != null ? a.coverage_percentage : '',
+            'Duration (Years)': a.duration_years != null ? a.duration_years : '',
+            'Scholarship Option': a.scholarship_option || '',
+            'Study Level': a.study_level || '',
+            'Study Period': a.study_period || '',
+            'Study Shift': a.study_shift || '',
+            'Exam Session': a.exam_session || '',
+            'Exam Center': a.exam_center || '',
+            'Exam Result': a.exam_result || '',
+            'Exam Date': fmtDate(a.exam_date),
+            'Exam Time': a.exam_time || '',
+            'Exam Venue': a.exam_venue || '',
+            'Submitted Date': fmtDateTime(a.submitted_at),
+            'Last Updated': fmtDateTime(a.updated_at),
+            'Account Name (EN)': a.account_english_name || '',
+            'Account Name (KM)': a.account_khmer_name || ''
         }));
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(data);
         XLSX.utils.book_append_sheet(wb, ws, 'Applications');
+
+        const stats = await getReportStats(req.db);
+        const summary = [
+            { Section: 'Total', Item: 'All Applications', Count: stats.total },
+            ...stats.byStatus.map(s => ({ Section: 'Status', Item: s.status, Count: s.count })),
+            ...stats.byGender.map(g => ({ Section: 'Gender', Item: g.gender || 'N/A', Count: g.count })),
+            ...stats.byMajor.map(m => ({ Section: 'Major', Item: m.name_en || m.name_kh || 'N/A', Count: m.count })),
+            ...stats.byCategory.map(c => ({ Section: 'Scholarship', Item: c.name_en || c.name_kh || 'N/A', Count: c.count })),
+            ...stats.byProvince.map(p => ({ Section: 'Province', Item: p.name_en || p.name_kh || 'N/A', Count: p.count }))
+        ];
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Summary');
+
         const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
         res.setHeader('Content-Disposition', 'attachment; filename=applications.xlsx');
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -670,60 +742,21 @@ router.get('/reports/export/excel', async (req, res) => {
     }
 });
 
-router.get('/reports/export/pdf', async (req, res) => {
+router.get('/reports/print', async (req, res) => {
     try {
-        const [applications] = await req.db.query(
-            `SELECT a.id, a.english_first_name, a.english_last_name, a.gender,
-             m.name_en as major, c.name_en as category, a.status, a.submitted_at
-             FROM applications a
-             LEFT JOIN majors m ON a.major_first_choice_id = m.id
-             LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
-             ORDER BY a.submitted_at DESC`
-        );
-        const [stats] = await req.db.query('SELECT status, COUNT(*) as count FROM applications GROUP BY status');
-        const doc = new PDFDocument({ margin: 30, size: 'A4', layout: 'landscape' });
-        res.setHeader('Content-Disposition', 'inline; filename=applications.pdf');
-        res.setHeader('Content-Type', 'application/pdf');
-        doc.pipe(res);
-        doc.fontSize(20).text('Scholarship Applications Report', { align: 'center' });
-        doc.moveDown();
-        doc.fontSize(12).text(`Total Applications: ${applications.length}`);
-        doc.moveDown(0.5);
-        stats.forEach(s => {
-            doc.text(`${s.status}: ${s.count}`);
+        const stats = await getReportStats(req.db);
+        const [applications] = await req.db.query(REPORT_APPLICATIONS_SQL);
+        res.render('admin/reports-print', {
+            title: 'Print Report',
+            layout: false,
+            stats,
+            applications,
+            backHref: '/admin/reports',
+            generatedAt: new Date()
         });
-        doc.moveDown();
-        doc.fontSize(14).text('Application List', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(8);
-        const headers = ['ID', 'Name', 'Major', 'Category', 'Status', 'Date'];
-        const colWidths = [30, 150, 120, 100, 80, 100];
-        let y = doc.y;
-        let x = 30;
-        headers.forEach((h, i) => {
-            doc.font('Helvetica-Bold').text(h, x, y, { width: colWidths[i], align: 'left' });
-            x += colWidths[i];
-        });
-        doc.moveDown(0.5);
-        y = doc.y;
-        applications.forEach(a => {
-            if (y > 500) {
-                doc.addPage();
-                y = 30;
-            }
-            x = 30;
-            const rowData = [a.id, `${a.english_first_name} ${a.english_last_name}`, a.major || '', a.category || '', a.status, new Date(a.submitted_at).toLocaleDateString()];
-            doc.font('Helvetica');
-            rowData.forEach((d, i) => {
-                doc.text(String(d).substring(0, 25), x, y, { width: colWidths[i], align: 'left' });
-                x += colWidths[i];
-            });
-            y += 15;
-        });
-        doc.end();
     } catch (err) {
         console.error(err);
-        req.flash('error', t(req, 'មានកំហុសក្នុងការនាំចេញ', 'Export error'));
+        req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/reports');
     }
 });

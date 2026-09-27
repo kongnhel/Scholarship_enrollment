@@ -233,7 +233,7 @@ router.get('/application/new', async (req, res) => {
     const [majors] = await req.db.query('SELECT id, name_kh, name_en FROM majors WHERE is_active = 1');
     const [provinces] = await req.db.query('SELECT id, name_kh, name_en FROM provinces');
     const [scholarshipTypes] = await req.db.query(
-      'SELECT id, name_kh, name_en, coverage_percentage, duration_years, provider_name FROM scholarship_types WHERE is_active = 1 ORDER BY id ASC'
+      'SELECT id, name_kh, name_en, coverage_percentage, duration_years, provider_name, leader_name FROM scholarship_types WHERE is_active = 1 ORDER BY id ASC'
     );
     res.render('student/application-form', {
       title: 'New Application',

@@ -246,13 +246,16 @@
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២៦. កម្មវិធីអាហារូបករណ៍' : '26. Scholarship Program' %> <span class="text-red-500">*</span></label>
             <select name="scholarship_type_id" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
-              <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសកម្មវិធីអាហារូបករណ៍' : 'Select scholarship program' %></option>
-              <% scholarshipTypes.forEach(function(st) {
-                var prov = st.provider_name || '';
-                var provSuffix = prov && prov.indexOf('សាកលវិទ្យាល័យជាតិមានជ័យ') === -1 ? ' — ' + prov : '';
-              %>
-                <option value="<%= st.id %>"<%= (typeof selectedScholarshipId !== 'undefined' && Number(selectedScholarshipId) === Number(st.id)) ? ' selected' : '' %>><%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %> - <%= st.coverage_percentage %>% (<%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yr' %>)<%= provSuffix %></option>
-              <% }); %>
+<option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសកម្មវិធីអាហារូបករណ៍' : 'Select scholarship program' %></option>
+<% scholarshipTypes.forEach(function(st) { 
+  var prov = st.leader_name || '';
+  var provSuffix = prov && prov.indexOf('សាកលវិទ្យាល័យជាតិមានជ័យ') === -1 ? ' — ' + prov : '';
+%>
+  <option value="<%= st.id %>"<%= (typeof selectedScholarshipId !== 'undefined' && Number(selectedScholarshipId) === Number(st.id)) ? ' selected' : '' %>>
+    <%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %> - <%= st.coverage_percentage %>% (<%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yr' %>)<%= provSuffix %>
+  </option>
+<% }); %>
+              
             </select>
             <div class="flex flex-wrap items-center justify-between gap-2 mt-1.5">
               <p class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'បានជ្រើសរើសរួចជាមុនពីជំហានទី ១។' : 'Pre-selected from Step 1.' %></p>

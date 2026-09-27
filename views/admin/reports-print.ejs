@@ -1,0 +1,485 @@
+<%
+  var statsData = stats || {};
+  var apps = applications || [];
+  var statusKm = {
+    pending: 'រង់ចាំ',
+    under_review: 'កំពុងពិនិត្យ',
+    approved: 'អនុម័ត',
+    rejected: 'បដិសេធ',
+    correction_requested: 'តម្រូវកែប្រែ'
+  };
+  var educationKm = {
+    none: 'គ្មានអប់រំ',
+    primary: 'បឋមសិក្សា',
+    lower_secondary: 'មធ្យមសិក្សាបឋមភូមិ',
+    upper_secondary: 'មធ្យមសិក្សាទុតិយភូមិ',
+    higher_education: 'ឧត្តមសិក្សា',
+    bachelor: 'បរិញ្ញាបត្រ',
+    master: 'បរិញ្ញាបត្រអនុបណ្ឌិត',
+    phd: 'បណ្ឌិត'
+  };
+  var studyLevelKm = { bachelor: 'ថ្នាក់បរិញ្ញាបត្រ', associate: 'ថ្នាក់បរិញ្ញាបត្ររង' };
+  var studyPeriodKm = { mon_fri: 'ចន្ទ - សុក្រ', sat_sun: 'សៅរ៍ - អាទិត្យ' };
+  var studyShiftKm = { morning: 'ព្រឹក', afternoon: 'រសៀល', weekend: 'សៅរ៍អាទិត្យ' };
+  var genderKm = { male: 'ប្រុស', female: 'ស្រី', other: 'ផ្សេងៗ' };
+
+  function fv(v) { return (v === null || v === undefined || v === '') ? '—' : v; }
+  function fmtD(v) {
+    if (!v) return '—';
+    var d = new Date(v);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-GB');
+  }
+  function fmtDT(v) {
+    if (!v) return '—';
+    var d = new Date(v);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+  function addressText(a) {
+    return a.current_address || [a.address_village, a.address_commune, a.address_district, a.address_province].filter(Boolean).join(', ') || '—';
+  }
+  function optionText(a) {
+    var parts = String(a.scholarship_option || '').split('/');
+    if (!parts[0]) return '—';
+    return parts[0] + '%' + (parts[1] ? ' · ' + parts[1] + ' ឆ្នាំ' : '');
+  }
+
+  var perPage = 2;
+  var studentPages = [];
+  for (var pi = 0; pi < apps.length; pi += perPage) studentPages.push(apps.slice(pi, pi + perPage));
+  if (studentPages.length === 0) studentPages.push([]);
+  var genDate = generatedAt ? new Date(generatedAt) : new Date();
+%>
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>សាកលវិទ្យាល័យជាតិមានជ័យ - របាយការណ៍ A4</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --font-moul: 'Moul', 'Khmer OS Muol Light', serif;
+      --font-body: 'Battambang', 'Khmer OS Battambang', 'Siemreap', sans-serif;
+    }
+    .font-moul { font-family: var(--font-moul); }
+    .font-body { font-family: var(--font-body); }
+
+    body {
+      font-family: var(--font-body);
+      background-color: #334155;
+      color: #000;
+      line-height: 1.9;
+    }
+
+    .a4-page,
+    .a4-page * {
+      line-height: 1.9 !important;
+    }
+
+    .a4-page {
+      width: 210mm;
+      height: 297mm;
+      padding: 10mm 15mm;
+      margin: 20px auto;
+      background: white;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rep-title {
+      font-family: var(--font-moul);
+      font-size: 15px;
+      text-align: center;
+      margin: 0;
+    }
+
+    .rep-sub {
+      text-align: center;
+      font-size: 12.5px;
+      margin-top: 2px;
+    }
+
+    .rep-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #334155;
+      border-bottom: 2px solid #000;
+      padding-bottom: 3px;
+      margin-bottom: 6px;
+    }
+
+    table.rep {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      margin-bottom: 5px;
+    }
+
+    table.rep th,
+    table.rep td {
+      border: 1px solid #94a3b8;
+      padding: 3px 7px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    table.rep th {
+      background: #f1f5f9;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .sec-h {
+      font-size: 12.5px;
+      font-weight: 700;
+      margin: 8px 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sec-h::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #000;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .stat-box {
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      background: #f8fafc;
+    }
+
+    .stat-box b {
+      display: block;
+      font-size: 17px;
+      line-height: 1.4 !important;
+    }
+
+    .student-block {
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      padding: 2mm 4mm;
+      margin-bottom: 3mm;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .stu-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 3px 9px;
+      margin-bottom: 4px;
+    }
+
+    .stu-no {
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .stu-name {
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .stu-id {
+      font-size: 11px;
+      color: #475569;
+    }
+
+    .stu-status {
+      margin-left: auto;
+      font-size: 10.5px;
+      font-weight: 700;
+      border: 1px solid #94a3b8;
+      border-radius: 999px;
+      padding: 0 8px;
+      background: #fff;
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 8mm;
+    }
+
+    .field {
+      font-size: 11.5px;
+      border-bottom: 1px dotted #cbd5e1;
+      padding: 0 2px;
+      overflow-wrap: anywhere;
+    }
+
+    .field .lbl {
+      font-weight: 700;
+      color: #334155;
+      font-size: 10.5px;
+    }
+
+    .page-tag {
+      position: absolute;
+      bottom: 5mm;
+      left: 15mm;
+      right: 15mm;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #64748b;
+      border-top: 1px dotted #cbd5e1;
+      padding-top: 2px;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      main {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .a4-page {
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: 10mm 15mm !important;
+        page-break-after: always;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="no-print sticky top-0 z-50 bg-slate-900 text-white shadow-lg px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-chart-column text-amber-400 text-xl"></i>
+        <div>
+          <h1 class="font-moul text-xs sm:text-sm">សាកលវិទ្យាល័យជាតិមានជ័យ</h1>
+          <p class="text-[11px] text-slate-400">របាយការណ៍និងស្ថិតិ - ទំព័របោះពុម្ព A4</p>
+        </div>
+      </div>
+
+      <div class="flex items-center flex-wrap gap-3">
+        <span class="text-[11px] text-slate-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded"><i class="fa-solid fa-users mr-1"></i>ពាក្យសុំ <%= apps.length %></span>
+        <a href="<%= (typeof backHref !== 'undefined' && backHref) ? backHref : '/admin/reports' %>" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-xs font-medium transition flex items-center gap-1.5 text-white no-underline">
+          <i class="fa-solid fa-arrow-left text-amber-300"></i> ត្រឡប់
+        </a>
+        <button onclick="window.print()" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs sm:text-sm shadow transition flex items-center gap-2">
+          <i class="fa-solid fa-print"></i> បោះពុម្ព A4 (Print)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="py-4">
+
+    <!-- PAGE 1: SUMMARY -->
+    <section class="a4-page">
+      <div class="rep-meta">
+        <span>សាកលវិទ្យាល័យជាតិមានជ័យ</span>
+        <span>កិច្ចការ: របាយការណ៍អាហារូបករណ៍</span>
+      </div>
+
+      <h1 class="rep-title">របាយការណ៍ស្ថិតិពាក្យសុំអាហារូបករណ៍</h1>
+      <p class="rep-sub">Scholarship Applications Statistics Report</p>
+      <p class="rep-sub" style="font-size:11px;">ថ្ងៃចេញរបាយការណ៍: <%= genDate.toLocaleDateString('en-GB') %> <%= genDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) %></p>
+
+      <div class="sec-h">១. សរុបទំនាក់ទំនង</div>
+      <div class="stat-grid">
+        <div class="stat-box">សរុបពាក្យសុំ<b><%= statsData.total || 0 %></b></div>
+        <% (statsData.byGender || []).forEach(function(g) { %>
+          <div class="stat-box"><%= g.gender === 'male' ? 'ប្រុស' : (g.gender === 'female' ? 'ស្រី' : 'ផ្សេងៗ') %><b><%= g.count %></b></div>
+        <% }); %>
+        <% (statsData.byStatus || []).slice(0, 3).forEach(function(s) { %>
+          <div class="stat-box"><%= statusKm[s.status] || s.status %><b><%= s.count %></b></div>
+        <% }); %>
+      </div>
+
+      <div class="sec-h">២. ស្ថានភាពពាក្យសុំ</div>
+      <table class="rep">
+        <thead>
+          <tr><th style="width:60%">ស្ថានភាព</th><th style="width:20%">ចំនួន</th><th style="width:20%">ភាគរយ</th></tr>
+        </thead>
+        <tbody>
+          <% (statsData.byStatus || []).forEach(function(s) { %>
+            <tr>
+              <td><%= statusKm[s.status] || s.status %> (<%= s.status %>)</td>
+              <td><%= s.count %></td>
+              <td><%= statsData.total > 0 ? ((s.count / statsData.total) * 100).toFixed(1) : 0 %>%</td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <div class="sec-h">៣. ពាក្យសុំតាមជំនាញ</div>
+      <table class="rep">
+        <thead>
+          <tr><th style="width:60%">ជំនាញ</th><th style="width:20%">ចំនួន</th><th style="width:20%">ភាគរយ</th></tr>
+        </thead>
+        <tbody>
+          <% (statsData.byMajor || []).forEach(function(m) { %>
+            <tr>
+              <td><%= fv(m.name_kh || m.name_en) %></td>
+              <td><%= m.count %></td>
+              <td><%= statsData.total > 0 ? ((m.count / statsData.total) * 100).toFixed(1) : 0 %>%</td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <div class="sec-h">៤. ពាក្យសុំតាមកម្មវិធីអាហារូបករណ៍</div>
+      <table class="rep">
+        <thead>
+          <tr><th style="width:60%">កម្មវិធី</th><th style="width:20%">ចំនួន</th><th style="width:20%">ភាគរយ</th></tr>
+        </thead>
+        <tbody>
+          <% (statsData.byCategory || []).forEach(function(c) { %>
+            <tr>
+              <td><%= fv(c.name_kh || c.name_en) %></td>
+              <td><%= c.count %></td>
+              <td><%= statsData.total > 0 ? ((c.count / statsData.total) * 100).toFixed(1) : 0 %>%</td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <div class="sec-h">៥. ពាក្យសុំតាមខេត្ត</div>
+      <table class="rep">
+        <thead>
+          <tr><th style="width:60%">ខេត្ត</th><th style="width:20%">ចំនួន</th><th style="width:20%">ភាគរយ</th></tr>
+        </thead>
+        <tbody>
+          <% (statsData.byProvince || []).forEach(function(p) { %>
+            <tr>
+              <td><%= fv(p.name_kh || p.name_en) %></td>
+              <td><%= p.count %></td>
+              <td><%= statsData.total > 0 ? ((p.count / statsData.total) * 100).toFixed(1) : 0 %>%</td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <div class="page-tag"><span>របាយការណ៍អាហារូបករណ៍</span><span>ទំព័រ ១</span></div>
+    </section>
+
+    <!-- STUDENT DATA PAGES -->
+    <% studentPages.forEach(function(pageApps, pageIdx) { %>
+      <% if (pageIdx === 0 && pageApps.length === 0) { %>
+        <section class="a4-page">
+          <div class="rep-meta">
+            <span>សាកលវិទ្យាល័យជាតិមានជ័យ</span>
+            <span>ព័ត៌មានសិស្ស</span>
+          </div>
+          <h1 class="rep-title">ព័ត៌មានលម្អិតអ្នកដាក់ពាក្យ</h1>
+          <p class="rep-sub">Applicant Details</p>
+          <div style="text-align:center; margin-top:40px; font-size:14px;">មិនមានទិន្នន័យពាក្យសុំទេ។</div>
+          <div class="page-tag"><span>របាយការណ៍អាហារូបករណ៍</span><span>ទំព័រ ២</span></div>
+        </section>
+      <% } else { %>
+        <section class="a4-page">
+          <div class="rep-meta">
+            <span>ព័ត៌មានលម្អិតអ្នកដាក់ពាក្យ (ទំព័រទី <%= pageIdx + 2 %>)</span>
+            <span>សរុប: <%= apps.length %> នាក់</span>
+          </div>
+
+          <% pageApps.forEach(function(a, i) { %>
+            <% var gIdx = pageIdx * perPage + i + 1; %>
+            <div class="student-block">
+              <div class="stu-head">
+                <span class="stu-no">សិស្ស #<%= gIdx %></span>
+                <span class="stu-name"><%= fv(a.khmer_last_name) %> <%= fv(a.khmer_first_name) %></span>
+                <span class="stu-id">(<%= fv(a.english_first_name) %> <%= fv(a.english_last_name) %>)</span>
+                <span class="stu-status">#<%= a.id %> · <%= statusKm[a.status] || a.status %></span>
+              </div>
+              <div class="student-grid">
+                <div class="field"><span class="lbl">ឈ្មោះខ្មែរ: </span><%= fv(a.khmer_last_name) %> <%= fv(a.khmer_first_name) %></div>
+                <div class="field"><span class="lbl">ឈ្មោះអង់គ្លេស: </span><%= fv(a.english_first_name) %> <%= fv(a.english_last_name) %></div>
+                <div class="field"><span class="lbl">ភេទ: </span><%= genderKm[a.gender] || fv(a.gender) %></div>
+                <div class="field"><span class="lbl">ថ្ងៃខែឆ្នាំកំណើត: </span><%= fmtD(a.date_of_birth) %></div>
+                <div class="field"><span class="lbl">កន្លែងកំណើត: </span><%= fv(a.birth_place) %></div>
+                <div class="field"><span class="lbl">សញ្ជាតិ: </span><%= fv(a.nationality) %></div>
+                <div class="field"><span class="lbl">អាស័យដ្ឋាន: </span><%= addressText(a) %></div>
+                <div class="field"><span class="lbl">ទូរស័ព្ទ: </span><%= fv(a.phone) %></div>
+                <div class="field"><span class="lbl">អ៊ីមែល: </span><%= fv(a.email || a.user_email) %></div>
+                <div class="field"><span class="lbl">តេឡេក្រាម: </span><%= fv(a.telegram) %></div>
+                <div class="field"><span class="lbl">ឈ្មោះឪពុក/អាណាព្យាបាល: </span><%= fv(a.parent_name) %></div>
+                <div class="field"><span class="lbl">ឈ្មោះម្តាយ: </span><%= fv(a.mother_name) %></div>
+                <div class="field"><span class="lbl">មុខរបរ: </span><%= fv(a.occupation) %></div>
+                <div class="field"><span class="lbl">កម្រិតអប់រំ: </span><%= educationKm[a.education_level] || fv(a.education_level) %></div>
+                <div class="field"><span class="lbl">ទូរស័ព្ទឪពុក: </span><%= fv(a.parent_phone) %></div>
+                <div class="field"><span class="lbl">ឈ្មោះសាលា: </span><%= fv(a.school_name) %></div>
+                <div class="field"><span class="lbl">ខេត្តសាលា: </span><%= fv(a.province_name_kh || a.province_name_en) %></div>
+                <div class="field"><span class="lbl">ឆ្នាំបញ្ចប់: </span><%= fv(a.graduation_year) %></div>
+                <div class="field"><span class="lbl">ជម្រើសទី ១: </span><%= fv(a.major1_name_kh || a.major1_name_en) %></div>
+                <div class="field"><span class="lbl">ជម្រើសទី ២: </span><%= fv(a.major2_name_kh || a.major2_name_en) %></div>
+                <div class="field"><span class="lbl">ប្រភេទអាហារូបករណ៍: </span><%= fv(a.category_name_kh || a.category_name_en) %></div>
+                <div class="field"><span class="lbl">កម្មវិធី: </span><%= fv(a.scholarship_name_kh || a.scholarship_name_en) %></div>
+                <div class="field"><span class="lbl">អ្នកផ្តល់: </span><%= fv(a.provider_name) %></div>
+                <div class="field"><span class="lbl">កម្រិត/រយៈពេល: </span><%= optionText(a) %></div>
+                <div class="field"><span class="lbl">កម្រិតសិក្សា: </span><%= studyLevelKm[a.study_level] || fv(a.study_level) %></div>
+                <div class="field"><span class="lbl">ពេលសិក្សា: </span><%= studyPeriodKm[a.study_period] || fv(a.study_period) %></div>
+                <div class="field"><span class="lbl">វេនសិក្សា: </span><%= studyShiftKm[a.study_shift] || fv(a.study_shift) %></div>
+                <div class="field"><span class="lbl">លទ្ធផលប្រឡង: </span><%= fv(a.exam_result) %></div>
+                <div class="field"><span class="lbl">សំណុំបែបបទ: </span><%= fv(a.exam_session) %></div>
+                <div class="field"><span class="lbl">មណ្ឌលប្រឡង: </span><%= fv(a.exam_center) %></div>
+                <div class="field"><span class="lbl">កាលបរិច្ឆេទប្រឡង: </span><%= a.exam_date ? fmtD(a.exam_date) : fv(a.exam_date) %></div>
+                <div class="field"><span class="lbl">ម៉ោងប្រឡង: </span><%= fv(a.exam_time) %></div>
+                <div class="field"><span class="lbl">ទីកន្លែងប្រឡង: </span><%= fv(a.exam_venue) %></div>
+                <div class="field"><span class="lbl">ថ្ងៃដាក់ស្នើ: </span><%= fmtDT(a.submitted_at) %></div>
+                <div class="field"><span class="lbl">ធ្វើបច្ចុប្បន្នភាព: </span><%= fmtDT(a.updated_at) %></div>
+                <div class="field"><span class="lbl">ឈ្មោះគណនី: </span><%= fv(a.account_khmer_name || a.account_english_name) %></div>
+              </div>
+            </div>
+          <% }); %>
+
+          <div class="page-tag">
+            <span>របាយការណ៍អាហារូបករណ៍ - ទំព័រ <%= pageIdx + 2 %> / <%= studentPages.length + 1 %></span>
+            <span><%= genDate.toLocaleDateString('en-GB') %></span>
+          </div>
+        </section>
+      <% } %>
+    <% }); %>
+
+  </main>
+</body>
+</html>
