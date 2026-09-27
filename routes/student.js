@@ -36,10 +36,13 @@ router.get('/dashboard', async (req, res) => {
     const userId = req.session.user.id;
     const [applications] = await req.db.query(
       `SELECT a.*, m.name_kh as major_name_kh, m.name_en as major_name_en,
-       sc.name_kh as category_name_kh, sc.name_en as category_name_en
+       sc.name_kh as category_name_kh, sc.name_en as category_name_en,
+       st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
+       st.coverage_percentage, st.duration_years, st.provider_name
        FROM applications a
        LEFT JOIN majors m ON a.major_first_choice_id = m.id
        LEFT JOIN scholarship_categories sc ON a.scholarship_category_id = sc.id
+       LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
        WHERE a.user_id = ? ORDER BY a.submitted_at DESC LIMIT 1`,
       [userId]
     );
@@ -428,6 +431,44 @@ router.get('/application/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Application detail error:', error);
+    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+    res.redirect('/student/dashboard');
+  }
+});
+
+router.get('/application/:id/print', async (req, res) => {
+  try {
+    const [application] = await req.db.query(
+      `SELECT a.*, m.name_kh as major_name_kh, m.name_en as major_name_en,
+       m2.name_kh as major2_name_kh, m2.name_en as major2_name_en,
+       c.name_kh as category_name_kh, c.name_en as category_name_en,
+       p.name_kh as province_name_kh, p.name_en as province_name_en,
+       st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
+       st.coverage_percentage as scholarship_percentage, st.duration_years as scholarship_duration,
+       st.provider_name as scholarship_provider,
+       st.leader_name as scholarship_leader,
+       u.english_name as student_name, u.khmer_name as student_khmer_name, u.email as user_email
+       FROM applications a
+       LEFT JOIN majors m ON a.major_first_choice_id = m.id
+       LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id
+       LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
+       LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
+       LEFT JOIN provinces p ON a.school_province_id = p.id
+       LEFT JOIN users u ON a.user_id = u.id
+       WHERE a.id = ? AND a.user_id = ?`, [req.params.id, req.session.user.id]
+    );
+    if (!application.length) {
+      req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំ', 'Application not found'));
+      return res.redirect('/student/dashboard');
+    }
+    res.render('admin/application-print', {
+      title: 'Print Application',
+      layout: false,
+      application: application[0],
+      backHref: '/student/application/' + req.params.id
+    });
+  } catch (error) {
+    console.error('Student print error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
     res.redirect('/student/dashboard');
   }

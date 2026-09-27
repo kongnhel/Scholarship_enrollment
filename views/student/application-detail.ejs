@@ -2,18 +2,27 @@
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm no-print">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
     <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 min-w-0">
         <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
           <i class="bi bi-file-earmark-text text-white text-xl"></i>
         </div>
-        <div>
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">#<%= application.id %></div>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold">#<%= application.id %></span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300' : application.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' %>">
+              <span class="w-1.5 h-1.5 rounded-full <%= application.status === 'approved' ? 'bg-green-500' : application.status === 'rejected' ? 'bg-red-500' : application.status === 'pending' ? 'bg-yellow-500' : application.status === 'correction_requested' ? 'bg-orange-500' : 'bg-blue-500' %>"></span>
+              <%= application.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : application.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : application.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : application.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'UNDER REVIEW') : application.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECTION') : String(application.status || '').replace('_', ' ').toUpperCase() %>
+            </span>
+            <% if (application.submitted_at) { %>
+              <span class="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400"><i class="bi bi-calendar-check"></i><%= new Date(application.submitted_at).toLocaleDateString() %></span>
+            <% } %>
+          </div>
           <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានពាក្យសុំ' : 'Application Detail' %></h1>
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតនៃពាក្យសុំអាហារូបករណ៍របស់អ្នក' : 'Detailed information of your scholarship application' %></p>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 self-start sm:self-auto">
-        <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all no-print"><i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ភ' : 'Print' %></button>
+        <a href="/student/application/<%= application.id %>/print" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm no-print"><i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ព' : 'Print' %></a>
         <a href="/student/dashboard" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
       </div>
     </div>
@@ -59,20 +68,13 @@
                   <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.date_of_birth ? new Date(application.date_of_birth).toLocaleDateString() : '—' %></p>
                 </div>
               </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-flag text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.nationality || 'Cambodian' %></p>
-                </div>
-              </div>
             </div>
             <div class="space-y-3.5">
               <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-house text-green-600 dark:text-green-400 text-sm"></i></div>
                 <div>
                   <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អាស័យដ្ឋាន' : 'Address' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.current_address || '—' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.current_address || [application.address_village, application.address_commune, application.address_district, application.address_province].filter(Boolean).join(', ') || '—' %></p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
@@ -83,48 +85,67 @@
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-building text-green-600 dark:text-green-400 text-sm"></i></div>
+                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-flag text-green-600 dark:text-green-400 text-sm"></i></div>
                 <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សាលា' : 'School' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.school_name %> · <%= currentLang === 'km' ? application.province_name_kh : (application.province_name_en || '—') %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-star text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div class="min-w-0">
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អាហារូបករណ៍' : 'Scholarship' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? application.major_first_name_kh : application.major_first_name_en %></p>
-                  <p class="text-xs text-gray-400"><%= currentLang === 'km' ? application.category_name_kh : application.category_name_en %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-mortarboard text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div class="min-w-0">
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្មវិធីអាហារូបករណ៍' : 'Scholarship Program' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words"><%= currentLang === 'km' ? (application.scholarship_name_kh || '—') : (application.scholarship_name_en || application.scholarship_name_kh || '—') %></p>
-                  <% if (application.scholarship_percentage) { %>
-                  <p class="text-xs text-gray-400"><%= application.scholarship_percentage %>% · <%= application.scholarship_duration %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %></p>
-                  <% } %>
-                </div>
-              </div>
-              <%
-                var optVal = application.scholarship_option ? String(application.scholarship_option) : '';
-                var kmDigitMap = { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' };
-                var optParts = optVal.split('/');
-                var optPct = optParts[0] || '';
-                var optYears = optParts[1] || '';
-                var optLabel = optPct ? (currentLang === 'km'
-                  ? optPct.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + '%' + (optYears ? ' · ' + optYears.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + ' ឆ្នាំ' : '')
-                  : optPct + '%' + (optYears ? ' · ' + optYears + ' years' : '')) : '';
-              %>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-percent text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div class="min-w-0">
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍' : 'Scholarship Level' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words"><%= optLabel || '—' %></p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.nationality || 'Cambodian' %></p>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <%
+        var optVal = application.scholarship_option ? String(application.scholarship_option) : '';
+        var kmDigitMap = { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' };
+        var optParts = optVal.split('/');
+        var optPct = optParts[0] || '';
+        var optYears = optParts[1] || '';
+        var optLabel = optPct ? (currentLang === 'km'
+          ? optPct.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + '%' + (optYears ? ' · ' + optYears.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + ' ឆ្នាំ' : '')
+          : optPct + '%' + (optYears ? ' · ' + optYears + ' years' : '')) : '';
+      %>
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+            <i class="bi bi-award text-purple-600 dark:text-purple-400 text-sm"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានអាហារូបករណ៍' : 'Scholarship Information' %></span>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 mb-1.5"><i class="bi bi-journal-bookmark text-purple-500 text-sm"></i><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ជម្រើសមុខវិជ្ជា' : 'Major Choice' %></p></div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= currentLang === 'km' ? (application.major_first_name_kh || '—') : (application.major_first_name_en || application.major_first_name_kh || '—') %></p>
+            <% var _catName = currentLang === 'km' ? application.category_name_kh : application.category_name_en; %>
+            <% if (_catName) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><%= _catName %></p>
+            <% } %>
+            <% if (application.major_second_name_kh || application.major_second_name_en) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'ជម្រើសទី ២' : '2nd choice' %>: <%= currentLang === 'km' ? application.major_second_name_kh : application.major_second_name_en %></p>
+            <% } %>
+          </div>
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 mb-1.5"><i class="bi bi-mortarboard text-purple-500 text-sm"></i><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្មវិធីអាហារូបករណ៍' : 'Scholarship Program' %></p></div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= currentLang === 'km' ? (application.scholarship_name_kh || '—') : (application.scholarship_name_en || application.scholarship_name_kh || '—') %></p>
+            <% if (application.scholarship_provider) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><i class="bi bi-building"></i> <%= application.scholarship_provider %></p>
+            <% } %>
+          </div>
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 mb-1.5"><i class="bi bi-percent text-purple-500 text-sm"></i><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍' : 'Scholarship Level' %></p></div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= optLabel || '—' %></p>
+            <% if (application.scholarship_percentage && application.scholarship_percentage + '%' !== (optPct ? optPct + '%' : '')) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><%= application.scholarship_percentage %>%<%= application.scholarship_duration ? ' · ' + application.scholarship_duration + (currentLang === 'km' ? ' ឆ្នាំ' : ' yrs') : '' %></p>
+            <% } %>
+          </div>
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 mb-1.5"><i class="bi bi-building text-purple-500 text-sm"></i><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សាលា/ខេត្ត' : 'School / Province' %></p></div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= application.school_name || '—' %></p>
+            <% var _provName = currentLang === 'km' ? application.province_name_kh : application.province_name_en; %>
+            <% if (_provName) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><%= _provName %></p>
+            <% } %>
           </div>
         </div>
       </div>
@@ -135,6 +156,11 @@
             <i class="bi bi-files text-blue-600 dark:text-blue-400 text-sm"></i>
           </div>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ឯកសារដែលបានបង្ហោះ' : 'Uploaded Documents' %></span>
+          <%
+            var _extraDocs = (application.additional_documents_path || '').split(',').filter(Boolean);
+            var _uploadedDocs = [application.photo_path, application.photo_3x4_path, application.transcript_path].filter(Boolean).length + _extraDocs.length;
+          %>
+          <span class="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full <%= _uploadedDocs >= 3 ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' %> text-xs font-bold"><i class="bi bi-cloud-check"></i><%= _uploadedDocs %> / 3</span>
         </div>
         <div class="p-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -188,14 +214,81 @@
     </div>
 
     <div class="space-y-6">
+      <%
+        var st2 = (application.status === 'approved' || application.status === 'rejected') ? 'done' : 'current';
+        var st3 = (application.status === 'approved' || application.status === 'rejected') ? 'done' : 'future';
+        var statusTone = application.status === 'approved' ? { pill: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300', dot: 'bg-green-500' }
+          : application.status === 'rejected' ? { pill: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300', dot: 'bg-red-500' }
+          : application.status === 'pending' ? { pill: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300', dot: 'bg-yellow-500' }
+          : application.status === 'correction_requested' ? { pill: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300', dot: 'bg-orange-500' }
+          : { pill: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' };
+        var statusLabel = application.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING')
+          : application.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED')
+          : application.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED')
+          : application.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'UNDER REVIEW')
+          : application.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECTION')
+          : String(application.status || '').replace('_', ' ').toUpperCase();
+        var khName = ((application.khmer_first_name || '') + ' ' + (application.khmer_last_name || '')).trim() || (application.english_name || '—');
+        var latinName = ((application.english_first_name || '') + ' ' + (application.english_last_name || '')).trim();
+        var initials = (latinName || khName).substring(0, 1).toUpperCase();
+      %>
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="p-6 text-center">
-          <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"><%= currentLang === 'km' ? 'ស្ថានភាពបច្ចុប្បន្ន' : 'Current Status' %></p>
-          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold rounded-full <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : application.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>">
-            <span class="w-2 h-2 rounded-full <%= application.status === 'approved' ? 'bg-green-500' : application.status === 'rejected' ? 'bg-red-500' : application.status === 'pending' ? 'bg-yellow-500' : application.status === 'correction_requested' ? 'bg-orange-500' : 'bg-blue-500' %>"></span>
-            <%= application.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : application.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : application.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : application.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW') : application.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECTION') : application.status.replace('_', ' ').toUpperCase() %>
-          </span>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mt-2"><%= currentLang === 'km' ? 'ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ' : 'Last updated' %>: <%= application.updated_at ? new Date(application.updated_at).toLocaleDateString() : '—' %></p>
+        <div class="relative px-6 pt-6 pb-5 bg-gradient-to-br from-green-600 to-emerald-500 text-white overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-[4rem] -mr-8 -mt-8"></div>
+          <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-tr-[3rem] -ml-6 -mb-6"></div>
+          <div class="relative flex items-center gap-4">
+            <% if (application.photo_path) { %>
+              <img src="<%= application.photo_path %>" alt="photo" class="w-14 h-14 rounded-2xl object-cover border-2 border-white/60 shadow-md flex-shrink-0 bg-white/20">
+            <% } else { %>
+              <div class="w-14 h-14 rounded-2xl bg-white/20 border-2 border-white/40 shadow-md flex items-center justify-center text-xl font-bold flex-shrink-0"><%= initials %></div>
+            <% } %>
+            <div class="min-w-0">
+              <p class="font-bold leading-snug truncate"><%= khName %></p>
+              <p class="text-xs text-white/80 truncate"><%= latinName || '—' %></p>
+              <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                <span class="px-2 py-0.5 rounded-full bg-white/20 text-[11px] font-bold">#<%= application.id %></span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/95 <%= statusTone.pill %> text-[11px] font-bold"><span class="w-1.5 h-1.5 rounded-full <%= statusTone.dot %>"></span><%= statusLabel %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-5">
+          <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2"><i class="bi bi-diagram-3 text-green-600 dark:text-green-400"></i><%= currentLang === 'km' ? 'ដំណើរការ' : 'Progress' %></p>
+          <div class="space-y-0">
+            <div class="relative flex gap-3 pb-4">
+              <div class="flex flex-col items-center">
+                <div class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-[11px] shadow-sm flex-shrink-0"><i class="bi bi-check-lg"></i></div>
+                <div class="w-0.5 flex-1 bg-green-500 mt-1"></div>
+              </div>
+              <div class="-mt-0.5 min-w-0">
+                <p class="text-sm font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ដាក់ស្នើ' : 'Submitted' %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : (application.created_at ? new Date(application.created_at).toLocaleDateString() : '—') %></p>
+              </div>
+            </div>
+            <div class="relative flex gap-3 pb-4">
+              <div class="flex flex-col items-center">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 <%= st2 === 'done' ? 'bg-green-500 text-white shadow-sm' : application.status === 'correction_requested' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-300 ring-2 ring-orange-400 animate-pulse' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300 ring-2 ring-blue-400 animate-pulse' %>"><i class="bi <%= st2 === 'done' ? 'bi-check-lg' : 'bi-search' %>"></i></div>
+                <div class="w-0.5 flex-1 mt-1 <%= st3 === 'done' ? 'bg-green-500' : st2 === 'done' ? 'bg-green-300 dark:bg-green-800' : 'bg-gray-200 dark:bg-gray-700' %>"></div>
+              </div>
+              <div class="-mt-0.5 min-w-0">
+                <p class="text-sm font-bold <%= st2 === 'done' ? 'text-gray-900 dark:text-gray-100' : application.status === 'correction_requested' ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400' %>"><%= currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'Under Review' %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= st2 === 'done' ? (currentLang === 'km' ? 'បានពិនិត្យរួច' : 'Completed') : application.status === 'correction_requested' ? (currentLang === 'km' ? 'ត្រូវកែប្រែ' : 'Action needed') : (currentLang === 'km' ? 'កំពុងដំណើរការ' : 'In progress') %></p>
+              </div>
+            </div>
+            <div class="relative flex gap-3">
+              <div class="flex flex-col items-center">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 <%= st3 === 'done' ? (application.status === 'approved' ? 'bg-green-500 text-white shadow-sm' : 'bg-red-500 text-white shadow-sm') : 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500' %>"><i class="bi <%= st3 === 'done' ? (application.status === 'approved' ? 'bi-trophy' : 'bi-x-lg') : 'bi-flag' %>"></i></div>
+              </div>
+              <div class="-mt-0.5 min-w-0">
+                <p class="text-sm font-bold <%= st3 === 'done' ? (application.status === 'approved' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400') : 'text-gray-400 dark:text-gray-500' %>"><%= currentLang === 'km' ? 'លទ្ធផល' : 'Decision' %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= st3 === 'done' ? statusLabel : (currentLang === 'km' ? 'រង់ចាំ' : 'Pending') %></p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
+            <span><%= currentLang === 'km' ? 'ធ្វើបច្ចុប្បន្នភាព' : 'Last updated' %></span>
+            <span class="font-medium text-gray-500 dark:text-gray-400"><%= application.updated_at ? new Date(application.updated_at).toLocaleDateString() : '—' %></span>
+          </div>
         </div>
       </div>
 
@@ -247,9 +340,21 @@
           <% if (statusHistory && statusHistory.length > 0) { %>
             <div class="space-y-4">
               <% statusHistory.forEach(function(item) { %>
-                <div class="relative pl-4 border-l-2 border-green-500">
-                  <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500"></div>
-                  <p class="text-sm font-bold text-gray-800 dark:text-gray-100"><%= item.new_status.replace('_', ' ').toUpperCase() %></p>
+                <%
+                  var dotColor = item.new_status === 'approved' ? 'bg-green-500 border-green-500 text-green-600 dark:text-green-400'
+                    : item.new_status === 'rejected' ? 'bg-red-500 border-red-500 text-red-600 dark:text-red-400'
+                    : item.new_status === 'pending' ? 'bg-yellow-500 border-yellow-500 text-yellow-600 dark:text-yellow-400'
+                    : item.new_status === 'correction_requested' ? 'bg-orange-500 border-orange-500 text-orange-600 dark:text-orange-400'
+                    : 'bg-blue-500 border-blue-500 text-blue-600 dark:text-blue-400';
+                  var borderColor = item.new_status === 'approved' ? 'border-green-500'
+                    : item.new_status === 'rejected' ? 'border-red-500'
+                    : item.new_status === 'pending' ? 'border-yellow-500'
+                    : item.new_status === 'correction_requested' ? 'border-orange-500'
+                    : 'border-blue-500';
+                %>
+                <div class="relative pl-4 border-l-2 <%= borderColor %>">
+                  <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full <%= dotColor.split(' ')[0] %>"></div>
+                  <p class="text-sm font-bold <%= dotColor.split(' ')[2] %>"><%= item.new_status.replace('_', ' ').toUpperCase() %></p>
                   <p class="text-xs text-gray-500 dark:text-gray-400"><%= item.notes || (currentLang === 'km' ? 'គ្មានកំណត់សម្គាល់' : 'No notes') %></p>
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><i class="bi bi-person"></i> <%= item.changed_by_name || 'System' %> <span class="mx-1">·</span> <i class="bi bi-clock"></i> <%= item.created_at ? new Date(item.created_at).toLocaleString() : '—' %></p>
                 </div>
@@ -316,7 +421,8 @@ function toggleOtherNationality(select, inputId) {
     input.querySelector('input').value = '';
   }
 }
-document.querySelector('#correctionModal form').addEventListener('submit', function(e) {
+var correctionForm = document.querySelector('#correctionModal form');
+if (correctionForm) correctionForm.addEventListener('submit', function(e) {
   var sel = document.getElementById('nationalitySelect');
   if (sel && sel.value === 'Other') {
     var custom = document.querySelector('[name="nationality_other"]').value.trim();

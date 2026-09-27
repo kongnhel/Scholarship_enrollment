@@ -1,21 +1,137 @@
+<%
+  var kmDigitMap = { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' };
+  function toKh(str) { return String(str == null ? '' : str).replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function v(x) { return (x === null || x === undefined || x === '') ? '—' : x; }
+
+  var KHMER_MONTHS = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  var EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function fmtDate(str, lang) {
+    if (!str) return '—';
+    var m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    var y, mo, d;
+    if (m) { y = parseInt(m[1], 10); mo = parseInt(m[2], 10); d = parseInt(m[3], 10); }
+    else {
+      var dt = new Date(str);
+      if (isNaN(dt.getTime())) return '—';
+      y = dt.getFullYear(); mo = dt.getMonth() + 1; d = dt.getDate();
+    }
+    if (lang === 'km') return toKh(d) + ' ' + (KHMER_MONTHS[mo - 1] || '') + ' ' + toKh(y);
+    return d + ' ' + (EN_MONTHS[mo - 1] || '') + ' ' + y;
+  }
+
+  var STATUS_MAP = {
+    pending: { km: 'រង់ចាំ', en: 'PENDING', pill: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300', dot: 'bg-yellow-500', txt: 'text-yellow-600 dark:text-yellow-400', line: 'border-yellow-400 dark:border-yellow-500' },
+    under_review: { km: 'កំពុងពិនិត្យ', en: 'UNDER REVIEW', pill: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300', dot: 'bg-blue-500', txt: 'text-blue-600 dark:text-blue-400', line: 'border-blue-400 dark:border-blue-500' },
+    approved: { km: 'អនុម័ត', en: 'APPROVED', pill: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300', dot: 'bg-green-500', txt: 'text-green-600 dark:text-green-400', line: 'border-green-400 dark:border-green-500' },
+    rejected: { km: 'បដិសេធ', en: 'REJECTED', pill: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', dot: 'bg-red-500', txt: 'text-red-600 dark:text-red-400', line: 'border-red-400 dark:border-red-500' },
+    correction_requested: { km: 'តម្រូវកែ', en: 'CORRECTION', pill: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300', dot: 'bg-orange-500', txt: 'text-orange-600 dark:text-orange-400', line: 'border-orange-400 dark:border-orange-500' }
+  };
+  var STATUS_FALLBACK = { km: '—', en: '—', pill: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300', dot: 'bg-gray-400', txt: 'text-gray-500 dark:text-gray-400', line: 'border-gray-300 dark:border-gray-600' };
+  function statusInfo(s) {
+    return STATUS_MAP[s] || Object.assign({}, STATUS_FALLBACK, { en: String(s || 'UNKNOWN').replace('_', ' ').toUpperCase() });
+  }
+
+  var TONES = {
+    green: { head: 'bg-green-100 dark:bg-green-900/40', icon: 'text-green-600 dark:text-green-400', soft: 'bg-green-100 dark:bg-green-900/30' },
+    purple: { head: 'bg-purple-100 dark:bg-purple-900/40', icon: 'text-purple-600 dark:text-purple-400', soft: 'bg-purple-100 dark:bg-purple-900/30' },
+    emerald: { head: 'bg-emerald-100 dark:bg-emerald-900/40', icon: 'text-emerald-600 dark:text-emerald-400', soft: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    blue: { head: 'bg-blue-100 dark:bg-blue-900/40', icon: 'text-blue-600 dark:text-blue-400', soft: 'bg-blue-100 dark:bg-blue-900/30' },
+    gray: { head: 'bg-gray-100 dark:bg-gray-900/40', icon: 'text-gray-600 dark:text-gray-400', soft: 'bg-gray-100 dark:bg-gray-700/60' },
+    orange: { head: 'bg-orange-100 dark:bg-orange-900/40', icon: 'text-orange-600 dark:text-orange-400', soft: 'bg-orange-100 dark:bg-orange-900/30' }
+  };
+
+  function field(icon, labelKm, labelEn, value, toneKey) {
+    var t = TONES[toneKey] || TONES.green;
+    return '<div class="flex items-start gap-3">' +
+      '<div class="w-8 h-8 rounded-full ' + t.soft + ' flex items-center justify-center flex-shrink-0"><i class="bi ' + icon + ' text-sm ' + t.icon + '"></i></div>' +
+      '<div class="min-w-0"><p class="text-xs text-gray-400 dark:text-gray-500">' + esc(currentLang === 'km' ? labelKm : labelEn) + '</p>' +
+      '<p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">' + esc(value == null || value === '' ? '—' : value) + '</p></div>' +
+      '</div>';
+  }
+
+  var a = application;
+  var stInfo = statusInfo(a.status);
+  var khmerName = [a.khmer_last_name, a.khmer_first_name].filter(Boolean).join(' ');
+  var latinName = [a.english_first_name, a.english_last_name].filter(Boolean).join(' ');
+  var genderText = a.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (a.gender === 'female' ? (currentLang === 'km' ? 'ស្រី' : 'Female') : '—');
+  var addressText = a.current_address || [a.address_village, a.address_commune, a.address_district, a.address_province].filter(Boolean).join(', ');
+  var photoSrc = a.photo_path || a.photo_3x4_path || '';
+
+  var EDU_KH = {
+    none: 'គ្មាន', primary: 'បឋមសិក្សា', lower_secondary: 'ឌីប្លូម', upper_secondary: 'បាក់ឌុប',
+    higher_education: 'ឧត្តមសិក្សា', bachelor: 'បរិញ្ញាបត្រ', master: 'អនុបណ្ឌិត', phd: 'បណ្ឌិត'
+  };
+  var LEVEL_KH = { bachelor: 'បរិញ្ញាបត្រ', associate: 'បរិញ្ញាបត្ររង', master: 'អនុបណ្ឌិត', phd: 'បណ្ឌិត' };
+  var PERIOD_KH = { mon_fri: 'ចន្ទ-សុក្រ', sat_sun: 'សៅរ៍-អាទិត្យ' };
+  var SHIFT_KH = { morning: 'ព្រឹក', afternoon: 'រសៀល' };
+  var eduText = EDU_KH[a.education_level] || a.education_level || '—';
+  var studyInfo = [LEVEL_KH[a.study_level] || a.study_level, PERIOD_KH[a.study_period] || a.study_period, SHIFT_KH[a.study_shift] || a.study_shift]
+    .filter(Boolean).join(' · ') || '—';
+
+  var optVal = a.scholarship_option ? String(a.scholarship_option) : '';
+  var optParts = optVal.split('/');
+  var optPct = optParts[0] || '';
+  var optYears = optParts[1] || '';
+  var optLabel = optPct ? (currentLang === 'km'
+    ? toKh(optPct) + '%' + (optYears ? ' · ' + toKh(optYears) + ' ឆ្នាំ' : '')
+    : optPct + '%' + (optYears ? ' · ' + optYears + ' years' : '')) : '';
+%>
+
 <div class="max-w-7xl mx-auto space-y-6">
+  <!-- ================= HERO ================= -->
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
+    <div class="relative px-6 py-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="min-w-0 flex-1">
+      <div class="flex items-center gap-4 min-w-0">
         <a href="/admin/applications" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5 flex-shrink-0">
           <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %>
         </a>
-        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
-          <i class="bi bi-file-earmark-text text-white text-xl"></i>
-        </div>
-        <div>
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">#<%= application.id %></div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំ #' : 'Application #' %><%= application.id %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតនៃពាក្យសុំ' : 'Application details' %></p>
+        <% if (photoSrc) { %>
+          <div class="w-16 h-20 rounded-2xl overflow-hidden border-2 border-white dark:border-gray-700 shadow-md flex-shrink-0 cursor-zoom-in ring-2 ring-green-500/40" onclick="openDocPreview('<%= photoSrc %>', '<%= currentLang === 'km' ? 'រូបថត 4×6' : 'Photo 4x6' %>')" title="<%= currentLang === 'km' ? 'មើលរូប' : 'View photo' %>">
+            <img src="<%= photoSrc %>" alt="photo" class="w-full h-full object-cover">
+          </div>
+        <% } else { %>
+          <div class="w-16 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0">
+            <i class="bi bi-person text-white text-2xl"></i>
+          </div>
+        <% } %>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold">#<%= a.id %></span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold <%= stInfo.pill %>">
+              <span class="w-1.5 h-1.5 rounded-full <%= stInfo.dot %>"></span><%= currentLang === 'km' ? stInfo.km : stInfo.en %>
+            </span>
+          </div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? khmerName : (latinName || khmerName) %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+            <%= currentLang === 'km' ? (latinName || '—') : khmerName %>
+            <% if (a.user_email) { %><span class="mx-1.5">·</span><i class="bi bi-envelope"></i> <%= a.user_email %><% } %>
+          </p>
         </div>
       </div>
-      <a href="/admin/applications/<%= application.id %>/print" target="_blank" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto">
+      <div class="flex flex-wrap items-center gap-2 mt-3">
+        <% if (optLabel && a.scholarship_name_kh) { %>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold max-w-full">
+            <i class="bi bi-star-fill flex-shrink-0"></i><span class="min-w-0" style="overflow-wrap:anywhere;max-width:100%"><%= currentLang === 'km' ? a.scholarship_name_kh : (a.scholarship_name_en || a.scholarship_name_kh) %> · <%= optLabel %></span>
+          </span>
+        <% } %>
+        <% if (a.submitted_at) { %>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 dark:bg-gray-900/60 text-gray-600 dark:text-gray-300 text-xs font-medium">
+            <i class="bi bi-clock"></i><%= currentLang === 'km' ? 'ដាក់ស្នើ ' : 'Submitted ' %><%= fmtDate(a.submitted_at, currentLang) %>
+          </span>
+        <% } %>
+        <% if (a.phone) { %>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 dark:bg-gray-900/60 text-gray-600 dark:text-gray-300 text-xs font-medium">
+            <i class="bi bi-phone"></i><%= a.phone %>
+          </span>
+        <% } %>
+      </div>
+      </div>
+      <a href="/admin/applications/<%= a.id %>/print" target="_blank" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start lg:self-auto flex-shrink-0">
         <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ព' : 'Print' %>
       </a>
     </div>
@@ -23,6 +139,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
+      <!-- Personal -->
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
           <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
@@ -33,62 +150,26 @@
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-3.5">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-person text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.khmer_first_name %> <%= application.khmer_last_name %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-person text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.english_first_name %> <%= application.english_last_name %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-gender-ambiguous text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (currentLang === 'km' ? 'ស្រី' : 'Female') %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-calendar text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.date_of_birth ? new Date(application.date_of_birth).toLocaleDateString() : '—' %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-flag text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.nationality || 'Cambodian' %></p>
-                </div>
-              </div>
+              <%- field('bi-person', 'ឈ្មោះខ្មែរ', 'Khmer Name', [a.khmer_last_name, a.khmer_first_name].filter(Boolean).join(' ') || '—', 'green') %>
+              <%- field('bi-translate', 'ឈ្មោះអង់គ្លេស', 'English Name', latinName || '—', 'green') %>
+              <%- field('bi-gender-ambiguous', 'ភេទ', 'Gender', genderText, 'green') %>
+              <%- field('bi-calendar-heart', 'ថ្ងៃខែឆ្នាំកំណើត', 'Date of Birth', fmtDate(a.date_of_birth, currentLang), 'green') %>
+              <%- field('bi-geo-alt', 'ទីកន្លែងកំណើត', 'Place of Birth', a.birth_place || '—', 'green') %>
+              <%- field('bi-flag', 'សញ្ជាតិ', 'Nationality', a.nationality || (currentLang === 'km' ? 'ខ្មែរ' : 'Cambodian'), 'green') %>
             </div>
             <div class="space-y-3.5">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-phone text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.phone %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-house text-green-600 dark:text-green-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អាស័យដ្ឋាន' : 'Address' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.current_address || '—' %></p>
-                </div>
-              </div>
+              <%- field('bi-phone', 'ទូរស័ព្ទ', 'Phone', a.phone || '—', 'green') %>
+              <%- field('bi-house', 'អាស័យដ្ឋាន', 'Address', addressText || '—', 'green') %>
+              <%- field('bi-person-vcard', 'ឪពុកឈ្មោះ', "Father's Name", a.parent_name || '—', 'green') %>
+              <%- field('bi-person-vcard', 'ម្ដាយឈ្មោះ', "Mother's Name", a.mother_name || '—', 'green') %>
+              <%- field('bi-telephone', 'ទូរស័ព្ទអាណាព្យាបាល', 'Parent Phone', a.parent_phone || '—', 'green') %>
+              <%- field('bi-briefcase', 'មុខរបរ', 'Occupation', a.occupation || '—', 'green') %>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Education -->
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
           <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
@@ -99,41 +180,21 @@
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-3.5">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-building text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សាលា' : 'School' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.school_name %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-geo-alt text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? application.province_name_kh : application.province_name_en %></p>
-                </div>
-              </div>
+              <%- field('bi-building', 'សាលា', 'School', a.school_name || '—', 'purple') %>
+              <%- field('bi-geo-alt', 'ខេត្ត/រាជធានី', 'Province', (currentLang === 'km' ? a.province_name_kh : a.province_name_en) || '—', 'purple') %>
+              <%- field('bi-mortarboard', 'កម្រិតវប្បធម៌', 'Education Level', eduText, 'purple') %>
             </div>
             <div class="space-y-3.5">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-calendar-check text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ឆ្នាំបញ្ចប់' : 'Graduation Year' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.graduation_year %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-bar-chart text-purple-600 dark:text-purple-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'លទ្ធផលប្រឡង' : 'Exam Result' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.exam_result || '—' %></p>
-                </div>
-              </div>
+              <%- field('bi-calendar-event', 'សម័យប្រឡង', 'Exam Session', a.exam_session || '—', 'purple') %>
+              <%- field('bi-geo-alt2', 'មណ្ឌលប្រឡង', 'Exam Center', a.exam_center || '—', 'purple') %>
+              <%- field('bi-bar-chart', 'លទ្ធផលប្រឡង', 'Exam Result', a.exam_result || '—', 'purple') %>
+              <%- field('bi-calendar-check', 'ឆ្នាំបញ្ចប់', 'Graduation Year', a.graduation_year || '—', 'purple') %>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Scholarship -->
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
           <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
@@ -144,63 +205,29 @@
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-3.5">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-1-circle text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ជម្រើសទី ១' : 'First Choice' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? application.major_name_kh : application.major_name_en %></p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-2-circle text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ជម្រើសទី ២' : 'Second Choice' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? application.major2_name_kh : (application.major2_name_en || '—') %></p>
-                </div>
-              </div>
+              <%- field('bi-1-circle', 'ជម្រើសទី ១', 'First Choice', (currentLang === 'km' ? a.major_name_kh : a.major_name_en) || '—', 'emerald') %>
+              <%- field('bi-2-circle', 'ជម្រើសទី ២', 'Second Choice', (currentLang === 'km' ? (a.major2_name_kh || '—') : (a.major2_name_en || '—')), 'emerald') %>
               <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-mortarboard text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
                 <div class="min-w-0">
                   <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្មវិធីអាហារូបករណ៍' : 'Scholarship Program' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words"><%= currentLang === 'km' ? (application.scholarship_name_kh || '—') : (application.scholarship_name_en || application.scholarship_name_kh || '—') %></p>
-                  <% if (application.scholarship_percentage) { %>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 break-words"><%= application.scholarship_percentage %>% · <%= application.scholarship_duration %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %><% if (application.scholarship_provider) { %> · <%= application.scholarship_provider %><% } %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words"><%= currentLang === 'km' ? (a.scholarship_name_kh || '—') : (a.scholarship_name_en || a.scholarship_name_kh || '—') %></p>
+                  <% if (optLabel || a.scholarship_provider) { %>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 break-words"><% if (optLabel) { %><%= optLabel %><% } %><% if (optLabel && a.scholarship_provider) { %> · <% } %><% if (a.scholarship_provider) { %><%= a.scholarship_provider %><% } %></p>
                   <% } %>
                 </div>
               </div>
             </div>
             <div class="space-y-3.5">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-tag text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
-                <div>
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? application.category_name_kh : application.category_name_en %></p>
-                </div>
-              </div>
-              <%
-                var optVal = application.scholarship_option ? String(application.scholarship_option) : '';
-                var kmDigitMap = { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' };
-                var optParts = optVal.split('/');
-                var optPct = optParts[0] || '';
-                var optYears = optParts[1] || '';
-                var optLabel = optPct ? (currentLang === 'km'
-                  ? optPct.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + '%' + (optYears ? ' · ' + optYears.replace(/[0-9]/g, function (d) { return kmDigitMap[d]; }) + ' ឆ្នាំ' : '')
-                  : optPct + '%' + (optYears ? ' · ' + optYears + ' years' : '')) : '';
-              %>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-percent text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
-                <div class="min-w-0">
-                  <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍' : 'Scholarship Level' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words"><%= optLabel || '—' %></p>
-                </div>
-              </div>
+              <%- field('bi-tag', 'ប្រភេទ', 'Category', (currentLang === 'km' ? a.category_name_kh : a.category_name_en) || '—', 'emerald') %>
+              <%- field('bi-percent', 'កម្រិតអាហារូបករណ៍', 'Scholarship Level', optLabel || '—', 'emerald') %>
+              <%- field('bi-clock-history', 'កាលវិភាគសិក្សា', 'Study Schedule', studyInfo, 'emerald') %>
               <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-info-circle text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
                 <div>
                   <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></p>
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= application.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : application.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : application.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : application.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>">
-                    <span class="w-1.5 h-1.5 rounded-full <%= application.status === 'approved' ? 'bg-green-500' : application.status === 'rejected' ? 'bg-red-500' : application.status === 'pending' ? 'bg-yellow-500' : application.status === 'correction_requested' ? 'bg-orange-500' : 'bg-blue-500' %>"></span>
-                    <%= application.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : application.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : application.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : application.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW') : application.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECT') : application.status.replace('_', ' ').toUpperCase() %>
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 mt-0.5 text-xs font-bold rounded-full <%= stInfo.pill %>">
+                    <span class="w-1.5 h-1.5 rounded-full <%= stInfo.dot %>"></span><%= currentLang === 'km' ? stInfo.km : stInfo.en %>
                   </span>
                 </div>
               </div>
@@ -209,6 +236,7 @@
         </div>
       </div>
 
+      <!-- Documents -->
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
           <div class="w-8 h-8 bg-gray-100 dark:bg-gray-900/40 rounded-lg flex items-center justify-center">
@@ -220,24 +248,24 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <% function renderDoc(docPath, label, iconClass, colorClass) { %>
-              <div class="flex items-center gap-3 p-3 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-gray-300 dark:hover:border-gray-600 transition-all">
+              <div class="flex items-center gap-3 p-3 border border-gray-100 dark:border-gray-700 rounded-2xl hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-all">
                 <% if (docPath) { %>
                   <% var isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(docPath); %>
                   <% if (isImg) { %>
-                    <div class="doc-thumb relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer hover:shadow-lg hover:scale-110 hover:border-green-400 dark:hover:border-green-500 transition-all duration-200 flex-shrink-0" onclick="openDocPreview('<%= docPath %>', '<%= label %>')">
+                    <div class="doc-thumb relative w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm cursor-pointer hover:shadow-lg hover:scale-105 hover:border-green-400 dark:hover:border-green-500 transition-all duration-200 flex-shrink-0" onclick="openDocPreview('<%= docPath %>', '<%= label %>')">
                       <img src="<%= docPath %>" alt="<%= label %>" class="w-full h-full object-cover">
                       <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all flex items-center justify-center">
                         <i class="bi bi-arrows-fullscreen text-white text-xs opacity-0 hover:opacity-100 drop-shadow-lg"></i>
                       </div>
                     </div>
                   <% } else { %>
-                    <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 flex items-center justify-center flex-shrink-0">
-                      <i class="bi bi-file-earmark-pdf text-red-500 text-lg"></i>
+                    <div class="w-14 h-14 rounded-xl bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 flex items-center justify-center flex-shrink-0">
+                      <i class="bi bi-file-earmark-pdf text-red-500 text-xl"></i>
                     </div>
                   <% } %>
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"><%= label %></p>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 truncate"><%= docPath.split('/').pop() %></p>
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><%= docPath.split('/').pop() %></p>
                   </div>
                   <% if (isImg) { %>
                     <button onclick="openDocPreview('<%= docPath %>', '<%= label %>')" class="p-2 rounded-lg text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex-shrink-0" title="<%= currentLang === 'km' ? 'មើល' : 'Preview' %>">
@@ -249,7 +277,7 @@
                     </a>
                   <% } %>
                 <% } else { %>
-                  <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700/30 border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
+                  <div class="w-14 h-14 rounded-xl bg-gray-50 dark:bg-gray-700/30 border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-dash text-gray-300 dark:text-gray-600"></i>
                   </div>
                   <div class="min-w-0 flex-1">
@@ -276,6 +304,75 @@
     </div>
 
     <div class="space-y-6">
+      <!-- Actions -->
+      <% if (application.status === 'pending' || application.status === 'under_review') { %>
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+              <i class="bi bi-gear text-green-600 dark:text-green-400 text-sm"></i>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></span>
+          </div>
+          <div class="p-6 space-y-5">
+            <% if (application.status === 'pending') { %>
+              <form action="/admin/applications/<%= application.id %>/under-review" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="w-full px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"><i class="bi bi-eye"></i><%= currentLang === 'km' ? 'ដាក់ក្រោមការពិនិត្យ' : 'Mark Under Review' %></button>
+              </form>
+            <% } %>
+
+            <form action="/admin/applications/<%= application.id %>/approve" method="POST" class="space-y-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <p class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100">
+                <span class="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center justify-center"><i class="bi bi-check-circle"></i></span>
+                <%= currentLang === 'km' ? 'អនុម័តពាក្យ' : 'Approve Application' %>
+              </p>
+              <div>
+                <textarea name="admin_remark" placeholder="<%= currentLang === 'km' ? 'កំណត់សម្គាល់អនុម័ត...' : 'Approval remark...' %>" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទប្រឡង' : 'Exam Date' %></label>
+                <input type="date" name="exam_date" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'ម៉ោងប្រឡង' : 'Exam Time' %></label>
+                <input type="time" name="exam_time" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'ទីកន្លែងប្រឡង' : 'Exam Venue' %></label>
+                <input type="text" name="exam_venue" placeholder="<%= currentLang === 'km' ? 'ឧ. សាលប្រជុំ ABC' : 'e.g. Conference Hall ABC' %>" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+              </div>
+              <button type="submit" class="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-bold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2"><i class="bi bi-check-circle-fill"></i><%= currentLang === 'km' ? 'អនុម័ត' : 'Approve' %></button>
+            </form>
+
+            <form action="/admin/applications/<%= application.id %>/reject" method="POST" class="space-y-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <p class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100">
+                <span class="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center"><i class="bi bi-x-circle"></i></span>
+                <%= currentLang === 'km' ? 'បដិសេធ' : 'Reject' %>
+              </p>
+              <div>
+                <textarea name="admin_remark" placeholder="<%= currentLang === 'km' ? 'មូលហេតុបដិសេធ...' : 'Rejection reason...' %>" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none" required></textarea>
+              </div>
+              <button type="submit" class="w-full px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2"><i class="bi bi-x-circle-fill"></i><%= currentLang === 'km' ? 'បដិសេធ' : 'Reject' %></button>
+            </form>
+
+            <form action="/admin/applications/<%= application.id %>/correction" method="POST" class="space-y-3">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <p class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100">
+                <span class="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 flex items-center justify-center"><i class="bi bi-pencil"></i></span>
+                <%= currentLang === 'km' ? 'ស្នើកែប្រែ' : 'Request Correction' %>
+              </p>
+              <div>
+                <textarea name="correction_notes" placeholder="<%= currentLang === 'km' ? 'កំណត់សម្គាល់កែប្រែ...' : 'Correction notes...' %>" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none" required></textarea>
+              </div>
+              <button type="submit" class="w-full px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2"><i class="bi bi-pencil-fill"></i><%= currentLang === 'km' ? 'ស្នើកែប្រែ' : 'Request Correction' %></button>
+            </form>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Status History -->
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
           <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
@@ -287,9 +384,10 @@
           <% if (history && history.length > 0) { %>
             <div class="space-y-4">
               <% history.forEach(function(h) { %>
-                <div class="relative pl-4 border-l-2 border-green-500">
-                  <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-green-500"></div>
-                  <p class="text-sm font-bold text-gray-800 dark:text-gray-100"><%= h.new_status.replace('_', ' ').toUpperCase() %></p>
+                <% var hInfo = statusInfo(h.new_status); %>
+                <div class="relative pl-4 border-l-2 <%= hInfo.line %>">
+                  <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full <%= hInfo.dot %>"></div>
+                  <p class="text-sm font-bold <%= hInfo.txt %>"><%= currentLang === 'km' ? hInfo.km : String(h.new_status || '').replace('_', ' ').toUpperCase() %></p>
                   <p class="text-xs text-gray-500 dark:text-gray-400"><%= h.notes || '—' %></p>
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                     <i class="bi bi-person"></i> <%= h.changed_by_name || 'System' %>
@@ -308,62 +406,6 @@
         </div>
       </div>
 
-      <% if (application.status === 'pending' || application.status === 'under_review') { %>
-        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
-              <i class="bi bi-gear text-green-600 dark:text-green-400 text-sm"></i>
-            </div>
-            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></span>
-          </div>
-          <div class="p-6 space-y-4">
-            <% if (application.status === 'pending') { %>
-              <form action="/admin/applications/<%= application.id %>/under-review" method="POST">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <button type="submit" class="w-full px-4 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-2"><i class="bi bi-eye"></i><%= currentLang === 'km' ? 'ដាក់ក្រោមការពិនិត្យ' : 'Mark Under Review' %></button>
-              </form>
-              <hr class="border-gray-100 dark:border-gray-700">
-            <% } %>
-
-            <form action="/admin/applications/<%= application.id %>/approve" method="POST" class="space-y-3">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <div>
-                <textarea name="admin_remark" placeholder="<%= currentLang === 'km' ? 'កំណត់សម្គាល់អនុម័ត...' : 'Approval remark...' %>" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"></textarea>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទប្រឡង' : 'Exam Date' %></label>
-                <input type="date" name="exam_date" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'ម៉ោងប្រឡង' : 'Exam Time' %></label>
-                <input type="time" name="exam_time" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'ទីកន្លែងប្រឡង' : 'Exam Venue' %></label>
-                <input type="text" name="exam_venue" placeholder="<%= currentLang === 'km' ? 'ឧ. សាលប្រជុំ ABC' : 'e.g. Conference Hall ABC' %>" class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
-              </div>
-              <button type="submit" class="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-bold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2"><i class="bi bi-check-circle"></i><%= currentLang === 'km' ? 'អនុម័ត' : 'Approve' %></button>
-            </form>
-
-            <form action="/admin/applications/<%= application.id %>/reject" method="POST" class="space-y-3">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <div>
-                <textarea name="admin_remark" placeholder="<%= currentLang === 'km' ? 'មូលហេតុបដិសេធ...' : 'Rejection reason...' %>" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none" required></textarea>
-              </div>
-              <button type="submit" class="w-full px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-all shadow-sm flex items-center justify-center gap-2"><i class="bi bi-x-circle"></i><%= currentLang === 'km' ? 'បដិសេធ' : 'Reject' %></button>
-            </form>
-
-            <form action="/admin/applications/<%= application.id %>/correction" method="POST" class="space-y-3">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <div>
-                <textarea name="correction_notes" placeholder="<%= currentLang === 'km' ? 'កំណត់សម្គាល់កែប្រែ...' : 'Correction notes...' %>" rows="2" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none" required></textarea>
-              </div>
-              <button type="submit" class="w-full px-4 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-all shadow-sm flex items-center justify-center gap-2"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'ស្នើកែប្រែ' : 'Request Correction' %></button>
-            </form>
-          </div>
-        </div>
-      <% } %>
-
       <% if (application.admin_remark) { %>
         <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
@@ -374,6 +416,20 @@
           </div>
           <div class="p-6">
             <p class="text-sm text-gray-600 dark:text-gray-300"><%= application.admin_remark %></p>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (application.correction_notes) { %>
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center">
+              <i class="bi bi-pencil-square text-orange-600 dark:text-orange-400 text-sm"></i>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ចំណុចត្រូវកែប្រែ' : 'Correction Notes' %></span>
+          </div>
+          <div class="p-6">
+            <p class="text-sm text-gray-600 dark:text-gray-300"><%= application.correction_notes %></p>
           </div>
         </div>
       <% } %>

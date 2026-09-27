@@ -195,6 +195,7 @@ router.get('/applications/:id/print', async (req, res) => {
              st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
              st.coverage_percentage as scholarship_percentage, st.duration_years as scholarship_duration,
              st.provider_name as scholarship_provider,
+             st.leader_name as scholarship_leader,
              u.english_name as student_name, u.khmer_name as student_khmer_name, u.email as user_email
              FROM applications a
              LEFT JOIN majors m ON a.major_first_choice_id = m.id
