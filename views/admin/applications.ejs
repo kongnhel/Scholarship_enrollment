@@ -1,3 +1,44 @@
+<%
+  var EAMP = '&' + 'amp;', ELT = '&' + 'lt;', EGT = '&' + 'gt;', EQUOT = '&' + 'quot;';
+  var esc = function (v) { return String(v == null ? '' : v).replace(/&/g, EAMP).replace(/</g, ELT).replace(/>/g, EGT).replace(/"/g, EQUOT); };
+  var kmDigits = function (s) { return String(s).replace(/[0-9]/g, function (d) { return ['០','១','២','៣','៤','៥','៦','៧','៨','៩'][Number(d)]; }); };
+  var fmtD = function (v) { return v ? new Date(v).toLocaleDateString('en-GB') : ''; };
+  var dash = function (v) { return (v === undefined || v === null || String(v).trim() === '') ? '—' : v; };
+  var EDU = { none: ['គ្មាន','None'], primary: ['បឋមសិក្សា','Primary'], lower_secondary: ['ឌីប្លូម','Lower Secondary'], upper_secondary: ['បាក់ឌុប','Upper Secondary'], higher_education: ['ឧត្តមសិក្សា','Higher Education'], bachelor: ['បរិញ្ញាបត្រ','Bachelor'], master: ['អនុបណ្ឌិត','Master'], phd: ['បណ្ឌិត','PhD'] };
+  var LVL = { bachelor: ['បរិញ្ញាបត្រ','Bachelor'], associate: ['បរិញ្ញាបត្ររង','Associate'], master: ['អនុបណ្ឌិត','Master'], phd: ['បណ្ឌិត','PhD'] };
+  var PRD = { mon_fri: ['ចន្ទ - សុក្រ','Monday - Friday'], sat_sun: ['សៅរ៍ - អាទិត្យ','Saturday - Sunday'] };
+  var SHF = { morning: ['ព្រឹក','Morning'], afternoon: ['រសៀល','Afternoon'] };
+  var GND = { male: ['ប្រុស','Male'], female: ['ស្រី','Female'] };
+  var DOCS = { diploma: ['ព្រឹត្តិបត្រពិន្ទុ / សញ្ញាបត្រ','Diploma / Transcript'], birth_cert: ['សំបុត្រកំណើត','Birth Certificate'], photo_4x6: ['រូបថត 4×6','Photo 4x6'], photo_3x4: ['រូបថត 3×4','Photo 3x4'] };
+  var L = function (pair) { return pair ? (currentLang === 'km' ? pair[0] : pair[1]) : ''; };
+  var khName = function (a) { return [a.khmer_last_name, a.khmer_first_name].filter(Boolean).join(' '); };
+  var enName = function (a) { return [a.english_first_name, a.english_last_name].filter(Boolean).join(' '); };
+  var optLabel = function (a) {
+    var parts = String(a.scholarship_option || '').split('/');
+    if (!parts[0]) return '';
+    var pct = parts[0], yrs = parts[1] || '';
+    return currentLang === 'km' ? (kmDigits(pct) + '%' + (yrs ? ' · ' + kmDigits(yrs) + ' ឆ្នាំ' : '')) : (pct + '%' + (yrs ? ' · ' + yrs + ' yrs' : ''));
+  };
+  var li = function (n, km, en, value) {
+    var nn = currentLang === 'km' ? kmDigits(n) : String(n);
+    return '<div class="flex gap-2.5 py-1.5 border-b border-dashed border-gray-200 dark:border-gray-700/70">' +
+      '<span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 min-w-[190px] flex-shrink-0 pt-0.5">' + esc(nn + '. ' + (currentLang === 'km' ? km : en)) + '</span>' +
+      '<span class="text-[13px] font-medium text-gray-800 dark:text-gray-100 min-w-0" style="overflow-wrap:anywhere">' + esc(dash(value)) + '</span></div>';
+  };
+  var liRaw = function (n, km, en, html) {
+    var nn = currentLang === 'km' ? kmDigits(n) : String(n);
+    return '<div class="flex gap-2.5 py-1.5 border-b border-dashed border-gray-200 dark:border-gray-700/70">' +
+      '<span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 min-w-[190px] flex-shrink-0 pt-0.5">' + esc(nn + '. ' + (currentLang === 'km' ? km : en)) + '</span>' +
+      '<span class="text-[13px] font-medium text-gray-800 dark:text-gray-100 min-w-0">' + html + '</span></div>';
+  };
+  var docChips = function (a) {
+    var list = String(a.documents_ready || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!list.length) return esc('—');
+    return list.map(function (d) {
+      return '<span class="inline-flex items-center px-2 py-0.5 mr-1 mb-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold border border-emerald-100 dark:border-emerald-800/50">' + esc(L(DOCS[d]) || d) + '</span>';
+    }).join('');
+  };
+%>
 <div class="max-w-7xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
@@ -104,11 +145,15 @@
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden xl:table-cell"><%= currentLang === 'km' ? 'កម្មវិធី' : 'Program' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+            <th class="w-12 px-2 py-3.5"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -120,14 +165,32 @@
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                    <%= (app.student_name || app.english_first_name || '?').charAt(0).toUpperCase() %>
+                    <%= (khName(app) || enName(app) || '?').charAt(0).toUpperCase() %>
                   </div>
-                  <div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= app.student_name || app.english_first_name + ' ' + app.english_last_name %></p>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? (khName(app) || enName(app)) : (enName(app) || khName(app)) %></p>
+                    <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><%= currentLang === 'km' ? (enName(app) || '—') : (khName(app) || '—') %></p>
                   </div>
                 </div>
               </td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.major_name_kh : app.major_name_en %></td>
+              <td class="px-5 py-4 hidden md:table-cell">
+                <span class="inline-flex items-center gap-1.5 text-sm <%= app.gender === 'male' ? 'text-blue-600 dark:text-blue-400' : 'text-pink-600 dark:text-pink-400' %>">
+                  <i class="bi <%= app.gender === 'male' ? 'bi-gender-male' : 'bi-gender-female' %>"></i><%= L(GND[app.gender]) || app.gender || '—' %>
+                </span>
+              </td>
+              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hidden lg:table-cell"><%= dash(app.phone) %></td>
+              <td class="px-5 py-4 hidden md:table-cell">
+                <p class="text-sm text-gray-700 dark:text-gray-200 truncate"><%= dash(currentLang === 'km' ? app.major_name_kh : app.major_name_en) %></p>
+                <% if (app.major2_name_kh || app.major2_name_en) { %>
+                  <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><%= currentLang === 'km' ? '២: ' : '2: ' %><%= currentLang === 'km' ? app.major2_name_kh : app.major2_name_en %></p>
+                <% } %>
+              </td>
+              <td class="px-5 py-4 hidden xl:table-cell">
+                <p class="text-sm text-gray-700 dark:text-gray-200 truncate"><%= dash(currentLang === 'km' ? (app.scholarship_name_kh || app.scholarship_name_en) : (app.scholarship_name_en || app.scholarship_name_kh)) %></p>
+                <% if (app.scholarship_leader) { %>
+                  <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><i class="bi bi-person-badge"></i> <%= app.scholarship_leader %></p>
+                <% } %>
+              </td>
               <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hidden md:table-cell"><%= currentLang === 'km' ? app.category_name_kh : app.category_name_en %></td>
               <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hidden lg:table-cell"><%= currentLang === 'km' ? app.province_name_kh : app.province_name_en %></td>
               <td class="px-5 py-4">
@@ -142,11 +205,68 @@
                   <%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : '—' %>
                 </div>
               </td>
+              <td class="px-2 py-4 text-right">
+                <button id="appdet-btn-<%= app.id %>" type="button" onclick="toggleAppDet(<%= app.id %>, event)" class="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all inline-flex items-center justify-center" title="<%= currentLang === 'km' ? 'ព័ត៌មានពេញលេញ' : 'Full details' %>">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </td>
+            </tr>
+            <tr id="appdet-<%= app.id %>" class="hidden">
+              <td colspan="11" class="px-5 py-5 bg-gray-50/70 dark:bg-gray-900/40 border-l-4 border-emerald-400">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <span class="inline-flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-200">
+                    <i class="bi bi-card-list text-green-600 dark:text-green-400"></i>
+                    <%= currentLang === 'km' ? 'ព័ត៌មានពេញលេញនៃពាក្យសុំ #' + kmDigits(app.id) : 'Full application details #' + app.id %>
+                  </span>
+                  <div class="flex gap-2">
+                    <a href="/admin/applications/<%= app.id %>" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm">
+                      <i class="bi bi-eye"></i><%= currentLang === 'km' ? 'មើលលម្អិត' : 'View' %>
+                    </a>
+                    <a href="/admin/applications/<%= app.id %>/print" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all">
+                      <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ព' : 'Print' %>
+                    </a>
+                  </div>
+                </div>
+                <% var prog26 = [ (currentLang === 'km' ? app.scholarship_name_kh : (app.scholarship_name_en || app.scholarship_name_kh)), optLabel(app) ].filter(Boolean).join(' · ');
+                   if (app.scholarship_leader) prog26 += (prog26 ? ' — ' : '') + app.scholarship_leader; %>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10">
+                  <%- li(1, 'ឈ្មោះខ្មែរ (នាម)', 'Khmer First Name', app.khmer_first_name) %>
+                  <%- li(2, 'ឈ្មោះខ្មែរ (នាមត្រកូល)', 'Khmer Last Name', app.khmer_last_name) %>
+                  <%- li(3, 'ឈ្មោះអង់គ្លេស (នាម)', 'English First Name', app.english_first_name) %>
+                  <%- li(4, 'ឈ្មោះអង់គ្លេស (នាមត្រកូល)', 'English Last Name', app.english_last_name) %>
+                  <%- li(5, 'ភេទ', 'Gender', L(GND[app.gender]) || app.gender) %>
+                  <%- li(6, 'ថ្ងៃ ខែ ឆ្នាំកំណើត', 'Date of Birth', fmtD(app.date_of_birth)) %>
+                  <%- li(7, 'ទីកន្លែងកំណើត', 'Place of Birth', app.birth_place) %>
+                  <%- li(8, 'ភូមិ', 'Village', app.address_village) %>
+                  <%- li(9, 'ឃុំ / សង្កាត់', 'Commune / Sangkat', app.address_commune) %>
+                  <%- li(10, 'ស្រុក / ក្រុង / ខណ្ឌ', 'District / Municipality / Khan', app.address_district) %>
+                  <%- li(11, 'ខេត្ត / រាជធានី', 'Province / City', app.address_province) %>
+                  <%- li(12, 'ឈ្មោះឪពុក', "Father's Name", app.parent_name) %>
+                  <%- li(13, 'ឈ្មោះម្តាយ', "Mother's Name", app.mother_name) %>
+                  <%- li(14, 'មុខរបរសព្វថ្ងៃរបស់បេក្ខជន', "Candidate's Current Occupation", app.occupation) %>
+                  <%- li(15, 'កម្រិតវប្បធម៌', 'Education Level', L(EDU[app.education_level]) || app.education_level) %>
+                  <%- li(16, 'លេខទូរស័ព្ទសាមីខ្លួន', 'Own Phone Number', app.phone) %>
+                  <%- li(17, 'លេខទូរស័ព្ទអាណាព្យាបាល', "Guardian's Phone Number", app.parent_phone) %>
+                  <%- li(18, 'សម័យប្រឡងមធ្យមសិក្សាទុតិយភូមិ', 'High School Exam Session', app.exam_session) %>
+                  <%- li(19, 'និទ្ទេសរួម', 'Overall Grade', app.exam_result) %>
+                  <%- li(20, 'មកពីវិទ្យាល័យ', 'High School', app.school_name) %>
+                  <%- li(21, 'ខេត្ត / រាជធានីរបស់វិទ្យាល័យ', 'School Province', currentLang === 'km' ? app.province_name_kh : app.province_name_en) %>
+                  <%- li(22, 'មណ្ឌលប្រឡង', 'Exam Center', app.exam_center) %>
+                  <%- li(23, 'កម្រិតសិក្សា', 'Study Level', L(LVL[app.study_level]) || app.study_level) %>
+                  <%- li(24, 'មុខជំនាញដែលចង់សិក្សា', 'Desired Major', currentLang === 'km' ? app.major_name_kh : app.major_name_en) %>
+                  <%- li(25, 'មុខជំនាញជម្រើសទី ២', 'Second Choice Major', currentLang === 'km' ? app.major2_name_kh : app.major2_name_en) %>
+                  <%- li(26, 'កម្មវិធីអាហារូបករណ៍', 'Scholarship Program', prog26) %>
+                  <%- li(27, 'ពេលសិក្សា', 'Study Period', L(PRD[app.study_period]) || app.study_period) %>
+                  <%- li(28, 'វេនសិក្សា', 'Study Shift', L(SHF[app.study_shift]) || app.study_shift) %>
+                  <%- liRaw(29, 'ឯកសារដែលបានត្រៀម', 'Documents Prepared', docChips(app)) %>
+                  <%- li(30, 'ព័ត៌មានបន្ថែម / សេចក្តីបញ្ជាក់របស់បេក្ខជន', 'Additional Information / Candidate Statement', app.additional_info) %>
+                </div>
+              </td>
             </tr>
           <% }); %>
           <% if (applications.length === 0) { %>
             <tr>
-              <td colspan="7" class="px-5 py-16 text-center">
+              <td colspan="11" class="px-5 py-16 text-center">
                 <div class="flex flex-col items-center gap-3">
                   <i class="bi bi-inbox text-5xl text-gray-300 dark:text-gray-600"></i>
                   <p class="text-gray-500 dark:text-gray-400 font-medium"><%= currentLang === 'km' ? 'មិនមានពាក្យសុំទេ' : 'No applications found' %></p>
@@ -200,3 +320,14 @@
     <% } %>
   </div>
 </div>
+
+<script>
+  function toggleAppDet(id, ev) {
+    ev.stopPropagation();
+    var row = document.getElementById('appdet-' + id);
+    var btn = document.getElementById('appdet-btn-' + id);
+    if (!row) return;
+    row.classList.toggle('hidden');
+    if (btn) btn.classList.toggle('rotate-180');
+  }
+</script>
