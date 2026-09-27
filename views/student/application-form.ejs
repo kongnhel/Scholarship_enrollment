@@ -4,17 +4,20 @@
 %>
   <div class="relative overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-700 shadow-md <%= hasPosters ? 'has-poster' : 'bg-white dark:bg-gray-800' %>" id="posterSlideshow">
     <% if (hasPosters) { %>
+      <div class="hero-bg absolute inset-0 pointer-events-none"></div>
       <% posters.forEach(function(src, i) { %>
-        <img src="<%= src %>" alt="" draggable="false" decoding="async" class="poster-slide absolute inset-0 w-full h-full object-cover transition-opacity duration-700 select-none" style="opacity: <%= i === 0 ? 1 : 0 %>;">
+        <div class="poster-slide" style="opacity: <%= i === 0 ? 1 : 0 %>;">
+          <img src="<%= src %>" alt="" draggable="false" decoding="async" class="poster-img absolute inset-0 w-full h-full object-cover">
+        </div>
       <% }) %>
-      <div class="hero-scrim absolute inset-0 pointer-events-none"></div>
+      <div class="poster-fade"></div>
     <% } else { %>
       <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
     <% } %>
 
-    <div class="relative z-10 flex flex-col justify-between gap-4 p-5 sm:p-6 <%= hasPosters ? 'min-h-[300px] sm:min-h-[400px]' : '' %>">
-      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-5">
-        <div class="hero-panel flex items-start gap-4 max-w-2xl">
+    <div class="relative z-10 flex flex-col gap-5 px-5 pb-5 sm:px-6 sm:pb-6 <%= hasPosters ? 'pt-60 sm:pt-72 lg:pt-6 lg:pr-[38%]' : '' %>">
+      <div class="flex items-start justify-between gap-3 sm:gap-5">
+        <div class="hero-panel flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1">
           <div class="hero-icon w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-600/30 flex-shrink-0">
             <i class="bi bi-file-earmark-plus text-white text-xl"></i>
           </div>
@@ -23,26 +26,27 @@
               <i class="bi bi-calendar3"></i>
               <%= currentLang === 'km' ? 'ឆ្នាំសិក្សា ២០២៦-២០២៧' : 'Academic Year 2026-2027' %>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះចូលរៀន' : 'Enrollment Application' %></h1>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight leading-snug break-words text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំអាហារូបករណ៍' : 'Scholarship Application' %></h1>
             <p class="hdr-sub mt-1 text-sm sm:text-[15px] text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យជាតិមានជ័យ' : 'National Meanchey University (NMU)' %></p>
           </div>
         </div>
 
-        <div class="flex sm:flex-col items-center sm:items-end gap-3 flex-shrink-0 self-start sm:self-auto">
+        <div class="flex-shrink-0 self-start">
           <a href="/student/dashboard" class="hdr-btn inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
             <i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %>
           </a>
-          <% if (hasPosters && posters.length > 1) { %>
-          <div class="dots-tray flex items-center gap-1.5">
-            <% posters.forEach(function(src, i) { %>
-              <button type="button" class="poster-dot rounded-full transition-all" data-index="<%= i %>" aria-label="Slide <%= i + 1 %>" style="width: <%= i === 0 ? 24 : 10 %>px; height:8px; background:<%= i === 0 ? '#ffffff' : 'rgba(255,255,255,.55)' %>;"></button>
-            <% }) %>
-          </div>
-          <% } %>
         </div>
       </div>
 
-      <div class="hero-panel hdr-desc max-w-3xl text-sm sm:text-[15px] leading-relaxed text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមបំពេញព័ត៌មានខាងក្រោមឱ្យបានត្រឹមត្រូវ និងគ្រប់ជ្រុងជ្រោយ។ ព័ត៌មានដែលបានផ្តល់នឹងត្រូវប្រើប្រាស់សម្រាប់ដំណើរការចុះឈ្មោះចូលរៀននៅសាកលវិទ្យាល័យជាតិមានជ័យ។' : 'Please fill in the following information accurately and completely. The information provided will be used for the enrollment process at National Meanchey University.' %></div>
+      <div class="hero-panel hdr-desc text-sm sm:text-[15px] leading-relaxed text-gray-500 dark:text-gray-400 lg:max-w-xl"><%= currentLang === 'km' ? 'សូមបំពេញព័ត៌មានខាងក្រោមឱ្យបានត្រឹមត្រូវ និងគ្រប់ជ្រុងជ្រោយ។ ព័ត៌មានដែលបានផ្តល់នឹងត្រូវប្រើប្រាស់សម្រាប់ដំណើរការចុះឈ្មោះចូលរៀននៅសាកលវិទ្យាល័យជាតិមានជ័យ។' : 'Please fill in the following information accurately and completely. The information provided will be used for the enrollment process at National Meanchey University.' %></div>
+
+      <% if (hasPosters && posters.length > 1) { %>
+      <div class="dots-tray inline-flex items-center gap-2 self-start">
+        <% posters.forEach(function(src, i) { %>
+          <button type="button" class="poster-dot<%= i === 0 ? ' is-active' : '' %>" data-index="<%= i %>" aria-label="Slide <%= i + 1 %>"></button>
+        <% }) %>
+      </div>
+      <% } %>
     </div>
 
     <% if (hasPosters && posters.length > 1) { %>
@@ -403,24 +407,59 @@
   .doc-row:has(input:checked) span { font-weight:600; color:#166534; }
   .dark .doc-row:has(input:checked) span { color:#86efac; }
 
-  #posterSlideshow.has-poster { border-color:rgba(255,255,255,.14); cursor:grab; }
-  #posterSlideshow.has-poster.dragging { cursor:grabbing; user-select:none; -webkit-user-select:none; }
-
-  #posterSlideshow.has-poster .poster-slide { object-position:50% 22%; filter:contrast(1.05) saturate(1.08) brightness(1.03); }
-  #posterSlideshow.has-poster .hero-scrim {
-    background:
-      linear-gradient(to bottom, rgba(2,14,9,.60) 0%, rgba(2,14,9,0) 30%),
-      linear-gradient(100deg, rgba(2,14,9,.93) 0%, rgba(3,17,12,.86) 34%, rgba(3,17,12,.58) 58%, rgba(3,17,12,.24) 82%, rgba(3,17,12,.10) 100%),
-      linear-gradient(to top, rgba(2,14,9,.80) 0%, rgba(2,14,9,0) 58%);
+  #posterSlideshow.has-poster {
+    background:linear-gradient(135deg,#04160f 0%,#06301d 48%,#05231a 100%);
+    border-color:rgba(255,255,255,.14);
   }
+  #posterSlideshow.has-poster.dragging { cursor:grabbing; user-select:none; -webkit-user-select:none; }
+  #posterSlideshow.has-poster .hero-bg {
+    background:
+      radial-gradient(120% 130% at 100% 0%, rgba(16,185,129,.28) 0%, rgba(16,185,129,0) 58%),
+      radial-gradient(100% 120% at 0% 100%, rgba(34,197,94,.16) 0%, rgba(34,197,94,0) 62%);
+  }
+  #posterSlideshow.has-poster .poster-fade {
+    background:linear-gradient(to bottom, rgba(4,22,15,0) 55%, rgba(4,22,15,.94) 100%);
+  }
+
+  /* The poster photos are portrait (4:5). Stretched across the full width of a wide
+     hero they were scaled up and cropped to a thin slice, which read as blur. Mobile
+     keeps a short full-bleed band; from lg up the photo sits in its own near-native
+     portrait frame on the right. Heights mirror the text padding (pt-60 / sm:pt-72),
+     and the frame geometry lives here rather than in utilities so it cannot depend on
+     Tailwind's class ordering (lg:h-auto vs h-60). */
+  #posterSlideshow.has-poster .poster-slide {
+    position:absolute; left:0; right:0; top:0; height:15rem;
+    overflow:hidden; user-select:none; -webkit-user-select:none;
+    transition:opacity .7s ease;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  #posterSlideshow.has-poster .poster-fade {
+    position:absolute; left:0; right:0; top:0; height:15rem;
+    pointer-events:none;
+    background:linear-gradient(to bottom, rgba(4,22,15,0) 55%, rgba(4,22,15,.94) 100%);
+  }
+  @media (min-width:640px) {
+    #posterSlideshow.has-poster .poster-slide,
+    #posterSlideshow.has-poster .poster-fade { height:18rem; }
+  }
+  @media (min-width:1024px) {
+    #posterSlideshow.has-poster .poster-slide {
+      left:auto; right:1.75rem; top:1.75rem; bottom:1.75rem;
+      width:34%; max-width:360px; height:auto;
+      border-radius:1rem;
+      box-shadow:0 18px 44px rgba(0,0,0,.5);
+    }
+    #posterSlideshow.has-poster .poster-fade { display:none; }
+  }
+  #posterSlideshow.has-poster .poster-img { object-position:50% 16%; filter:contrast(1.04) saturate(1.06) brightness(1.04); }
   #posterSlideshow.has-poster .hero-panel {
-    background:rgba(4,20,14,.58);
+    background:rgba(4,20,14,.55);
     border:1px solid rgba(255,255,255,.16);
     border-radius:1rem;
-    padding:.8rem 1rem;
+    padding:.75rem .9rem;
     backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);
-    box-shadow:0 10px 30px rgba(0,0,0,.30);
+    box-shadow:0 10px 30px rgba(0,0,0,.28);
   }
   #posterSlideshow .hero-panel { min-width:0; }
   #posterSlideshow h1,
@@ -448,15 +487,21 @@
   }
   #posterSlideshow.has-poster .hdr-btn:hover { background:rgba(3,17,12,.9); border-color:rgba(255,255,255,.8); }
   #posterSlideshow.has-poster .dots-tray {
-    background:rgba(3,17,12,.62);
-    border:1px solid rgba(255,255,255,.18);
+    background:rgba(3,17,12,.55);
+    border:1px solid rgba(255,255,255,.16);
     border-radius:999px;
     padding:6px 10px;
     backdrop-filter:blur(8px);
     -webkit-backdrop-filter:blur(8px);
   }
-  #posterSlideshow.has-poster .poster-dot { box-shadow:0 1px 6px rgba(0,0,0,.4); }
-  #posterSlideshow.has-poster .poster-dot:hover { background:rgba(255,255,255,.9) !important; }
+  #posterSlideshow.has-poster .poster-dot {
+    width:8px; height:8px; border-radius:999px;
+    background:rgba(255,255,255,.45);
+    box-shadow:0 1px 6px rgba(0,0,0,.4);
+    transition:width .3s ease, background .3s ease;
+  }
+  #posterSlideshow.has-poster .poster-dot:hover { background:rgba(255,255,255,.9); }
+  #posterSlideshow.has-poster .poster-dot.is-active { width:22px; background:#fff; }
 
   #posterSlideshow:not(.has-poster) .hero-panel {
     background:none; border:none; box-shadow:none;
@@ -497,10 +542,7 @@ document.querySelectorAll('input[name="documents_ready"]').forEach(function(cb) 
   function show(n) {
     idx = (n + slides.length) % slides.length;
     slides.forEach(function(s, i) { s.style.opacity = (i === idx ? 1 : 0); });
-    dots.forEach(function(d, i) {
-      d.style.width = (i === idx ? 24 : 10) + 'px';
-      d.style.background = (i === idx ? '#ffffff' : 'rgba(255,255,255,.45)');
-    });
+    dots.forEach(function(d, i) { d.classList.toggle('is-active', i === idx); });
   }
   function next() { show(idx + 1); }
   function prev() { show(idx - 1); }
@@ -549,7 +591,10 @@ document.querySelectorAll('input[name="documents_ready"]').forEach(function(cb) 
   });
 
   box.addEventListener('wheel', function(e) {
-    var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    // horizontal intent only. Reacting to deltaY used to flip the slide while the
+    // page was still scrolling, which felt broken when reaching the hero.
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    var d = e.deltaX;
     var now = Date.now();
     if (now < wheelLock) { wheelAcc = 0; return; }
     wheelAcc += d;
