@@ -39,15 +39,32 @@
         <p class="text-gray-400 dark:text-gray-500 text-sm"><%= currentLang === 'km' ? 'មិនមាន' : 'None' %></p>
       <% } %>
     </a>
-    <a href="/student/application/new" class="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
+    <%
+      var usedCount = (typeof applicationsUsed !== 'undefined' ? applicationsUsed : 0);
+      var maxCount = (typeof maxApplications !== 'undefined' ? maxApplications : 2);
+      var canApplyNew = (typeof canApply !== 'undefined' ? canApply : usedCount < maxCount);
+      var usedKm = String(usedCount).replace(/[0-9]/g, function (d) { return '០១២៣៤៥៦៧៨៩'[Number(d)]; });
+      var maxKm = String(maxCount).replace(/[0-9]/g, function (d) { return '០១២៣៤៥៦៧៨៩'[Number(d)]; });
+    %>
+    <% if (canApplyNew && !registrationClosed) { %>
+    <a href="/student/application/select" class="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
       <div class="w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md shadow-green-500/20 group-hover:scale-105 transition-transform"><i class="bi bi-plus-circle text-white text-lg"></i></div>
       <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm"><%= currentLang === 'km' ? 'ពាក្យសុំថ្មី' : 'New Application' %></h4>
-      <% if (!registrationClosed) { %>
-        <span class="text-sm text-green-600 dark:text-green-400 font-medium"><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %> →</span>
+      <span class="text-sm text-green-600 dark:text-green-400 font-medium"><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %> →</span>
+      <span class="block mt-1.5 text-[11px] text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'បានដាក់ ' + usedKm + '/' + maxKm + ' ពាក្យ' : usedCount + '/' + maxCount + ' used' %></span>
+    </a>
+    <% } else { %>
+    <div class="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center opacity-70 cursor-not-allowed">
+      <div class="w-11 h-11 bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md"><i class="bi bi-plus-circle text-white text-lg"></i></div>
+      <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm"><%= currentLang === 'km' ? 'ពាក្យសុំថ្មី' : 'New Application' %></h4>
+      <% if (!canApplyNew) { %>
+        <span class="text-sm text-orange-500 dark:text-orange-400 font-medium"><%= currentLang === 'km' ? 'ដាក់ពាក្យបានដល់កន្លិត' : 'Limit reached' %></span>
+        <span class="block mt-1.5 text-[11px] text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'អតិបរមា ' + usedKm + '/' + maxKm + ' ពាក្យ' : 'Max ' + usedCount + '/' + maxCount %></span>
       <% } else { %>
         <span class="text-sm text-red-400 dark:text-red-500 font-medium"><%= currentLang === 'km' ? 'បិទហើយ' : 'Closed' %></span>
       <% } %>
-    </a>
+    </div>
+    <% } %>
     <!-- <a href="/student/enroll" class="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
       <div class="w-11 h-11 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform"><i class="bi bi-person-check text-white text-lg"></i></div>
       <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm"><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollment' %></h4>
@@ -64,9 +81,20 @@
     </a> -->
   </div>
 
-<% if (application) { %>
+<% var appList = (typeof applications !== 'undefined' && applications) ? applications : (application ? [application] : []); %>
+<% if (!canApplyNew && appList.length) { %>
+  <div class="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/60">
+    <i class="bi bi-info-circle-fill text-amber-500 mt-0.5 flex-shrink-0"></i>
+    <p class="text-sm text-amber-800 dark:text-amber-200">
+      <%= currentLang === 'km'
+        ? 'អ្នកបានដាក់ពាក្យសុំអាហារូបករណ៍បានដល់កន្លិតហើយ (អតិបរមា ' + usedKm + '/' + maxKm + ' ដីរ)។ សូមរង់ចាំលទ្ធផលសិនមុនសិរ។'
+        : 'You have reached the maximum of ' + maxCount + ' scholarship applications (' + usedCount + '/' + maxCount + '). Please wait for a result before applying again.' %>
+    </p>
+  </div>
+<% } %>
+<% if (appList.length) { %>
+  <% appList.forEach(function(a) { %>
   <%
-    var a = application;
     var pillCls = a.status === 'approved' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
       : a.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
       : a.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'
@@ -175,6 +203,7 @@
       </div>
     <% } %>
   </div>
+  <% }); %>
 <% } else { %>
   <div class="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
     <i class="bi bi-file-earmark-text text-5xl text-gray-300 mb-4 block"></i>

@@ -43,7 +43,7 @@ router.get('/dashboard', async (req, res) => {
        LEFT JOIN majors m ON a.major_first_choice_id = m.id
        LEFT JOIN scholarship_categories sc ON a.scholarship_category_id = sc.id
        LEFT JOIN scholarship_types st ON a.scholarship_type_id = st.id
-       WHERE a.user_id = ? ORDER BY a.submitted_at DESC LIMIT 1`,
+       WHERE a.user_id = ? ORDER BY a.submitted_at DESC`,
       [userId]
     );
     const [notifications] = await req.db.query(
@@ -75,9 +75,14 @@ router.get('/dashboard', async (req, res) => {
       [userId]
     );
     const totalPaid = payments.filter(p => p.status === 'verified').reduce((s, p) => s + Number(p.amount), 0);
+    const applicationsUsed = applications.filter(a => a.status !== 'rejected').length;
     res.render('student/dashboard', {
       title: 'Student Dashboard',
       application: applications[0] || null,
+      applications,
+      applicationsUsed,
+      maxApplications: MAX_STUDENT_APPLICATIONS,
+      canApply: applicationsUsed < MAX_STUDENT_APPLICATIONS,
       notificationsCount: notifications[0].count,
       registrationClosed,
       enrollmentClosed,
@@ -114,6 +119,37 @@ function sendClosed(req, res, reason) {
   req.flash('error', reason === 'scholarship'
     ? t(req, 'ការដាក់ពាក្យអាហារូបករណ៍បច្ចុប្បន្នបិទ។', 'Scholarship applications are currently closed.')
     : t(req, 'ការចុះឈ្មោះបច្ចុប្បន្នបិទ។', 'Registration is currently closed.'));
+  return res.redirect('/student/dashboard');
+}
+
+// a student may hold at most MAX_STUDENT_APPLICATIONS live applications
+// (rejected ones do not consume a slot)
+const MAX_STUDENT_APPLICATIONS = 2;
+
+function countUsedApplications(req) {
+  return req.db.query(
+    "SELECT COUNT(*) as count FROM applications WHERE user_id = ? AND status <> 'rejected'",
+    [req.session.user.id]
+  ).then(([rows]) => Number(rows[0] && rows[0].count) || 0);
+}
+
+async function applicationLimitReached(req) {
+  return (await countUsedApplications(req)) >= MAX_STUDENT_APPLICATIONS;
+}
+
+// programs this student already holds a live (non-rejected) application for
+function getUsedTypeIds(req) {
+  return req.db.query(
+    "SELECT DISTINCT scholarship_type_id FROM applications WHERE user_id = ? AND status <> 'rejected' AND scholarship_type_id IS NOT NULL",
+    [req.session.user.id]
+  ).then(([rows]) => rows.map(r => Number(r.scholarship_type_id)));
+}
+
+function sendLimitReached(req, res) {
+  const kmDigits = String(MAX_STUDENT_APPLICATIONS).replace(/[0-9]/g, d => '០១២៣៤៥៦៧៨៩'[Number(d)]);
+  req.flash('error', t(req,
+    `អ្នកបានដាក់ពាក្យសុំអាហារូបករណ៍បានដល់កន្លិតហើយ (អតិបរមា ${kmDigits} ដីរ)។ រូបត្រូវរង់ចាំលទ្ធផលសិនមុនសិរ។`,
+    `You have reached the maximum of ${MAX_STUDENT_APPLICATIONS} scholarship applications. Please wait for a result before applying again.`));
   return res.redirect('/student/dashboard');
 }
 
@@ -158,6 +194,7 @@ router.get('/application/select', async (req, res) => {
   try {
     const closed = await isApplicationWindowClosed(req);
     if (closed) return sendClosed(req, res, closed);
+    if (await applicationLimitReached(req)) return sendLimitReached(req, res);
     const [scholarshipTypes] = await req.db.query(
       'SELECT id, name_kh, name_en, coverage_percentage, duration_years, provider_name, poster_path, leader_name, major_ids, tier_options, description FROM scholarship_types WHERE is_active = 1 ORDER BY id ASC'
     );
@@ -169,12 +206,14 @@ router.get('/application/select', async (req, res) => {
         .map(id => { const m = majorMap[id]; return m ? (res.locals.currentLang === 'km' ? m.name_kh : (m.name_en || m.name_kh)) : ''; })
         .filter(Boolean).join(', ');
     });
+    const usedTypeIds = await getUsedTypeIds(req);
     res.render('student/scholarship-select', {
       title: 'Select Scholarship Program',
       scholarshipTypes,
       posters: getPosterImages(),
       selectedScholarshipId: req.session.scholarshipTypeId || null,
-      selectedOption: req.session.scholarshipOption || null
+      selectedOption: req.session.scholarshipOption || null,
+      usedTypeIds
     });
   } catch (error) {
     console.error('Scholarship select page error:', error);
@@ -191,7 +230,13 @@ router.post('/application/select', async (req, res) => {
     }
     const closed = await isApplicationWindowClosed(req);
     if (closed) return sendClosed(req, res, closed);
+    if (await applicationLimitReached(req)) return sendLimitReached(req, res);
     const scholarshipTypeId = parseInt(req.body.scholarship_type_id, 10);
+    const usedIds = await getUsedTypeIds(req);
+    if (usedIds.indexOf(scholarshipTypeId) !== -1) {
+      req.flash('error', t(req, 'អ្នកបានដាក់ពាក្យសុំសម្រាប់កម្មវិធីអាហារូបករណ៍នេះរួចហើយ។ សូមជ្រើសរើសកម្មវិធីផ្សេង៑។', 'You have already applied for this scholarship program. Please choose another one.'));
+      return res.redirect('/student/application/select');
+    }
     const [rows] = await req.db.query('SELECT id, duration_years, tier_options FROM scholarship_types WHERE id = ? AND is_active = 1', [scholarshipTypeId]);
     if (!rows.length) {
       req.flash('error', t(req, 'សូមជ្រើសរើសកម្មវិធីអាហារូបករណ៍មួយដែលត្រឹមត្រូវ។', 'Please select a valid scholarship program.'));
@@ -217,6 +262,7 @@ router.get('/application/new', async (req, res) => {
   try {
     const closed = await isApplicationWindowClosed(req);
     if (closed) return sendClosed(req, res, closed);
+    if (await applicationLimitReached(req)) return sendLimitReached(req, res);
 
     if (!req.session.scholarshipTypeId) {
       return res.redirect('/student/application/select');
@@ -227,6 +273,14 @@ router.get('/application/new', async (req, res) => {
     );
     if (!selectedRows.length) {
       delete req.session.scholarshipTypeId;
+      return res.redirect('/student/application/select');
+    }
+
+    const usedTypeIds = await getUsedTypeIds(req);
+    // stale session pointing at a program the student already applied for
+    if (req.session.scholarshipTypeId && usedTypeIds.indexOf(Number(req.session.scholarshipTypeId)) !== -1) {
+      delete req.session.scholarshipTypeId;
+      delete req.session.scholarshipOption;
       return res.redirect('/student/application/select');
     }
 
@@ -242,7 +296,8 @@ router.get('/application/new', async (req, res) => {
       scholarshipTypes,
       posters: getPosterImages(),
       selectedScholarshipId: req.session.scholarshipTypeId,
-      selectedScholarshipOption: req.session.scholarshipOption || ''
+      selectedScholarshipOption: req.session.scholarshipOption || '',
+      usedTypeIds
     });
   } catch (error) {
     console.error('New application page error:', error);
@@ -257,6 +312,7 @@ router.post('/application', uploadMultiple, async (req, res) => {
       req.flash('error', t(req, 'តិតុក្កត់ CSRF មិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។', 'Invalid or missing CSRF token. Please try again.'));
       return res.redirect('/student/application/new');
     }
+    if (await applicationLimitReached(req)) return sendLimitReached(req, res);
     const [settingsRows] = await req.db.query('SELECT * FROM settings');
     const settings = {};
     settingsRows.forEach(row => { settings[row.setting_key] = row.setting_value; });
@@ -303,6 +359,13 @@ router.post('/application', uploadMultiple, async (req, res) => {
       return res.redirect('/student/application/new');
     }
     const selTypeId = parseInt(scholarship_type_id, 10) || req.session.scholarshipTypeId;
+    if (selTypeId) {
+      const usedIds = await getUsedTypeIds(req);
+      if (usedIds.indexOf(selTypeId) !== -1) {
+        req.flash('error', t(req, 'អ្នកបានដាក់ពាក្យសុំសម្រាប់កម្មវិធីអាហារូបករណ៍នេះរួចហើយ។ សូមជ្រើសរើសកម្មវិធីផ្សេង៑។', 'You have already applied for this scholarship program. Please choose another one.'));
+        return res.redirect('/student/application/select');
+      }
+    }
     let optionChoices = tierValues(null, null);
     if (selTypeId) {
       const [tRows] = await req.db.query('SELECT duration_years, tier_options FROM scholarship_types WHERE id = ? AND is_active = 1', [selTypeId]);

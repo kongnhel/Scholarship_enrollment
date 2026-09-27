@@ -3,6 +3,7 @@
   var selectedId = typeof selectedScholarshipId !== 'undefined' ? selectedScholarshipId : null;
   var selectedOpt = typeof selectedOption !== 'undefined' && selectedOption !== null ? String(selectedOption) : null;
   var kmDigits = function (s) { return String(s).replace(/[0-9]/g, function (d) { return { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' }[d]; }); };
+  var usedTypeIds = (typeof usedTypeIds !== 'undefined' && usedTypeIds) ? usedTypeIds.map(Number) : [];
   var parseTiers = function (raw, defY0) {
     var defY = (Number(defY0) >= 1 && Number(defY0) <= 10) ? Number(defY0) : null;
     var s = String(raw == null ? '' : raw).trim();
@@ -58,11 +59,12 @@
       var isSelected = selectedId && Number(selectedId) === Number(st.id);
       var isNmuProvider = (st.provider_name || '').indexOf('សាកលវិទ្យាល័យជាតិមានជ័យ') !== -1;
       var typeOptions = parseTiers(st.tier_options, st.duration_years);
+      var isUsed = usedTypeIds.indexOf(Number(st.id)) !== -1;
     %>
-    <form method="POST" action="/student/application/select" class="h-full">
+    <form method="POST" action="/student/application/select" class="h-full <%= isUsed ? 'pointer-events-none' : '' %>">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input type="hidden" name="scholarship_type_id" value="<%= st.id %>">
-      <div class="scholarship-card group w-full h-full flex flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border-2 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-xl <%= isSelected ? 'border-green-500 shadow-lg shadow-green-500/20' : 'border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700' %>">
+      <div class="scholarship-card group w-full h-full flex flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border-2 text-left transition-all duration-200 <%= isUsed ? 'opacity-60 grayscale border-gray-200 dark:border-gray-700' : isSelected ? 'hover:-translate-y-1 hover:shadow-xl border-green-500 shadow-lg shadow-green-500/20' : 'hover:-translate-y-1 hover:shadow-xl border-gray-100 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700' %>">
         <div class="relative w-full overflow-hidden bg-gray-900" style="aspect-ratio:4/5;">
           <% if (poster) { %>
             <img src="<%= poster %>" alt="" class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105">
@@ -74,9 +76,14 @@
             <span class="px-2.5 py-1 rounded-full text-xs font-extrabold text-white shadow" style="background:linear-gradient(135deg,#16a34a,#10b981);"><%= st.coverage_percentage %>%</span>
             <span class="px-2.5 py-1 rounded-full text-xs font-bold text-white" style="background:rgba(2,14,9,.65);border:1px solid rgba(255,255,255,.22);"><%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'years' %></span>
           </div>
-          <% if (isSelected) { %>
+          <% if (isSelected && !isUsed) { %>
           <div class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg" style="background:#22c55e;">
             <i class="bi bi-check-lg text-lg"></i>
+          </div>
+          <% } %>
+          <% if (isUsed) { %>
+          <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-extrabold text-white shadow-lg flex items-center gap-1" style="background:#64748b;">
+            <i class="bi bi-check2-all"></i><%= currentLang === 'km' ? 'បានដាក់រួច' : 'Applied' %>
           </div>
           <% } %>
           <div class="absolute inset-x-0 bottom-0 p-4">
@@ -109,20 +116,30 @@
                      ? kmDigits(opt.p) + '%' + (opt.y ? ' · ' + kmDigits(opt.y) + ' ឆ្នាំ' : '') + (opt.s ? ' · ' + kmDigits(opt.s) + ' កន្លែង' : '')
                      : opt.p + '%' + (opt.y ? ' · ' + opt.y + ' yrs' : '') + (opt.s ? ' · ' + opt.s + ' seats' : '');
                  %>
-                <label class="cursor-pointer">
-                  <input type="radio" name="scholarship_option" value="<%= val %>" class="sr-only peer" required<%= checked %>>
-                  <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/40 peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-green-400">
+                <label class="<%= isUsed ? 'cursor-not-allowed' : 'cursor-pointer' %>">
+                  <input type="radio" name="scholarship_option" value="<%= val %>" class="sr-only peer" <%= isUsed ? 'disabled' : 'required' %><%= checked %>>
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/40 <%= isUsed ? 'opacity-50 line-through' : 'peer-checked:bg-green-600 peer-checked:border-green-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-green-400' %>">
                     <%= label %>
                   </span>
                 </label>
               <% }); %>
             </div>
+            <% if (isUsed) { %>
+            <p class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1.5"><i class="bi bi-info-circle"></i><%= currentLang === 'km' ? 'អ្នកបានដាក់ពាក្យសុំសម្រាប់កម្មវិធីនេះរួចហើយ' : 'You already applied for this program' %></p>
+            <% } %>
           </fieldset>
 
+          <% if (isUsed) { %>
+          <button type="button" disabled class="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-gray-100 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed">
+            <i class="bi bi-lock"></i>
+            <%= currentLang === 'km' ? 'បានដាក់រួចហើយ' : 'Already applied' %>
+          </button>
+          <% } else { %>
           <button type="submit" class="mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all <%= isSelected ? 'bg-green-600 text-white' : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 group-hover:bg-green-600 group-hover:text-white' %>">
             <i class="bi <%= isSelected ? 'bi-check2-circle' : 'bi-arrow-right-circle' %>"></i>
             <%= isSelected ? (currentLang === 'km' ? 'បានជ្រើសរើស' : 'Selected') : (currentLang === 'km' ? 'ជ្រើសរើសកម្មវិធីនេះ' : 'Choose this program') %>
           </button>
+          <% } %>
         </div>
       </div>
     </form>

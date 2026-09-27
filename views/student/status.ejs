@@ -22,7 +22,7 @@
     <i class="bi bi-inbox text-5xl text-gray-300 mb-4 block"></i>
     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'មិនរកឃើញពាក្យសុំ' : 'No Applications Found' %></h3>
     <p class="text-gray-500 dark:text-gray-400 mb-6"><%= currentLang === 'km' ? 'អ្នកមិនទាន់បានដាក់ពាក្យសុំណាមួយនៅឡើយទេ។' : "You haven't submitted any applications yet." %></p>
-    <a href="/student/application/new" class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all inline-flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បង្កើតពាក្យសុំ' : 'Create Application' %></a>
+    <a href="/student/application/select" class="px-6 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-all inline-flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បង្កើតពាក្យសុំ' : 'Create Application' %></a>
   </div>
 <% } else { %>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
