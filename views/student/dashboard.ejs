@@ -85,7 +85,14 @@
       : String(a.status || '').replace('_', ' ').toUpperCase();
     var s2done = (a.status === 'approved' || a.status === 'rejected');
     var subDate = a.submitted_at ? new Date(a.submitted_at).toLocaleDateString() : '—';
-    var levelText = a.coverage_percentage ? a.coverage_percentage + '%' + (a.duration_years ? (currentLang === 'km' ? ' · ' + a.duration_years + ' ឆ្នាំ' : ' · ' + a.duration_years + ' yrs') : '') : '';
+    var kmDigits = function (s) { return String(s).replace(/[0-9]/g, function (d) { return { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' }[d]; }); };
+    var optParts = String(a.scholarship_option || '').split('/');
+    var optPct = optParts[0] || '';
+    var optYears = optParts[1] || '';
+    var levelPct = optPct || a.coverage_percentage;
+    var levelYears = optYears || a.duration_years;
+    var levelText = levelPct ? (currentLang === 'km' ? kmDigits(levelPct) : levelPct) + '%'
+      + (levelYears ? (currentLang === 'km' ? ' · ' + kmDigits(levelYears) + ' ឆ្នាំ' : ' · ' + levelYears + ' yrs') : '') : '';
   %>
   <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
     <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -116,6 +123,7 @@
       <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700">
         <div class="flex items-center gap-1.5 mb-1"><i class="bi bi-mortarboard text-green-500 text-xs"></i><p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្មវិធី' : 'Program' %></p></div>
         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= (currentLang === 'km' ? a.scholarship_name_kh : a.scholarship_name_en) || '—' %></p>
+        <% if (a.leader_name) { %><p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate"><i class="bi bi-person-badge"></i> <%= a.leader_name %></p><% } %>
         <% if (a.provider_name) { %><p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate"><i class="bi bi-building"></i> <%= a.provider_name %></p><% } %>
       </div>
       <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700">

@@ -38,7 +38,7 @@ router.get('/dashboard', async (req, res) => {
       `SELECT a.*, m.name_kh as major_name_kh, m.name_en as major_name_en,
        sc.name_kh as category_name_kh, sc.name_en as category_name_en,
        st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en,
-       st.coverage_percentage, st.duration_years, st.provider_name
+       st.coverage_percentage, st.duration_years, st.provider_name, st.leader_name
        FROM applications a
        LEFT JOIN majors m ON a.major_first_choice_id = m.id
        LEFT JOIN scholarship_categories sc ON a.scholarship_category_id = sc.id

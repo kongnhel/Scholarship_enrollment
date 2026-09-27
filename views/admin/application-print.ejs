@@ -40,6 +40,18 @@
   var khmerName = [a.khmer_last_name, a.khmer_first_name].filter(Boolean).join(' ');
   var englishName = [a.english_first_name, a.english_last_name].filter(Boolean).join(' ');
 
+  // phone stored as "+8550XXXXXXXX" -> "+855 0XX XXX XXX"
+  var fmtPhone = function (v) {
+    if (!v) return '';
+    var cleaned = String(v).replace(/[^\d+]/g, '');
+    var m = cleaned.match(/^(\+\d{1,4})(\d+)$/);
+    if (!m) return String(v);
+    var rest = m[2], groups = [];
+    while (rest.length > 4) { groups.push(rest.slice(0, 3)); rest = rest.slice(3); }
+    groups.push(rest);
+    return m[1] + ' ' + groups.join(' ');
+  };
+
   // scholarship option combo stored as "p/y" (e.g. "100/4")
   var optParts = String(a.scholarship_option || '').split('/');
   var optPct = optParts[0] || '';
@@ -453,16 +465,16 @@
           <div></div>
           <div class="space-y-1">
             <div>
-              <span>ថ្ងៃ</span><span class="dotted-line min-w-[45px]" contenteditable="true" id="p1_day_kh"><%= subDayKh %></span>
-              <span>ខែ</span><span class="dotted-line min-w-[75px]" contenteditable="true" id="p1_month_kh"><%= subMonthKh %></span>
-              <span>ឆ្នាំ</span><span class="dotted-line min-w-[55px]" contenteditable="true" id="p1_year_kh"><%= subYearKh %></span>
-              <span>ព.ស.២៥៦</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p1_be_year"><%= subBuddDigit %></span>
+              <span>ថ្ងៃ</span><span class="dotted-line min-w-[45px]" contenteditable="true" id="p1_day_kh"></span>
+              <span>ខែ</span><span class="dotted-line min-w-[75px]" contenteditable="true" id="p1_month_kh"></span>
+              <span>ឆ្នាំ</span><span class="dotted-line min-w-[55px]" contenteditable="true" id="p1_year_kh"></span>
+              <span>ព.ស.២៥៦</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p1_be_year"></span>
             </div>
             <div>
               <span>ធ្វើនៅ</span><span class="dotted-line min-w-[100px] font-bold" contenteditable="true" id="p1_loc"><%= loc %></span>
-              <span>ថ្ងៃទី</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p1_date"><%= subDayNum %></span>
-              <span>ខែ</span><span class="dotted-line min-w-[65px]" contenteditable="true" id="p1_month"><%= subMonthKh %></span>
-              <span>ឆ្នាំ២០២</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p1_year"><%= subYearSuffix %></span>
+              <span>ថ្ងៃទី</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p1_date"></span>
+              <span>ខែ</span><span class="dotted-line min-w-[65px]" contenteditable="true" id="p1_month"></span>
+              <span>ឆ្នាំ២០២</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p1_year"></span>
             </div>
 
             <!-- TITLE HEADER FIRST -->
@@ -482,10 +494,12 @@
               <span class="dotted-line min-w-[140px]" contenteditable="true" id="p1_score_num"></span>
             </div>
             <div>
-              <span>លេខសាមីខ្លួន..........................................</span>
+              <span>លេខសាមីខ្លួន៖</span>
+              <span class="dotted-line min-w-[150px]"><%= fmtPhone(a.phone) %></span>
             </div>
             <div>
-              <span>លេខអាណាព្យាបាល..........................................</span>
+              <span>លេខអាណាព្យាបាល៖</span>
+              <span class="dotted-line min-w-[150px]"><%= fmtPhone(a.parent_phone) %></span>
             </div>
           </div>
         </div>
@@ -603,16 +617,16 @@
 
           <div>
             <div>
-              <span>ថ្ងៃ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_top_r_day"><%= subDayKh %></span>
-              <span>ខែ</span><span class="dotted-line min-w-[55px]" contenteditable="true" id="p2_top_r_m_kh"><%= subMonthKh %></span>
-              <span>ឆ្នាំ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_top_r_y_kh"><%= subYearKh %></span>
-              <span>ព.ស.២៥៦</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_top_r_be"><%= subBuddDigit %></span>
+              <span>ថ្ងៃ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_top_r_day"></span>
+              <span>ខែ</span><span class="dotted-line min-w-[55px]" contenteditable="true" id="p2_top_r_m_kh"></span>
+              <span>ឆ្នាំ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_top_r_y_kh"></span>
+              <span>ព.ស.២៥៦</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_top_r_be"></span>
             </div>
             <div>
               <span>ធ្វើនៅ</span><span class="dotted-line min-w-[85px] font-bold" contenteditable="true" id="p2_top_r_loc"><%= loc %></span>
-              <span>ថ្ងៃទី</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p2_top_r_d"><%= subDayNum %></span>
-              <span>ខែ</span><span class="dotted-line min-w-[45px]" contenteditable="true" id="p2_top_r_m"><%= subMonthKh %></span>
-              <span>ឆ្នាំ២០២</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_top_r_y"><%= subYearSuffix %></span>
+              <span>ថ្ងៃទី</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p2_top_r_d"></span>
+              <span>ខែ</span><span class="dotted-line min-w-[45px]" contenteditable="true" id="p2_top_r_m"></span>
+              <span>ឆ្នាំ២០២</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_top_r_y"></span>
             </div>
 
             <!-- TITLE ABOVE SIGNATURE AREA -->
@@ -730,16 +744,16 @@
 
           <div>
             <div>
-              <span>ថ្ងៃ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_bot_r_day"><%= subDayKh %></span>
-              <span>ខែ</span><span class="dotted-line min-w-[55px]" contenteditable="true" id="p2_bot_r_m_kh"><%= subMonthKh %></span>
-              <span>ឆ្នាំ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_bot_r_y_kh"><%= subYearKh %></span>
-              <span>ព.ស.២៥៦</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_bot_r_be"><%= subBuddDigit %></span>
+              <span>ថ្ងៃ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_bot_r_day"></span>
+              <span>ខែ</span><span class="dotted-line min-w-[55px]" contenteditable="true" id="p2_bot_r_m_kh"></span>
+              <span>ឆ្នាំ</span><span class="dotted-line min-w-[35px]" contenteditable="true" id="p2_bot_r_y_kh"></span>
+              <span>ព.ស.២៥៦</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_bot_r_be"></span>
             </div>
             <div>
               <span>ធ្វើនៅ</span><span class="dotted-line min-w-[85px] font-bold" contenteditable="true" id="p2_bot_r_loc"><%= loc %></span>
-              <span>ថ្ងៃទី</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p2_bot_r_d"><%= subDayNum %></span>
-              <span>ខែ</span><span class="dotted-line min-w-[45px]" contenteditable="true" id="p2_bot_r_m"><%= subMonthKh %></span>
-              <span>ឆ្នាំ២០២</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_bot_r_y"><%= subYearSuffix %></span>
+              <span>ថ្ងៃទី</span><span class="dotted-line min-w-[25px]" contenteditable="true" id="p2_bot_r_d"></span>
+              <span>ខែ</span><span class="dotted-line min-w-[45px]" contenteditable="true" id="p2_bot_r_m"></span>
+              <span>ឆ្នាំ២០២</span><span class="dotted-line min-w-[20px]" contenteditable="true" id="p2_bot_r_y"></span>
             </div>
 
             <!-- TITLE ABOVE SIGNATURE AREA -->
