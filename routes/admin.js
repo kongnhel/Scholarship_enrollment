@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const { verifyCsrf } = require('../middleware/csrf');
 const { upload } = require('../middleware/upload');
 const { uploadToImageKit, extractFileId, deleteFromImageKit } = require('../utils/imagekit');
 const XLSX = require('xlsx');
@@ -802,7 +803,7 @@ router.get('/settings', async (req, res) => {
     }
 });
 
-router.post('/settings', upload.single('payment_qr_file'), async (req, res) => {
+router.post('/settings', upload.single('payment_qr_file'), verifyCsrf, async (req, res) => {
     try {
         const { registration_open, registration_start, registration_end, enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end, form_type } = req.body;
 
@@ -947,7 +948,7 @@ function deriveCoverageDuration(tierOptions, fallbackCov, fallbackDur) {
     };
 }
 
-router.post('/scholarship-types', upload.single('poster_file'), async (req, res) => {
+router.post('/scholarship-types', upload.single('poster_file'), verifyCsrf, async (req, res) => {
     try {
         const { name_kh, name_en, provider_name, leader_name, description } = req.body;
         let posterPath = null;
@@ -970,7 +971,7 @@ router.post('/scholarship-types', upload.single('poster_file'), async (req, res)
     }
 });
 
-router.post('/scholarship-types/:id/edit', upload.single('poster_file'), async (req, res) => {
+router.post('/scholarship-types/:id/edit', upload.single('poster_file'), verifyCsrf, async (req, res) => {
     try {
         const { name_kh, name_en, provider_name, leader_name, description, current_poster_path } = req.body;
         let posterPath = current_poster_path || null;

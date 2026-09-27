@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isStudent } = require('../middleware/auth');
+const { verifyCsrf } = require('../middleware/csrf');
+const { ENROLLMENT_ENABLED } = require('../config/features');
 const { uploadMultiple, upload, uploadEnrollmentDocs } = require('../middleware/upload');
 const { sendEmail } = require('../config/mailer');
 const { generateKHQR, checkTransaction } = require('../config/bakong');
@@ -151,6 +153,35 @@ function sendLimitReached(req, res) {
     `អ្នកបានដាក់ពាក្យសុំអាហារូបករណ៍បានដល់កន្លិតហើយ (អតិបរមា ${kmDigits} ដីរ)។ រូបត្រូវរង់ចាំលទ្ធផលសិនមុនសិរ។`,
     `You have reached the maximum of ${MAX_STUDENT_APPLICATIONS} scholarship applications. Please wait for a result before applying again.`));
   return res.redirect('/student/dashboard');
+}
+
+// Online enrollment + tuition payments are paused while the scholarship flow is the focus
+// (see config/features.js). Every route below is kept as-is and reactivates with the flag.
+function enrollmentPaused(req, res, next) {
+  if (ENROLLMENT_ENABLED) return next();
+  req.flash('warning', t(req,
+    'ការចុះឈ្មោះចូលរៀនតាមអនឡាញ និងការទូទាត់ថ្លៃសិក្សា មិនទាន់បើកនៅឡើយទេ។',
+    'Online enrollment and tuition payments are not available yet.'));
+  return res.redirect('/student/dashboard');
+}
+
+// same guard for the JSON/AJAX endpoints used by the enrollment + payment pages
+function enrollmentPausedJson(req, res, next) {
+  if (ENROLLMENT_ENABLED) return next();
+  return res.status(503).json({
+    success: false,
+    error: t(req,
+      'ការចុះឈ្មោះចូលរៀនតាមអនឡាញ និងការទូទាត់ថ្លៃសិក្សា មិនទាន់បើកនៅឡើយទេ។',
+      'Online enrollment and tuition payments are not available yet.')
+  });
+}
+
+// same guard for multipart form posts: rejects before any file is written to disk.
+// it stays ahead of the upload + CSRF middleware, and verifyCsrf still protects the
+// route whenever the feature is switched back on.
+function enrollmentPausedUpload(req, res, next) {
+  if (ENROLLMENT_ENABLED) return next();
+  return enrollmentPausedJson(req, res, next);
 }
 
 const DEFAULT_SCHOLARSHIP_OPTIONS = [100, 60, 40];
@@ -730,7 +761,7 @@ function fundingCoverage(fundingType) {
   return FUNDING_COVERAGE[fundingType] || 0;
 }
 
-router.get('/enroll-success', async (req, res) => {
+router.get('/enroll-success', enrollmentPaused, async (req, res) => {
   try {
     const [rows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
     const qrPath = rows.length > 0 ? rows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
@@ -746,7 +777,7 @@ router.get('/enroll-success', async (req, res) => {
   }
 });
 
-router.get('/enroll', async (req, res) => {
+router.get('/enroll', enrollmentPaused, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const now = new Date();
@@ -797,7 +828,7 @@ router.get('/enroll', async (req, res) => {
   }
 });
 
-router.get('/enroll/print', async (req, res) => {
+router.get('/enroll/print', enrollmentPaused, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const [enrollments] = await req.db.query(
@@ -832,7 +863,7 @@ router.get('/enroll/print', async (req, res) => {
   }
 });
 
-router.get('/enroll/tuition/:majorId', async (req, res) => {
+router.get('/enroll/tuition/:majorId', enrollmentPausedJson, async (req, res) => {
   try {
     const [tuition] = await req.db.query(
       'SELECT * FROM major_tuition WHERE major_id = ? AND is_active = 1 ORDER BY academic_year DESC LIMIT 1',
@@ -849,7 +880,7 @@ router.get('/enroll/tuition/:majorId', async (req, res) => {
   }
 });
 
-router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
+router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const {
@@ -870,6 +901,20 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
 
     if (!FUNDING_TYPES.includes(funding_type)) {
       req.flash('error', t(req, 'សូមជ្រើសរើសប្រភេទអាហារូបករណ៍ ឬបង់ថ្លៃមុនចុះឈ្មោះ', 'Please choose a scholarship or pay-the-fee option first'));
+      return res.redirect('/student/enroll');
+    }
+
+    // A scholarship-backed enrollment must be backed by a real approved application.
+    // funding_type arrives from a hidden field, so without this check a student could
+    // self-declare a fully funded scholarship and be quoted the reduced tuition amount.
+    const [approvedRows] = await req.db.query(
+      "SELECT id FROM applications WHERE user_id = ? AND status = 'approved' ORDER BY submitted_at DESC LIMIT 1",
+      [userId]
+    );
+    const approvedApplicationId = approvedRows.length ? approvedRows[0].id : null;
+    const isSelfPay = funding_type === 'self_pay';
+    if (!isSelfPay && !approvedApplicationId) {
+      req.flash('error', t(req, 'អ្នកមិនមានពាក្យសុំអាហារូបករណ៍ដែលត្រូវបានអនុម័តនៅឡើយទេ។', 'You have no approved scholarship application.'));
       return res.redirect('/student/enroll');
     }
 
@@ -967,7 +1012,7 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
 
     await req.db.query(
       `INSERT INTO enrollments (
-        user_id, academic_year, semester, status,
+        user_id, academic_year, semester, status, application_id,
         khmer_first_name, khmer_last_name, english_first_name, english_last_name,
         gender, date_of_birth, place_of_birth, phone,
         village, current_address, province, district, commune,
@@ -977,7 +1022,7 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
         education_level_enroll, major_choice, major_choice_id, funding_type, funding_payment_mode, study_schedule, study_shift,
         documents_checklist, additional_info, confirmation,
         doc_transcript_path, doc_birth_cert_path, doc_photo_4x6_path, doc_photo_3x4_path
-      ) VALUES (?, ?, ?, ?,
+      ) VALUES (?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
@@ -988,7 +1033,7 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
         ?, ?, ?,
         ?, ?, ?, ?)`,
       [
-        userId, academic_year, semester, 'pending',
+        userId, academic_year, semester, 'pending', approvedApplicationId,
         khmer_name || null, null, english_name || null, null,
         gender || null, date_of_birth || null, place_of_birth || null, phone || null,
         village || null, null, province || null, district || null, commune || null,
@@ -1013,7 +1058,7 @@ router.post('/enroll', uploadEnrollmentDocs, async (req, res) => {
 
 // ==================== PAYMENTS ====================
 
-router.get('/payments', async (req, res) => {
+router.get('/payments', enrollmentPaused, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const [enrollments] = await req.db.query(
@@ -1095,7 +1140,7 @@ router.get('/payments', async (req, res) => {
   }
 });
 
-router.post('/payments/generate-qr', async (req, res) => {
+router.post('/payments/generate-qr', enrollmentPausedJson, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const { enrollment_id, payment_type } = req.body;
@@ -1197,7 +1242,7 @@ const transactionCheckLimiter = rateLimit({
   legacyHeaders: false
 });
 
-router.get('/payments/check-transaction/:md5', transactionCheckLimiter, async (req, res) => {
+router.get('/payments/check-transaction/:md5', enrollmentPausedJson, transactionCheckLimiter, async (req, res) => {
   try {
     const md5Hash = req.params.md5;
     const result = await checkTransaction(md5Hash);
@@ -1219,7 +1264,7 @@ router.get('/payments/check-transaction/:md5', transactionCheckLimiter, async (r
   }
 });
 
-router.post('/payments', (req, res) => {
+router.post('/payments', enrollmentPaused, (req, res) => {
   proofUpload(req, res, async (err) => {
     try {
       if (err) {

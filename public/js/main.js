@@ -120,3 +120,35 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 });
+
+// Delegated handler for admin table row actions (edit / delete on majors, provinces,
+// scholarship types and fee types).
+//
+// These used to be inline `onclick="fn(JSON.stringify(record))"` attributes. That is unsafe:
+// EJS HTML-escapes the value, but the browser HTML-decodes an attribute BEFORE the JS
+// parser sees it, so a record name containing an apostrophe could break out of the JS
+// string literal and execute script. Keeping the data in data-* attributes means it is
+// only ever read as text and parsed with JSON.parse.
+document.addEventListener('click', function (e) {
+  var trigger = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
+  if (!trigger) return;
+
+  var fn = window[trigger.getAttribute('data-action')];
+  if (typeof fn !== 'function') return;
+
+  e.preventDefault();
+
+  var payload = trigger.getAttribute('data-payload');
+  if (payload) {
+    var record;
+    try {
+      record = JSON.parse(payload);
+    } catch (err) {
+      return;
+    }
+    fn(record, trigger);
+  } else {
+    // delete-confirmation style handlers: (id, name, button)
+    fn(trigger.getAttribute('data-id'), trigger.getAttribute('data-name') || '', trigger);
+  }
+});

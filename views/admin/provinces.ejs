@@ -77,8 +77,8 @@
                 <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= province.name_en %></td>
                 <td class="px-5 py-4">
                   <div class="flex gap-1.5">
-                    <button onclick='editProvince(<%= JSON.stringify(province) %>)' class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
-                    <button type="button" onclick="confirmDeleteProvince(<%= province.id %>, '<%= province.name_kh %>', event)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
+                    <button type="button" data-action="editProvince" data-payload="<%= JSON.stringify(province) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
+                    <button type="button" data-action="confirmDeleteProvince" data-id="<%= province.id %>" data-name="<%= province.name_kh %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
                   </div>
                 </td>
               </tr>
@@ -208,12 +208,12 @@ function editProvince(province) {
   document.getElementById('edit_name_en').value = province.name_en;
   document.getElementById('editProvinceModal').classList.remove('hidden');
 }
-function confirmDeleteProvince(id, name, e) {
+function confirmDeleteProvince(id, name, btn) {
   var pop = document.getElementById('deleteProvincePopover');
   document.getElementById('deleteProvinceForm').action = '/admin/provinces/' + id + '/delete';
   document.getElementById('deleteProvinceName').textContent = name;
   pop.classList.remove('hidden');
-  var rect = e.currentTarget.getBoundingClientRect();
+  var rect = btn.getBoundingClientRect();
   var popW = 288;
   var popH = pop.offsetHeight || 140;
   var left = rect.right + 8;
@@ -229,7 +229,7 @@ function closeDeleteProvincePopover() {
 }
 document.addEventListener('click', function(e) {
   var pop = document.getElementById('deleteProvincePopover');
-  if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('[onclick*="confirmDeleteProvince"]')) {
+  if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('[data-action="confirmDeleteProvince"]')) {
     closeDeleteProvincePopover();
   }
 });

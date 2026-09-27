@@ -96,7 +96,7 @@
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
-                <button onclick="editFeeType(<%= JSON.stringify(ft) %>)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                <button type="button" data-action="editFeeType" data-payload="<%= JSON.stringify(ft) %>" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
                 <form action="/admin/fee-types/<%= ft.id %>/toggle" method="POST" class="inline">

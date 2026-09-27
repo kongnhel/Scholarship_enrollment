@@ -150,7 +150,7 @@
                 </td>
                 <td class="px-5 py-4">
                   <div class="flex gap-1.5 flex-wrap">
-                    <button onclick='editType(<%= JSON.stringify(st) %>)' class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
+                    <button type="button" data-action="editType" data-payload="<%= JSON.stringify(st) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
                     <form action="/admin/scholarship-types/<%= st.id %>/toggle" method="POST" class="inline">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 <%= st.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20' : 'border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' %>">
@@ -158,7 +158,7 @@
                         <%= st.is_active ? (currentLang === 'km' ? 'បិទ' : 'Off') : (currentLang === 'km' ? 'បើក' : 'On') %>
                       </button>
                     </form>
-                    <button type="button" onclick="confirmDelete(<%= st.id %>, '<%= currentLang === 'km' ? st.name_kh.replace(/'/g, "\\'") : (st.name_en || st.name_kh).replace(/'/g, "\\'") %>', event)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
+                    <button type="button" data-action="confirmDelete" data-id="<%= st.id %>" data-name="<%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
                   </div>
                 </td>
               </tr>
@@ -572,12 +572,12 @@ function editType(st) {
   document.getElementById('editTypeModal').classList.remove('hidden');
 }
 
-function confirmDelete(id, name, e) {
+function confirmDelete(id, name, btn) {
   var pop = document.getElementById('deleteTypePopover');
   document.getElementById('deleteTypeForm').action = '/admin/scholarship-types/' + id + '/delete';
   document.getElementById('deleteTypeName').textContent = name;
   pop.classList.remove('hidden');
-  var rect = e.currentTarget.getBoundingClientRect();
+  var rect = btn.getBoundingClientRect();
   var popW = 288;
   var popH = pop.offsetHeight || 140;
   var left = rect.right + 8;
@@ -595,7 +595,7 @@ function closeDeleteTypePopover() {
 
 document.addEventListener('click', function(e) {
   var pop = document.getElementById('deleteTypePopover');
-  if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('[onclick*="confirmDelete"]')) {
+  if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('[data-action="confirmDelete"]')) {
     closeDeleteTypePopover();
   }
 });

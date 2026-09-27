@@ -285,25 +285,15 @@ const studentRoutes = require('./routes/student');
 const adminRoutes = require('./routes/admin');
 const committeeRoutes = require('./routes/committee');
 
-// Helper to extract clean IP (strips port added by IIS reverse proxy)
-const getClientIp = (req) => {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) {
-    // x-forwarded-for can be a comma-separated list; take the first (client) IP
-    return forwarded.split(',')[0].trim();
-  }
-  const ip = req.ip || '';
-  // Strip IPv6-mapped IPv4 prefix (e.g. ::ffff:192.168.1.1 → 192.168.1.1)
-  return ip.replace(/^::ffff:/, '').split(':')[0] || ip;
-};
-
+// NOTE: rate limiters below use the default key (req.ip). `app.set('trust proxy', 1)`
+// makes Express resolve the real client IP through the IIS/ARR hop, so the client IP
+// cannot be spoofed by sending its own X-Forwarded-For header.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getClientIp,
   skip: (req) => req.method === 'GET'
 });
 
@@ -314,7 +304,6 @@ const generalLimiter = rateLimit({
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: getClientIp,
   skip: (req) => req.method === 'GET'
 });
 
