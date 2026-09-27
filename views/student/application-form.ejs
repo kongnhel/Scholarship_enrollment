@@ -252,7 +252,8 @@
   var provSuffix = prov && prov.indexOf('សាកលវិទ្យាល័យជាតិមានជ័យ') === -1 ? ' — ' + prov : '';
 %>
   <option value="<%= st.id %>"<%= (typeof selectedScholarshipId !== 'undefined' && Number(selectedScholarshipId) === Number(st.id)) ? ' selected' : '' %>>
-    <%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %> - <%= st.coverage_percentage %>% (<%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yr' %>)<%= provSuffix %>
+    <!-- (<%= st.duration_years %> <%= currentLang === 'km' ? 'ឆ្នាំ' : 'yr' %>)  - <%= st.coverage_percentage %>% -->
+    <%= currentLang === 'km' ? st.name_kh : (st.name_en || st.name_kh) %> <%= provSuffix %>
   </option>
 <% }); %>
               
