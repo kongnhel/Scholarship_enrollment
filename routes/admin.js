@@ -4,16 +4,135 @@ const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
 const { upload } = require('../middleware/upload');
 const { uploadToImageKit, extractFileId, deleteFromImageKit } = require('../utils/imagekit');
+const { body, validationResult } = require('express-validator');
 const XLSX = require('xlsx');
 
+
+// Accepts the datetime-local format the settings form submits
+// ("2026-09-04T00:00") as well as a MySQL DATETIME, and returns null when the pair is
+// usable. An empty value is allowed (the window is then governed only by the open flag).
+function validateWindow(start, end) {
+    const parse = (v) => {
+        const s = String(v === undefined || v === null ? '' : v).trim();
+        if (!s) return null;
+        const d = new Date(s.replace(' ', 'T'));
+        return isNaN(d.getTime()) ? NaN : d.getTime();
+    };
+    const s = parse(start);
+    const e = parse(end);
+    if (isNaN(s)) return { km: 'កាលបរិច្ឆេទចាប់ផ្ដើមមិនត្រឹមត្រូវ', en: 'start date is not a valid date' };
+    if (isNaN(e)) return { km: 'កាលបរិច្ឆេទបញ្ចប់មិនត្រឹមត្រូវ', en: 'end date is not a valid date' };
+    if (s !== null && e !== null && s > e) {
+        return { km: 'កាលបរិច្ឆេទចាប់ផ្ដើមត្រូវតែនៅមុនកាលបរិច្ឆេទបញ្ចប់', en: 'start date must be earlier than the end date' };
+    }
+    return null;
+}
+
+// Reference data is heavily referenced and mostly protected by foreign keys, so a raw
+// DELETE fails with an opaque "Database error" (or, for columns without an FK such as
+// applications.scholarship_type_id, silently leaves applications pointing at a record
+// that no longer exists). Count the referencing rows first and name them in the message.
+async function usageCounts(db, checks) {
+    const out = [];
+    for (const [label, sql, params] of checks) {
+        const [rows] = await db.query(sql, params);
+        const n = Number(rows[0] ? rows[0].c : 0);
+        if (n > 0) out.push(label + ' (' + n + ')');
+    }
+    return out;
+}
+
+// Free-text fields an admin types. Length limits keep a stray paste from filling a
+// `text` column, and give the user a real error instead of a silent truncation.
+const remarkRule = (field, label) => body(field)
+    .optional({ checkFalsy: true })
+    .isLength({ max: 2000 }).withMessage(label + ' is too long (max 2000 characters)')
+    .trim();
+
+const nameRules = (prefix) => [
+    body(prefix + '_kh').trim().isLength({ min: 1, max: 191 }).withMessage('Khmer name is required and must be under 191 characters'),
+    body(prefix + '_en').trim().isLength({ min: 1, max: 191 }).withMessage('English name is required and must be under 191 characters')
+];
+
+// Collects express-validator failures into a single flash instead of letting a bad
+// request fall through into a SQL write.
+function flashValidationErrors(req, res, backUrl) {
+    const errors = validationResult(req);
+    if (errors.isEmpty()) return false;
+    const list = errors.array().map(e => e.msg).join('. ');
+    req.flash('error', req.session.lang === 'km'
+        ? 'ទិន្នន័យមិនត្រឹមត្រូវ៖ ' + list
+        : 'Invalid input: ' + list);
+    res.redirect(backUrl);
+    return true;
+}
 
 function t(req, km, en) {
   return req.session.lang === 'km' ? km : en;
 }
 const { sendEmail } = require('../config/mailer');
-const { escapeHtml } = require('../utils/helpers');
+const { escapeHtml, revokeSessionsForUser, flashAndRedirect } = require('../utils/helpers');
 
 router.use(isAuthenticated, isAdmin);
+
+// ---------------------------------------------------------------------------
+// Allowed status transitions.
+//
+// Without this, any status could move to any other status: re-approving an already
+// approved application re-sent the approval email and wrote a bogus
+// approved -> approved history row. `correction_requested -> pending` is the student
+// resubmitting (routes/student.js), so it must stay allowed.
+//
+// applications.status enum:
+//   pending, under_review, approved, rejected, correction_requested
+const APPLICATION_TRANSITIONS = {
+    pending: ['under_review', 'approved', 'rejected', 'correction_requested'],
+    under_review: ['under_review', 'approved', 'rejected', 'correction_requested'],
+    correction_requested: ['pending', 'under_review', 'approved', 'rejected', 'correction_requested'],
+    approved: [],
+    rejected: []
+};
+
+// enrollments.status enum: pending, approved, rejected
+const ENROLLMENT_TRANSITIONS = {
+    pending: ['approved', 'rejected'],
+    approved: [],
+    rejected: []
+};
+
+// payments.status: pending -> verified | rejected, both terminal. The previous code did
+// a bare UPDATE with no existence check, so a bad id reported success, an already
+// rejected payment could still be "verified", and repeating it overwrote verified_at.
+const PAYMENT_TRANSITIONS = {
+    pending: ['verified', 'rejected'],
+    verified: [],
+    rejected: []
+};
+
+function canTransition(map, from, to) {
+    if (!from) return false;
+    const allowed = map[from];
+    if (!allowed) return false;
+    return allowed.indexOf(to) !== -1;
+}
+
+// Runs `fn` inside a transaction so a group of writes either all land or none do.
+// Approving an application touches three tables (status, history, notification); a
+// failure half way through previously left the status changed with no notification.
+async function withTransaction(db, fn) {
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+        const result = await fn(conn);
+        await conn.commit();
+        return result;
+    } catch (err) {
+        try { await conn.rollback(); } catch (e) { /* connection already gone */ }
+        throw err;
+    } finally {
+        conn.release();
+    }
+}
 
 router.get('/dashboard', async (req, res) => {
     try {
@@ -137,6 +256,7 @@ router.get('/applications', async (req, res) => {
             categories,
             provinces,
             currentPage: page,
+            limit,
             totalPages,
             totalRecords,
             filters: req.query
@@ -228,54 +348,100 @@ router.get('/applications/:id/print', async (req, res) => {
 });
 
 router.post('/applications/:id/under-review', async (req, res) => {
+    const backTo = '/admin/applications/' + req.params.id;
     try {
         const [current] = await req.db.query('SELECT a.status, a.user_id, u.email, u.khmer_name FROM applications a JOIN users u ON a.user_id = u.id WHERE a.id = ?', [req.params.id]);
-        await req.db.query("UPDATE applications SET status = 'under_review' WHERE id = ?", [req.params.id]);
-        await req.db.query(
-            'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
-            [req.params.id, current[0]?.status, 'under_review', req.session.user.id, 'Application under review']
-        );
-        if (current[0]?.user_id) {
-            await req.db.query(
-                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                [current[0].user_id, 'Application Under Review', 'Your application is now under review.', 'status']
+        if (!current.length) {
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំនេះ', 'Application not found'));
+            return res.redirect('/admin/applications');
+        }
+        const row = current[0];
+        if (!canTransition(APPLICATION_TRANSITIONS, row.status, 'under_review')) {
+            req.flash('error', t(req, 'មិនអាចប្ដូរស្ថានភាពពី ' + row.status + ' ទៅ under review បានទេ', 'Cannot move an application from ' + row.status + ' to under review'));
+            return res.redirect(backTo);
+        }
+
+        const recipient = row.user_id ? { id: row.user_id, email: row.email, name: row.khmer_name } : null;
+
+        await withTransaction(req.db, async (conn) => {
+            await conn.query("UPDATE applications SET status = 'under_review' WHERE id = ?", [req.params.id]);
+            await conn.query(
+                'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
+                [req.params.id, row.status, 'under_review', req.session.user.id, 'Application under review']
             );
+            if (recipient) {
+                await conn.query(
+                    'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+                    [recipient.id, 'Application Under Review', 'Your application is now under review.', 'status']
+                );
+            }
+        });
+
+        // Email is intentionally outside the transaction: SMTP latency must not hold a
+        // database transaction open, and a mail failure must not roll back the decision.
+        if (recipient) {
             await sendEmail(
-                current[0].email,
+                recipient.email,
                 'Application Under Review - Scholarship Program',
-                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application is now under review. We will notify you once a decision has been made.</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(recipient.name || 'Student') + '</strong>,</p><p>Your scholarship application is now under review. We will notify you once a decision has been made.</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ពាក្យសុំត្រូវបានសម្គាល់ថាកំពុងពិនិត្យមើល', 'Application marked as under review'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     } catch (err) {
-        console.error(err);
+        console.error('under-review error:', err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     }
 });
 
-router.post('/applications/:id/approve', async (req, res) => {
+router.post('/applications/:id/approve',
+    remarkRule('admin_remark', 'Approval remark'), body('exam_venue').optional({checkFalsy:true}).isLength({max:255}).withMessage('Exam venue is too long'),
+    async (req, res) => {
+    const backTo = '/admin/applications/' + req.params.id;
     try {
+        if (flashValidationErrors(req, res, backTo)) return;
         const { admin_remark, exam_date, exam_time, exam_venue } = req.body;
         const [current] = await req.db.query('SELECT a.status, a.user_id, u.email, u.khmer_name FROM applications a JOIN users u ON a.user_id = u.id WHERE a.id = ?', [req.params.id]);
-        await req.db.query("UPDATE applications SET status = 'approved', admin_remark = ?, exam_date = ?, exam_time = ?, exam_venue = ? WHERE id = ?", [admin_remark, exam_date || null, exam_time || null, exam_venue || null, req.params.id]);
-        await req.db.query(
-            'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
-            [req.params.id, current[0]?.status, 'approved', req.session.user.id, admin_remark]
-        );
-        if (current[0]?.user_id) {
-            let notificationMessage = 'Congratulations! Your application has been approved.';
-            if (exam_date || exam_time || exam_venue) {
-                notificationMessage += '\n\nExam Details:';
-                if (exam_date) notificationMessage += '\nDate: ' + exam_date;
-                if (exam_time) notificationMessage += '\nTime: ' + exam_time;
-                if (exam_venue) notificationMessage += '\nVenue: ' + exam_venue;
-            }
-            await req.db.query(
-                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                [current[0].user_id, 'Application Approved', notificationMessage, 'approval']
+        if (!current.length) {
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំនេះ', 'Application not found'));
+            return res.redirect('/admin/applications');
+        }
+        const row = current[0];
+        if (!canTransition(APPLICATION_TRANSITIONS, row.status, 'approved')) {
+            req.flash('error', t(req, 'មិនអាចអនុម័តពាក្យសុំដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot approve an application with status ' + row.status));
+            return res.redirect(backTo);
+        }
+
+        const recipient = row.user_id ? { id: row.user_id, email: row.email, name: row.khmer_name } : null;
+
+        await withTransaction(req.db, async (conn) => {
+            await conn.query("UPDATE applications SET status = 'approved', admin_remark = ?, exam_date = ?, exam_time = ?, exam_venue = ? WHERE id = ?", [admin_remark || null, exam_date || null, exam_time || null, exam_venue || null, req.params.id]);
+            await conn.query(
+                'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
+                [req.params.id, row.status, 'approved', req.session.user.id, admin_remark || null]
             );
+            if (recipient) {
+                // The base message stays the plain English sentence; the committee's
+                // remark and any exam details go in `detail` so the student's page can
+                // show a Khmer (or English) template and still surface what was written.
+                const detailParts = [];
+                if (admin_remark) detailParts.push('Note from the committee: ' + admin_remark);
+                if (exam_date || exam_time || exam_venue) {
+                    const examLines = ['Exam details:'];
+                    if (exam_date) examLines.push('Date: ' + exam_date);
+                    if (exam_time) examLines.push('Time: ' + exam_time);
+                    if (exam_venue) examLines.push('Venue: ' + exam_venue);
+                    detailParts.push(examLines.join('\n'));
+                }
+                await conn.query(
+                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                    [recipient.id, 'Application Approved', 'Congratulations! Your application has been approved.', 'approval', detailParts.length ? detailParts.join('\n\n') : null]
+                );
+            }
+        });
+
+        if (recipient) {
             let examHtml = '';
             if (exam_date || exam_time || exam_venue) {
                 examHtml = '<h3>Exam Details</h3><table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:10px">';
@@ -285,75 +451,121 @@ router.post('/applications/:id/approve', async (req, res) => {
                 examHtml += '</table>';
             }
             await sendEmail(
-                current[0].email,
+                recipient.email,
                 'Application Approved - Scholarship Program',
-                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Congratulations! Your scholarship application has been approved.</p>' + examHtml + '<br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(recipient.name || 'Student') + '</strong>,</p><p>Congratulations! Your scholarship application has been approved.</p>' +
+                (admin_remark ? '<p><strong>Note:</strong> ' + escapeHtml(admin_remark) + '</p>' : '') + examHtml +
+                '<br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ពាក្យសុំត្រូវបានអនុម័តដោយជោគជ័យ', 'Application approved successfully'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     } catch (err) {
-        console.error(err);
+        console.error('approve error:', err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     }
 });
 
-router.post('/applications/:id/reject', async (req, res) => {
+router.post('/applications/:id/reject',
+    remarkRule('admin_remark', 'Rejection reason'),
+    async (req, res) => {
+    const backTo = '/admin/applications/' + req.params.id;
     try {
+        if (flashValidationErrors(req, res, backTo)) return;
         const { admin_remark } = req.body;
         const [current] = await req.db.query('SELECT a.status, a.user_id, u.email, u.khmer_name FROM applications a JOIN users u ON a.user_id = u.id WHERE a.id = ?', [req.params.id]);
-        await req.db.query("UPDATE applications SET status = 'rejected', admin_remark = ? WHERE id = ?", [admin_remark, req.params.id]);
-        await req.db.query(
-            'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
-            [req.params.id, current[0]?.status, 'rejected', req.session.user.id, admin_remark]
-        );
-        if (current[0]?.user_id) {
-            await req.db.query(
-                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                [current[0].user_id, 'Application Rejected', 'Your application has been rejected. Reason: ' + (admin_remark || 'No reason provided'), 'rejection']
+        if (!current.length) {
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំនេះ', 'Application not found'));
+            return res.redirect('/admin/applications');
+        }
+        const row = current[0];
+        if (!canTransition(APPLICATION_TRANSITIONS, row.status, 'rejected')) {
+            req.flash('error', t(req, 'មិនអាចបដិសេធពាក្យសុំដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot reject an application with status ' + row.status));
+            return res.redirect(backTo);
+        }
+
+        const reason = admin_remark || 'No reason provided';
+        const recipient = row.user_id ? { id: row.user_id, email: row.email, name: row.khmer_name } : null;
+
+        await withTransaction(req.db, async (conn) => {
+            await conn.query("UPDATE applications SET status = 'rejected', admin_remark = ? WHERE id = ?", [admin_remark || null, req.params.id]);
+            await conn.query(
+                'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
+                [req.params.id, row.status, 'rejected', req.session.user.id, reason]
             );
+            if (recipient) {
+                await conn.query(
+                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                    [recipient.id, 'Application Rejected', 'Your application has been rejected.', 'rejection', 'Reason: ' + reason]
+                );
+            }
+        });
+
+        if (recipient) {
             await sendEmail(
-                current[0].email,
+                recipient.email,
                 'Application Rejected - Scholarship Program',
-                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your scholarship application has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(admin_remark || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(recipient.name || 'Student') + '</strong>,</p><p>We regret to inform you that your scholarship application has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(reason) + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ពាក្យសុំត្រូវបានបដិសេធ', 'Application rejected'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     } catch (err) {
-        console.error(err);
+        console.error('reject error:', err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     }
 });
 
-router.post('/applications/:id/correction', async (req, res) => {
+router.post('/applications/:id/correction',
+    remarkRule('correction_notes', 'Correction notes'),
+    async (req, res) => {
+    const backTo = '/admin/applications/' + req.params.id;
     try {
+        if (flashValidationErrors(req, res, backTo)) return;
         const { correction_notes } = req.body;
         const [current] = await req.db.query('SELECT a.status, a.user_id, u.email, u.khmer_name FROM applications a JOIN users u ON a.user_id = u.id WHERE a.id = ?', [req.params.id]);
-        await req.db.query("UPDATE applications SET status = 'correction_requested', correction_notes = ? WHERE id = ?", [correction_notes, req.params.id]);
-        await req.db.query(
-            'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
-            [req.params.id, current[0]?.status, 'correction_requested', req.session.user.id, correction_notes]
-        );
-        if (current[0]?.user_id) {
-            await req.db.query(
-                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                [current[0].user_id, 'Correction Requested', 'Your application requires corrections. Please review the notes and resubmit. Notes: ' + (correction_notes || 'No specific notes'), 'correction']
+        if (!current.length) {
+            req.flash('error', t(req, 'រកមិនឃើញពាក្យសុំនេះ', 'Application not found'));
+            return res.redirect('/admin/applications');
+        }
+        const row = current[0];
+        if (!canTransition(APPLICATION_TRANSITIONS, row.status, 'correction_requested')) {
+            req.flash('error', t(req, 'មិនអាចស្នើកែតម្រូវលើពាក្យសុំដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot request corrections on an application with status ' + row.status));
+            return res.redirect(backTo);
+        }
+
+        const notes = correction_notes || 'No specific notes';
+        const recipient = row.user_id ? { id: row.user_id, email: row.email, name: row.khmer_name } : null;
+
+        await withTransaction(req.db, async (conn) => {
+            await conn.query("UPDATE applications SET status = 'correction_requested', correction_notes = ? WHERE id = ?", [correction_notes || null, req.params.id]);
+            await conn.query(
+                'INSERT INTO application_status_history (application_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)',
+                [req.params.id, row.status, 'correction_requested', req.session.user.id, notes]
             );
+            if (recipient) {
+                await conn.query(
+                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                    [recipient.id, 'Correction Requested', 'Your application requires corrections. Please review the notes and resubmit.', 'correction', 'Notes: ' + notes]
+                );
+            }
+        });
+
+        if (recipient) {
             await sendEmail(
-                current[0].email,
+                recipient.email,
                 'Correction Requested - Scholarship Application',
-                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your scholarship application requires corrections. Please log in and review the notes below, then resubmit your application.</p><p><strong>Correction Notes:</strong> ' + escapeHtml(correction_notes || 'No specific notes') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(recipient.name || 'Student') + '</strong>,</p><p>Your scholarship application requires corrections. Please log in and review the notes below, then resubmit your application.</p><p><strong>Correction Notes:</strong> ' + escapeHtml(notes) + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'បានស្នើសុំកែតម្រូវ', 'Correction requested'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     } catch (err) {
-        console.error(err);
+        console.error('correction error:', err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
-        res.redirect('/admin/applications/' + req.params.id);
+        res.redirect(backTo);
     }
 });
 
@@ -385,7 +597,7 @@ router.get('/majors', async (req, res) => {
         const totalRecords = countResult[0].count;
         const totalPages = Math.ceil(totalRecords / limit);
 
-        res.render('admin/majors', { title: 'Manage Majors', majors, currentPage: page, totalPages, totalRecords, filters: req.query });
+        res.render('admin/majors', { title: 'Manage Majors', majors, currentPage: page, limit, totalPages, totalRecords, filters: req.query });
     } catch (err) {
         console.error(err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
@@ -393,8 +605,11 @@ router.get('/majors', async (req, res) => {
     }
 });
 
-router.post('/majors', async (req, res) => {
+router.post('/majors',
+    nameRules('name'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/majors')) return;
         const { name_kh, name_en, faculty_kh, faculty_en } = req.body;
         await req.db.query('INSERT INTO majors (name_kh, name_en, faculty_kh, faculty_en) VALUES (?, ?, ?, ?)', [name_kh, name_en, faculty_kh, faculty_en]);
         req.flash('success', t(req, 'បានបន្ថែមជំនាញដោយជោគជ័យ', 'Major added successfully'));
@@ -406,8 +621,11 @@ router.post('/majors', async (req, res) => {
     }
 });
 
-router.post('/majors/:id/edit', async (req, res) => {
+router.post('/majors/:id/edit',
+    nameRules('name'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/majors')) return;
         const { name_kh, name_en, faculty_kh, faculty_en } = req.body;
         await req.db.query('UPDATE majors SET name_kh = ?, name_en = ?, faculty_kh = ?, faculty_en = ? WHERE id = ?', [name_kh, name_en, faculty_kh, faculty_en, req.params.id]);
         req.flash('success', t(req, 'បានកែសម្រួលជំនាញដោយជោគជ័យ', 'Major updated successfully'));
@@ -433,6 +651,21 @@ router.post('/majors/:id/toggle', async (req, res) => {
 
 router.post('/majors/:id/delete', async (req, res) => {
     try {
+        const [rows] = await req.db.query('SELECT id, name_en FROM majors WHERE id = ?', [req.params.id]);
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញជំនាញនេះ', 'Major not found'));
+            return res.redirect('/admin/majors');
+        }
+        const inUse = await usageCounts(req.db, [
+            ['applications', 'SELECT COUNT(*) c FROM applications WHERE major_first_choice_id = ? OR major_second_choice_id = ?', [req.params.id, req.params.id]],
+            ['tuition records', 'SELECT COUNT(*) c FROM major_tuition WHERE major_id = ?', [req.params.id]]
+        ]);
+        if (inUse.length) {
+            req.flash('error', t(req,
+                'មិនអាចលុបជំនាញបានទេ ព្រោះវាត្រូវបានប្រើនៅ៖ ' + inUse.join(', '),
+                'Cannot delete this major: it is used by ' + inUse.join(', ')));
+            return res.redirect('/admin/majors');
+        }
         await req.db.query('DELETE FROM majors WHERE id = ?', [req.params.id]);
         req.flash('success', t(req, 'បានលុបជំនាញដោយជោគជ័យ', 'Major deleted successfully'));
         res.redirect('/admin/majors');
@@ -471,7 +704,7 @@ router.get('/provinces', async (req, res) => {
         const totalRecords = countResult[0].count;
         const totalPages = Math.ceil(totalRecords / limit);
 
-        res.render('admin/provinces', { title: 'Manage Provinces', provinces, currentPage: page, totalPages, totalRecords, filters: req.query });
+        res.render('admin/provinces', { title: 'Manage Provinces', provinces, currentPage: page, limit, totalPages, totalRecords, filters: req.query });
     } catch (err) {
         console.error(err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
@@ -479,8 +712,11 @@ router.get('/provinces', async (req, res) => {
     }
 });
 
-router.post('/provinces', async (req, res) => {
+router.post('/provinces',
+    nameRules('name'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/provinces')) return;
         const { name_kh, name_en } = req.body;
         await req.db.query('INSERT INTO provinces (name_kh, name_en) VALUES (?, ?)', [name_kh, name_en]);
         req.flash('success', t(req, 'ខេត្តត្រូវបានបន្ថែមដោយជោគជ័យ', 'Province added successfully'));
@@ -492,8 +728,11 @@ router.post('/provinces', async (req, res) => {
     }
 });
 
-router.post('/provinces/:id/edit', async (req, res) => {
+router.post('/provinces/:id/edit',
+    nameRules('name'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/provinces')) return;
         const { name_kh, name_en } = req.body;
         await req.db.query('UPDATE provinces SET name_kh = ?, name_en = ? WHERE id = ?', [name_kh, name_en, req.params.id]);
         req.flash('success', t(req, 'ខេត្តត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ', 'Province updated successfully'));
@@ -507,6 +746,20 @@ router.post('/provinces/:id/edit', async (req, res) => {
 
 router.post('/provinces/:id/delete', async (req, res) => {
     try {
+        const [rows] = await req.db.query('SELECT id, name_en FROM provinces WHERE id = ?', [req.params.id]);
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញខេត្តនេះ', 'Province not found'));
+            return res.redirect('/admin/provinces');
+        }
+        const inUse = await usageCounts(req.db, [
+            ['applications', 'SELECT COUNT(*) c FROM applications WHERE school_province_id = ?', [req.params.id]]
+        ]);
+        if (inUse.length) {
+            req.flash('error', t(req,
+                'មិនអាចលុបខេត្តបានទេ ព្រោះវាត្រូវបានប្រើនៅ៖ ' + inUse.join(', '),
+                'Cannot delete this province: it is used by ' + inUse.join(', ')));
+            return res.redirect('/admin/provinces');
+        }
         await req.db.query('DELETE FROM provinces WHERE id = ?', [req.params.id]);
         req.flash('success', t(req, 'ខេត្តត្រូវបានលុបដោយជោគជ័យ', 'Province deleted successfully'));
         res.redirect('/admin/provinces');
@@ -552,12 +805,20 @@ router.get('/users', async (req, res) => {
         const totalRecords = countResult[0].count;
         const totalPages = Math.ceil(totalRecords / limit);
 
+        // Drives the Create User form: the admin role is only offered while a single
+        // admin exists, so the UI can explain the rule instead of letting the admin
+        // fill in the form and then hit a server-side refusal.
+        const [adminCountRows] = await req.db.query("SELECT COUNT(*) c FROM users WHERE role = 'admin'");
+        const adminCount = Number(adminCountRows[0].c);
+
         res.render('admin/users', {
             title: 'Manage Users',
             users,
             currentPage: page,
+            limit,
             totalPages,
             totalRecords,
+            adminCount,
             filters: req.query
         });
     } catch (err) {
@@ -567,17 +828,125 @@ router.get('/users', async (req, res) => {
     }
 });
 
-router.post('/users/:id/reset-password', async (req, res) => {
+// Roles an admin may hand out. Whitelisted here and never taken from the request
+// unchecked: `role` is interpolated into an INSERT, so passing req.body.role straight
+// through would let a crafted request pick any value the ENUM accepts.
+const ASSIGNABLE_ROLES = ['student', 'committee', 'admin'];
+
+// Creating a second admin is a permanent backdoor, so it is only allowed while the
+// system still has a single admin. That caps the system at two administrators by
+// design rather than by policy, and a compromised admin cannot silently add more.
+const MAX_CREATABLE_ADMINS = 1;
+
+const createUserRules = [
+    body('email').trim().isEmail().withMessage('A valid email address is required').bail()
+        .isLength({ max: 255 }).withMessage('Email must be 255 characters or fewer').normalizeEmail(),
+    body('english_name').trim().isLength({ min: 1, max: 191 }).withMessage('English name is required and must be 191 characters or fewer'),
+    body('khmer_name').trim().isLength({ min: 1, max: 191 }).withMessage('Khmer name is required and must be 191 characters or fewer'),
+    body('username').optional({ checkFalsy: true }).trim()
+        .isLength({ max: 50 }).withMessage('Username must be 50 characters or fewer')
+        .matches(/^[A-Za-z0-9_.-]+$/).withMessage('Username may only contain letters, numbers, dot, dash and underscore'),
+    body('phone').optional({ checkFalsy: true }).trim()
+        .isLength({ max: 20 }).withMessage('Phone must be 20 characters or fewer'),
+    body('role').isIn(ASSIGNABLE_ROLES).withMessage('Role must be one of: ' + ASSIGNABLE_ROLES.join(', '))
+];
+
+router.post('/users', createUserRules, async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/users')) return;
+
+        const { email, english_name, khmer_name, username, phone, role } = req.body;
+        const wantedRole = ASSIGNABLE_ROLES.indexOf(role) !== -1 ? role : 'student';
+
+        // Guard before any write, and re-read the count rather than trusting the view.
+        if (wantedRole === 'admin') {
+            const [rows] = await req.db.query("SELECT COUNT(*) c FROM users WHERE role = 'admin'");
+            if (Number(rows[0].c) > MAX_CREATABLE_ADMINS) {
+                return await flashAndRedirect(req, res, 'error', t(req,
+                    'មិនអាចបង្កើតអ្នកគ្រប់គ្រងថ្មីទៀតទេ ព្រោះមានអ្នកគ្រប់គ្រងចំនួនច្រើនរួចហើយ។',
+                    'Cannot create another admin: the system already has more than one administrator.'), '/admin/users');
+            }
+        }
+
+        // Pre-check purely for a readable message. The UNIQUE index on users.email is
+        // what actually guarantees uniqueness, so a concurrent insert is still handled
+        // by the ER_DUP_ENTRY catch below.
+        const [existingEmail] = await req.db.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingEmail.length) {
+            return await flashAndRedirect(req, res, 'error', t(req, 'អ៊ីមែលនេះត្រូវបានបង្កើតរួចហើយ។', 'That email address is already registered.'), '/admin/users');
+        }
+        if (username) {
+            const [existingUsername] = await req.db.query('SELECT id FROM users WHERE username = ?', [username]);
+            if (existingUsername.length) {
+                return await flashAndRedirect(req, res, 'error', t(req, 'ឈ្មោះអ្នកប្រើនេះត្រូវបានប្រើរួចហើយ។', 'That username is already taken.'), '/admin/users');
+            }
+        }
+
         const bcrypt = require('bcryptjs');
         const crypto = require('crypto');
         const newPassword = crypto.randomBytes(8).toString('hex');
         const hashedPassword = await bcrypt.hash(newPassword, 12);
-        await req.db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.params.id]);
-        req.flash('success', t(req, 'ពាក្យសម្ងាត់ត្រូវបានកំណត់ឡើងវិញ', 'Password has been reset. New password: ' + newPassword));
-        res.redirect('/admin/users');
+
+        // is_verified = 1: a created account has no email round-trip to verify against,
+        // and OTP delivery is not wired up for accounts an admin provisions directly.
+        await req.db.query(
+            'INSERT INTO users (email, password, role, khmer_name, english_name, username, phone, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
+            [email, hashedPassword, wantedRole, khmer_name, english_name, username || null, phone || null]
+        );
+
+        // No audit table exists for user changes, so at minimum record who did what.
+        console.log(`[user-created] by=${req.session.user.id} email=${email} role=${wantedRole}`);
+
+        // The password is rendered, never flashed: flash data is written into the
+        // session store, which would leave the plaintext sitting in the database.
+        res.render('admin/reset-password-result', {
+            title: 'User Created',
+            mode: 'created',
+            email,
+            role: wantedRole,
+            newPassword,
+            revokedSessions: 0
+        });
     } catch (err) {
-        console.error(err);
+        if (err && err.code === 'ER_DUP_ENTRY') {
+            return await flashAndRedirect(req, res, 'error', t(req, 'អ៊ីមែលនេះត្រូវបានបង្កើតរួចហើយ។', 'That email address is already registered.'), '/admin/users');
+        }
+        console.error('Create user error:', err);
+        await flashAndRedirect(req, res, 'error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'), '/admin/users');
+    }
+});
+
+router.post('/users/:id/reset-password', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const crypto = require('crypto');
+        const [rows] = await req.db.query('SELECT id, email, role FROM users WHERE id = ?', [req.params.id]);
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញអ្នកប្រើប្រាស់នេះ', 'User not found'));
+            return res.redirect('/admin/users');
+        }
+        const target = rows[0];
+        const newPassword = crypto.randomBytes(8).toString('hex');
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        await req.db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, target.id]);
+
+        // Revoke every existing session for this account. Without this, resetting the
+        // password of a compromised account leaves the attacker logged in.
+        const revoked = await revokeSessionsForUser(req.db, target.id);
+
+        // The generated password is returned once on the redirect target instead of being
+        // flashed: flash data is written into the session store, so flashing it would
+        // persist the plaintext password in the database.
+        res.render('admin/reset-password-result', {
+            title: 'Password Reset',
+            mode: 'reset',
+            email: target.email,
+            role: target.role,
+            newPassword,
+            revokedSessions: revoked
+        });
+    } catch (err) {
+        console.error('reset password error:', err);
         req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ', 'Database error'));
         res.redirect('/admin/users');
     }
@@ -585,12 +954,44 @@ router.post('/users/:id/reset-password', async (req, res) => {
 
 router.post('/users/:id/delete', async (req, res) => {
     try {
-        const [user] = await req.db.query('SELECT role FROM users WHERE id = ?', [req.params.id]);
-        if (user[0] && user[0].role === 'admin') {
+        const [user] = await req.db.query('SELECT id, email, role FROM users WHERE id = ?', [req.params.id]);
+        if (!user.length) {
+            req.flash('error', t(req, 'រកមិនឃើញអ្នកប្រើប្រាស់នេះ', 'User not found'));
+            return res.redirect('/admin/users');
+        }
+        if (user[0].role === 'admin') {
             req.flash('error', t(req, 'មិនអាចលុបអ្នកគ្រប់គ្រងបាន', 'Cannot delete admin user'));
             return res.redirect('/admin/users');
         }
-        await req.db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+        if (Number(req.params.id) === Number(req.session.user.id)) {
+            req.flash('error', t(req, 'មិនអាចលុបគណនីផ្ទាល់ខ្លួនបានទេ', 'You cannot delete your own account'));
+            return res.redirect('/admin/users');
+        }
+        // Foreign keys protect applications / enrollments / payments, so a bare DELETE
+        // failed with an opaque "Database error". Name the blockers instead.
+        // Notifications are deliberately NOT a blocker: they are transient notices, and
+        // blocking on them would make any account that ever received a message
+        // permanently undeletable. They are removed with the account below.
+        const inUse = await usageCounts(req.db, [
+            ['applications', 'SELECT COUNT(*) c FROM applications WHERE user_id = ?', [req.params.id]],
+            ['enrollments', 'SELECT COUNT(*) c FROM enrollments WHERE user_id = ?', [req.params.id]],
+            ['payments', 'SELECT COUNT(*) c FROM payments WHERE user_id = ?', [req.params.id]]
+        ]);
+        if (inUse.length) {
+            req.flash('error', t(req,
+                'មិនអាចលុបអ្នកប្រើប្រាស់បានទេ ព្រោះគាត់មានទិន្នន័យ៖ ' + inUse.join(', '),
+                'Cannot delete this user: they still have ' + inUse.join(', ')));
+            return res.redirect('/admin/users');
+        }
+        await withTransaction(req.db, async (conn) => {
+            await conn.query('DELETE FROM notifications WHERE user_id = ?', [req.params.id]);
+            await conn.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+        });
+
+        // The session store keeps its own copy of the user object, so deleting the row
+        // does not log anyone out: isAuthenticated only checks req.session.user. Without
+        // this, a deleted account stays fully logged in until the session expires.
+        const revoked = await revokeSessionsForUser(req.db, req.params.id);
         req.flash('success', t(req, 'អ្នកប្រើប្រាស់ត្រូវបានលុបដោយជោគជ័យ', 'User deleted successfully'));
         res.redirect('/admin/users');
     } catch (err) {
@@ -767,24 +1168,36 @@ router.get('/reports/print', async (req, res) => {
     }
 });
 
-router.post('/notifications/send', async (req, res) => {
+router.post('/notifications/send',
+    remarkRule('message', 'Message'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/dashboard')) return;
         const { exam_date, exam_time, exam_venue, message } = req.body;
-        const [approved] = await req.db.query("SELECT user_id FROM applications WHERE status = 'approved'");
+        // DISTINCT matters: a student with two approved applications previously received
+        // this broadcast twice.
+        const [approved] = await req.db.query("SELECT DISTINCT user_id FROM applications WHERE status = 'approved' AND user_id IS NOT NULL");
         let notificationMessage = 'Exam Notification Details:\n';
         if (exam_date) notificationMessage += 'Date: ' + exam_date + '\n';
         if (exam_time) notificationMessage += 'Time: ' + exam_time + '\n';
         if (exam_venue) notificationMessage += 'Venue: ' + exam_venue + '\n';
         if (message) notificationMessage += '\n' + message;
-        for (const app of approved) {
-            if (app.user_id) {
-                await req.db.query('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)', [app.user_id, 'Exam Schedule Notification', notificationMessage, 'exam_notification']);
-            }
+        if (!notificationMessage.trim() || notificationMessage === 'Exam Notification Details:\n') {
+            req.flash('error', t(req, 'សូមបញ្ចូលព័ត៌មានអាចារបស់ការជូនដឆ្ភាក់យ៉ាងតិចម្ដង។', 'Please provide at least one detail or a message before sending.'));
+            return res.redirect('/admin/dashboard');
         }
-        req.flash('success', t(req, `បានផ្ញើសារជូនដំណឹងដល់ ${approved.length} អ្នកដាក់ពាក្យសុំដែលបានអនុម័ត`, `Notification sent to ${approved.length} approved applicants`));
+        // All-or-nothing: a partial broadcast would leave some students notified and
+        // others not, with no way to tell afterwards.
+        await withTransaction(req.db, async (conn) => {
+            for (const app of approved) {
+                await conn.query('INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                    [app.user_id, 'Exam Schedule Notification', 'New exam schedule information.', 'exam_notification', notificationMessage]);
+            }
+        });
+        req.flash('success', t(req, `បានផ្ញើសារជូនដឆ្ភាក់ដល់ ${approved.length} អ្នកដាក់ពាក់សុំដែលបានអនុម័ត`, `Notification sent to ${approved.length} approved applicants`));
         res.redirect('/admin/dashboard');
     } catch (err) {
-        console.error(err);
+        console.error('broadcast notification error:', err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
     }
@@ -830,15 +1243,37 @@ router.post('/settings', upload.single('payment_qr_file'), verifyCsrf, async (re
         const scholOpen = scholarship_open !== undefined
             ? (Array.isArray(scholarship_open) ? scholarship_open[scholarship_open.length - 1] : scholarship_open)
             : current.scholarship_open || '0';
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [regOpen, 'registration_open']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_start !== undefined ? registration_start : (current.registration_start || ''), 'registration_start']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_end !== undefined ? registration_end : (current.registration_end || ''), 'registration_end']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollOpen, 'enrollment_open']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_start !== undefined ? enrollment_start : (current.enrollment_start || ''), 'enrollment_start']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_end !== undefined ? enrollment_end : (current.enrollment_end || ''), 'enrollment_end']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholOpen, 'scholarship_open']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_start !== undefined ? scholarship_start : (current.scholarship_start || ''), 'scholarship_start']);
-        await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_end !== undefined ? scholarship_end : (current.scholarship_end || ''), 'scholarship_end']);
+        // Validate each window before writing anything. A malformed or reversed date
+        // would otherwise leave the application window permanently open or closed with
+        // no obvious cause.
+        const windows = [
+            ['registration', registration_start !== undefined ? registration_start : current.registration_start, registration_end !== undefined ? registration_end : current.registration_end],
+            ['enrollment', enrollment_start !== undefined ? enrollment_start : current.enrollment_start, enrollment_end !== undefined ? enrollment_end : current.enrollment_end],
+            ['scholarship', scholarship_start !== undefined ? scholarship_start : current.scholarship_start, scholarship_end !== undefined ? scholarship_end : current.scholarship_end]
+        ];
+        for (const [label, start, end] of windows) {
+            const problem = validateWindow(start, end);
+            if (problem) {
+                req.flash('error', t(req,
+                    'កាលបរិច្ឆេទមិនត្រឹមត្រូវសម្រាប់ ' + label + '៖ ' + problem.km,
+                    'Invalid ' + label + ' dates: ' + problem.en));
+                return res.redirect('/admin/settings');
+            }
+        }
+
+        // Nine independent UPDATEs: previously a failure part way through left the
+        // settings half saved with no indication of which half.
+        await withTransaction(req.db, async (conn) => {
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [regOpen, 'registration_open']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_start !== undefined ? registration_start : (current.registration_start || ''), 'registration_start']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [registration_end !== undefined ? registration_end : (current.registration_end || ''), 'registration_end']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollOpen, 'enrollment_open']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_start !== undefined ? enrollment_start : (current.enrollment_start || ''), 'enrollment_start']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [enrollment_end !== undefined ? enrollment_end : (current.enrollment_end || ''), 'enrollment_end']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholOpen, 'scholarship_open']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_start !== undefined ? scholarship_start : (current.scholarship_start || ''), 'scholarship_start']);
+            await conn.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [scholarship_end !== undefined ? scholarship_end : (current.scholarship_end || ''), 'scholarship_end']);
+        });
 
         req.flash('success', t(req, 'បានកែសម្រួលការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
         res.redirect('/admin/settings');
@@ -923,6 +1358,7 @@ router.get('/scholarship-types', async (req, res) => {
             types,
             majorsList,
             currentPage: page,
+            limit,
             totalPages,
             totalRecords,
             filters: req.query
@@ -1015,6 +1451,23 @@ router.post('/scholarship-types/:id/toggle', async (req, res) => {
 
 router.post('/scholarship-types/:id/delete', async (req, res) => {
     try {
+        const [rows] = await req.db.query('SELECT id, name_en FROM scholarship_types WHERE id = ?', [req.params.id]);
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញកម្មវិធីអាហារូបករណ៍នេះ', 'Scholarship program not found'));
+            return res.redirect('/admin/scholarship-types');
+        }
+        // applications.scholarship_type_id has no foreign key, so without this check the
+        // delete would succeed and silently orphan existing applications.
+        const inUse = await usageCounts(req.db, [
+            ['applications', 'SELECT COUNT(*) c FROM applications WHERE scholarship_type_id = ?', [req.params.id]],
+            ['enrollments', 'SELECT COUNT(*) c FROM enrollments WHERE scholarship_category_id = ?', [req.params.id]]
+        ]);
+        if (inUse.length) {
+            req.flash('error', t(req,
+                'មិនអាចលុបកម្មវិធីនេះបានទេ ព្រោះវាត្រូវបានប្រើនៅ៖ ' + inUse.join(', '),
+                'Cannot delete this scholarship program: it is used by ' + inUse.join(', ') + '. Deactivate it instead.'));
+            return res.redirect('/admin/scholarship-types');
+        }
         await req.db.query('DELETE FROM scholarship_types WHERE id = ?', [req.params.id]);
         req.flash('success', t(req, 'បានលុបប្រភេទអាហារូបករណ៍ដោយជោគជ័យ', 'Scholarship type deleted successfully'));
         res.redirect('/admin/scholarship-types');
@@ -1066,6 +1519,7 @@ router.get('/fee-types', async (req, res) => {
             title: 'Manage Fee Types',
             feeTypes,
             currentPage: page,
+            limit,
             totalPages,
             totalRecords,
             filters: req.query
@@ -1123,6 +1577,20 @@ router.post('/fee-types/:id/toggle', async (req, res) => {
 
 router.post('/fee-types/:id/delete', async (req, res) => {
     try {
+        const [rows] = await req.db.query('SELECT id, name_en FROM fee_types WHERE id = ?', [req.params.id]);
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញប្រភេទថ្លៃនេះ', 'Fee type not found'));
+            return res.redirect('/admin/fee-types');
+        }
+        const inUse = await usageCounts(req.db, [
+            ['payments', 'SELECT COUNT(*) c FROM payments WHERE fee_type_id = ?', [req.params.id]]
+        ]);
+        if (inUse.length) {
+            req.flash('error', t(req,
+                'មិនអាចលុបប្រភេទថ្លៃនេះបានទេ ព្រោះវាត្រូវបានប្រើនៅ៖ ' + inUse.join(', '),
+                'Cannot delete this fee type: it is used by ' + inUse.join(', ')));
+            return res.redirect('/admin/fee-types');
+        }
         await req.db.query('DELETE FROM fee_types WHERE id = ?', [req.params.id]);
         req.flash('success', t(req, 'បានលុបប្រភេទថ្លៃសេវាដោយជោគជ័យ', 'Fee type deleted successfully'));
         res.redirect('/admin/fee-types');
@@ -1195,6 +1663,7 @@ router.get('/enrollments', async (req, res) => {
             enrollments,
             stats: stats[0],
             currentPage: page,
+            limit,
             totalPages,
             totalRecords,
             filters: req.query
@@ -1247,6 +1716,14 @@ router.get('/enrollments/:id', async (req, res) => {
 
 router.get('/enrollments/:id/print', async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/dashboard')) return;
+        if (flashValidationErrors(req, res, '/admin/provinces')) return;
+        if (flashValidationErrors(req, res, '/admin/provinces')) return;
+        if (flashValidationErrors(req, res, '/admin/majors')) return;
+        if (flashValidationErrors(req, res, '/admin/majors')) return;
+        if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
+        if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
+        if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
         const [rows] = await req.db.query('SELECT * FROM enrollments WHERE id = ?', [req.params.id]);
         if (rows.length === 0) {
             req.flash('error', t(req, 'រកមិនឃើញព័ត៌មានចុះឈ្មោះ', 'Enrollment not found'));
@@ -1261,7 +1738,12 @@ router.get('/enrollments/:id/print', async (req, res) => {
             const [m] = await req.db.query('SELECT name_kh, name_en FROM majors WHERE name_kh = ? OR name_en = ? LIMIT 1', [enrollment.major_choice, enrollment.major_choice]);
             if (m.length > 0) major = m[0];
         }
-        const [users] = await req.db.query('SELECT * FROM users WHERE id = ?', [enrollment.user_id]);
+        // Explicit columns: `SELECT *` pulled the password hash, OTP code and reset
+        // token into the template scope of a printable letter.
+        const [users] = await req.db.query(
+            'SELECT id, email, khmer_name, english_name, national_id, gender, date_of_birth, place_of_birth, address, phone, profile_pic, username FROM users WHERE id = ?',
+            [enrollment.user_id]
+        );
         res.render('student/enroll-print', {
             title: 'Print Enrollment Letter',
             layout: false,
@@ -1276,64 +1758,100 @@ router.get('/enrollments/:id/print', async (req, res) => {
     }
 });
 
-router.post('/enrollments/:id/approve', async (req, res) => {
+router.post('/enrollments/:id/approve',
+    remarkRule('notes', 'Notes'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/enrollments')) return;
         const [current] = await req.db.query(
             'SELECT e.status, e.user_id, u.email, u.khmer_name FROM enrollments e JOIN users u ON e.user_id = u.id WHERE e.id = ?',
             [req.params.id]
         );
-        await req.db.query(
-            "UPDATE enrollments SET status = 'approved', admin_notes = ? WHERE id = ?",
-            [req.body.notes || '', req.params.id]
-        );
-        if (current[0]?.user_id) {
-            let notificationMessage = 'Your enrollment has been approved.';
-            if (req.body.notes) notificationMessage += '\n\nNotes: ' + req.body.notes;
-            await req.db.query(
-                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                [current[0].user_id, 'Enrollment Approved', notificationMessage, 'approval']
+        if (!current.length) {
+            req.flash('error', t(req, 'រកមិនឃើញព័ត៌មានចុះឈ្មោះនេះ', 'Enrollment not found'));
+            return res.redirect('/admin/enrollments');
+        }
+        const row = current[0];
+        if (!canTransition(ENROLLMENT_TRANSITIONS, row.status, 'approved')) {
+            req.flash('error', t(req, 'មិនអាចអនុម័តព័ត៌មានដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot approve an enrollment with status ' + row.status));
+            return res.redirect('/admin/enrollments');
+        }
+        const recipient = row.user_id ? { id: row.user_id, email: row.email, name: row.khmer_name } : null;
+
+        await withTransaction(req.db, async (conn) => {
+            await conn.query(
+                "UPDATE enrollments SET status = 'approved', admin_notes = ? WHERE id = ?",
+                [req.body.notes || '', req.params.id]
             );
+            if (recipient) {
+                await conn.query(
+                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                    [recipient.id, 'Enrollment Approved', 'Your enrollment has been approved.', 'enrollment_approval', req.body.notes ? 'Notes: ' + req.body.notes : null]
+                );
+            }
+        });
+
+        if (recipient) {
             await sendEmail(
-                current[0].email,
+                recipient.email,
                 'Enrollment Approved - Scholarship Program',
-                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>Your enrollment has been approved.</p>' + (req.body.notes ? '<p><strong>Notes:</strong> ' + escapeHtml(req.body.notes) + '</p>' : '') + '<br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(recipient.name || 'Student') + '</strong>,</p><p>Your enrollment has been approved.</p>' + (req.body.notes ? '<p><strong>Notes:</strong> ' + escapeHtml(req.body.notes) + '</p>' : '') + '<br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ព័ត៌មានចុះឈ្មោះត្រូវបានអនុម័ត', 'Enrollment approved'));
         res.redirect('/admin/enrollments');
     } catch (err) {
-        console.error(err);
+        console.error('approve enrollment error:', err);
         req.flash('error', t(req, 'មានកំហុសក្នុងការអនុម័តព័ត៌មានចុះឈ្មោះ', 'Error approving enrollment'));
         res.redirect('/admin/enrollments');
     }
 });
 
-router.post('/enrollments/:id/reject', async (req, res) => {
+router.post('/enrollments/:id/reject',
+    remarkRule('notes', 'Reason'),
+    async (req, res) => {
     try {
+        if (flashValidationErrors(req, res, '/admin/enrollments')) return;
         const [current] = await req.db.query(
             'SELECT e.status, e.user_id, u.email, u.khmer_name FROM enrollments e JOIN users u ON e.user_id = u.id WHERE e.id = ?',
             [req.params.id]
         );
-        await req.db.query(
-            "UPDATE enrollments SET status = 'rejected', admin_notes = ? WHERE id = ?",
-            [req.body.notes || '', req.params.id]
-        );
-        if (current[0]?.user_id) {
-            const notificationMessage = 'Your enrollment has been rejected. Reason: ' + (req.body.notes || 'No reason provided');
-            await req.db.query(
-                'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                [current[0].user_id, 'Enrollment Rejected', notificationMessage, 'rejection']
+        if (!current.length) {
+            req.flash('error', t(req, 'រកមិនឃើញព័ត៌មានចុះឈ្មោះនេះ', 'Enrollment not found'));
+            return res.redirect('/admin/enrollments');
+        }
+        const row = current[0];
+        if (!canTransition(ENROLLMENT_TRANSITIONS, row.status, 'rejected')) {
+            req.flash('error', t(req, 'មិនអាចបដិសេធព័ត៌មានដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot reject an enrollment with status ' + row.status));
+            return res.redirect('/admin/enrollments');
+        }
+        const reason = req.body.notes || 'No reason provided';
+        const recipient = row.user_id ? { id: row.user_id, email: row.email, name: row.khmer_name } : null;
+
+        await withTransaction(req.db, async (conn) => {
+            await conn.query(
+                "UPDATE enrollments SET status = 'rejected', admin_notes = ? WHERE id = ?",
+                [req.body.notes || '', req.params.id]
             );
+            if (recipient) {
+                await conn.query(
+                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                    [recipient.id, 'Enrollment Rejected', 'Your enrollment has been rejected.', 'enrollment_rejection', 'Reason: ' + reason]
+                );
+            }
+        });
+
+        if (recipient) {
             await sendEmail(
-                current[0].email,
+                recipient.email,
                 'Enrollment Rejected - Scholarship Program',
-                '<p>Dear <strong>' + escapeHtml(current[0].khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your enrollment has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(req.body.notes || 'No reason provided') + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
+                '<p>Dear <strong>' + escapeHtml(recipient.name || 'Student') + '</strong>,</p><p>We regret to inform you that your enrollment has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(reason) + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
             );
         }
         req.flash('success', t(req, 'ព័ត៌មានចុះឈ្មោះត្រូវបានបដិសេធ', 'Enrollment rejected'));
         res.redirect('/admin/enrollments');
     } catch (err) {
-        console.error(err);
+        console.error('reject enrollment error:', err);
         req.flash('error', t(req, 'មានកំហុសក្នុងការបដិសេព័ត៌មានចុះឈ្មោះ', 'Error rejecting enrollment'));
         res.redirect('/admin/enrollments');
     }
@@ -1400,6 +1918,7 @@ router.get('/payments', async (req, res) => {
             payments,
             stats: stats[0],
             currentPage: page,
+            limit,
             totalPages,
             totalRecords,
             filters: req.query
@@ -1411,11 +1930,38 @@ router.get('/payments', async (req, res) => {
     }
 });
 
-router.post('/payments/:id/verify', async (req, res) => {
+router.post('/payments/:id/verify',
+    remarkRule('notes', 'Notes'),
+    async (req, res) => {
     try {
-        await req.db.query(
-            "UPDATE payments SET status = 'verified', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
-            [req.session.user.id, req.body.notes || '', req.params.id]
+        if (flashValidationErrors(req, res, '/admin/payments')) return;
+        const [rows] = await req.db.query(
+            'SELECT p.id, p.status, p.user_id, u.email, u.khmer_name FROM payments p JOIN users u ON u.id = p.user_id WHERE p.id = ?',
+            [req.params.id]
+        );
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញការទូទាត់នេះ', 'Payment not found'));
+            return res.redirect('/admin/payments');
+        }
+        const row = rows[0];
+        if (!canTransition(PAYMENT_TRANSITIONS, row.status, 'verified')) {
+            req.flash('error', t(req, 'មិនអាចផ្ទៀងផ្ទាត់ការទូទាត់ដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot verify a payment with status ' + row.status));
+            return res.redirect('/admin/payments');
+        }
+        await withTransaction(req.db, async (conn) => {
+            await conn.query(
+                "UPDATE payments SET status = 'verified', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
+                [req.session.user.id, req.body.notes || '', req.params.id]
+            );
+            await conn.query(
+                'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                [row.user_id, 'Payment Verified', 'Your payment has been verified.', 'payment_verified', req.body.notes ? 'Notes: ' + req.body.notes : null]
+            );
+        });
+        await sendEmail(
+            row.email,
+            'Payment Verified - Scholarship Program',
+            '<p>Dear <strong>' + escapeHtml(row.khmer_name || 'Student') + '</strong>,</p><p>Your payment has been verified.</p><br><p>Best regards,<br>Scholarship Committee</p>'
         );
         req.flash('success', t(req, 'ព័ត៌មានការទូទាត់ត្រូវបានផ្ទៀងផ្ទាត់', 'Payment verified'));
         res.redirect('/admin/payments');
@@ -1426,11 +1972,39 @@ router.post('/payments/:id/verify', async (req, res) => {
     }
 });
 
-router.post('/payments/:id/reject', async (req, res) => {
+router.post('/payments/:id/reject',
+    remarkRule('notes', 'Reason'),
+    async (req, res) => {
     try {
-        await req.db.query(
-            "UPDATE payments SET status = 'rejected', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
-            [req.session.user.id, req.body.notes || '', req.params.id]
+        if (flashValidationErrors(req, res, '/admin/payments')) return;
+        const [rows] = await req.db.query(
+            'SELECT p.id, p.status, p.user_id, u.email, u.khmer_name FROM payments p JOIN users u ON u.id = p.user_id WHERE p.id = ?',
+            [req.params.id]
+        );
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញការទូទាត់នេះ', 'Payment not found'));
+            return res.redirect('/admin/payments');
+        }
+        const row = rows[0];
+        if (!canTransition(PAYMENT_TRANSITIONS, row.status, 'rejected')) {
+            req.flash('error', t(req, 'មិនអាចបដិសេធការទូទាត់ដែលស្ថានភាពជា ' + row.status + ' បានទេ', 'Cannot reject a payment with status ' + row.status));
+            return res.redirect('/admin/payments');
+        }
+        const paymentReason = req.body.notes || 'No reason provided';
+        await withTransaction(req.db, async (conn) => {
+            await conn.query(
+                "UPDATE payments SET status = 'rejected', verified_by = ?, verified_at = NOW(), admin_notes = ? WHERE id = ?",
+                [req.session.user.id, req.body.notes || '', req.params.id]
+            );
+            await conn.query(
+                'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
+                [row.user_id, 'Payment Rejected', 'Your payment has been rejected.', 'payment_rejected', 'Reason: ' + paymentReason]
+            );
+        });
+        await sendEmail(
+            row.email,
+            'Payment Rejected - Scholarship Program',
+            '<p>Dear <strong>' + escapeHtml(row.khmer_name || 'Student') + '</strong>,</p><p>We regret to inform you that your payment has been rejected.</p><p><strong>Reason:</strong> ' + escapeHtml(paymentReason) + '</p><br><p>Best regards,<br>Scholarship Committee</p>'
         );
         req.flash('success', t(req, 'ព័ត៌មានការទូទាត់ត្រូវបានបដិសេធ', 'Payment rejected'));
         res.redirect('/admin/payments');
@@ -1520,6 +2094,13 @@ router.post('/major-tuition/:id/toggle', async (req, res) => {
 
 router.post('/major-tuition/:id/delete', async (req, res) => {
     try {
+        const [rows] = await req.db.query('SELECT id, major_id, academic_year FROM major_tuition WHERE id = ?', [req.params.id]);
+        if (!rows.length) {
+            req.flash('error', t(req, 'រកមិនឃើញកំណត់ថ្លៃសិក្សានេះ', 'Tuition record not found'));
+            return res.redirect('/admin/major-tuition');
+        }
+        // major_tuition is a leaf table: nothing references it, so existence is all that
+        // needs checking before the delete.
         await req.db.query('DELETE FROM major_tuition WHERE id = ?', [req.params.id]);
         req.flash('success', t(req, 'បានលុបថ្លៃសិក្សាជំនាញដោយជោគជ័យ', 'Major tuition deleted successfully'));
         res.redirect('/admin/major-tuition');

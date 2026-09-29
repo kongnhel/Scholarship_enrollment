@@ -169,7 +169,7 @@ async function migrate() {
   await conn.query('INSERT INTO users (email, password, role, khmer_name, english_name, username, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
     ['admin@nmu.edu.kh', adminHash, 'admin', 'អ្នកគ្រប់គ្រង', 'Administrator', 'admin', 1]);
   await conn.query('INSERT INTO users (email, password, role, khmer_name, english_name, username, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    ['committee@nmu.edu.kh', committeeHash, 'committee', 'គណៈកម្មការ', 'Committee Member', null, 1]);
+    ['committee@nmu.edu.kh', committeeHash, 'committee', 'អ្នកគ្រប់គ្រងទី២', 'Committee Member', null, 1]);
   console.log('  admin@nmu.edu.kh (admin123)');
   console.log('  committee@nmu.edu.kh (committee123)');
 

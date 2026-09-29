@@ -160,6 +160,10 @@ async function autoSetup() {
 
     // Run ALTER TABLE migrations for existing databases
     const existingDbMigrations = [
+      // Notification detail: the committee's remark / rejection reason / correction
+      // notes, kept separate from `message` so the UI can show a localized template and
+      // still surface what the admin actually wrote.
+      "ALTER TABLE notifications ADD COLUMN detail TEXT NULL AFTER message",
       // Username + OTP
       "ALTER TABLE users ADD COLUMN username VARCHAR(50) NULL AFTER english_name",
       "ALTER TABLE users ADD UNIQUE INDEX idx_users_username (username)",
@@ -514,7 +518,7 @@ async function autoSetup() {
     await conn.query('INSERT INTO users (email, password, role, khmer_name, english_name, username, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
       ['admin@nmu.edu.kh', adminHash, 'admin', 'អ្នកគ្រប់គ្រង', 'Administrator', 'admin', 1]);
     await conn.query('INSERT INTO users (email, password, role, khmer_name, english_name, username, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      ['committee@nmu.edu.kh', committeeHash, 'committee', 'គណៈកម្មការ', 'Committee Member', null, 1]);
+      ['committee@nmu.edu.kh', committeeHash, 'committee', 'អ្នកគ្រប់គ្រងទី២', 'Committee Member', null, 1]);
 
     const students = [
       {kh:'សុខ វណ្ណា',en:'Sok Vannak',un:'sok_vannak',ph:'012345001'},

@@ -1,20 +1,41 @@
 const multer = require('multer');
+const path = require('path');
 
 const storage = multer.memoryStorage();
 
+// Only these extensions are ever stored. The extension is matched against the
+// allowlist rather than trusted: multer's `file.mimetype` comes straight from the
+// client-supplied multipart Content-Type, so checking it proves nothing. A file named
+// `photo.jpg'-alert(1)-'` claims image/jpeg just as easily as a real photo, and that
+// name used to flow into the database and then into inline JS on the admin page.
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf'];
+const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+
+const extensionOf = (originalname) => path.extname(String(originalname || '')).toLowerCase();
+
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF, JPEG, and PNG are allowed.'), false);
+  const ext = extensionOf(file.originalname);
+  if (ALLOWED_EXTENSIONS.indexOf(ext) === -1) {
+    return cb(new Error('Invalid file type. Allowed: JPG, PNG, PDF.'), false);
   }
+  if (ALLOWED_MIME.indexOf(String(file.mimetype).toLowerCase()) === -1) {
+    return cb(new Error('Invalid file type. Allowed: JPG, PNG, PDF.'), false);
+  }
+  cb(null, true);
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 }
+  limits: {
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024,
+    // Per-request caps. Without these, memoryStorage buffers everything it is sent:
+    // the application form allows 8 files, so ~40 MB of RAM could be held per request
+    // by a single authenticated (or cross-site multipart) POST.
+    files: 10,
+    parts: 60,
+    fieldSize: 1024 * 1024
+  }
 });
 
 const uploadPhoto = upload.single('photo');
@@ -36,5 +57,6 @@ module.exports = {
   upload,
   uploadPhoto,
   uploadMultiple,
-  uploadEnrollmentDocs
+  uploadEnrollmentDocs,
+  ALLOWED_EXTENSIONS
 };

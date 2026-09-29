@@ -7,7 +7,7 @@ const { uploadMultiple, upload, uploadEnrollmentDocs } = require('../middleware/
 const { sendEmail } = require('../config/mailer');
 const { generateKHQR, checkTransaction } = require('../config/bakong');
 const { uploadToImageKit } = require('../utils/imagekit');
-const { escapeHtml } = require('../utils/helpers');
+const { escapeHtml, saveSession, flashAndRedirect } = require('../utils/helpers');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs');
 const path = require('path');
@@ -281,6 +281,8 @@ router.post('/application/select', async (req, res) => {
     }
     req.session.scholarshipTypeId = scholarshipTypeId;
     req.session.scholarshipOption = option;
+    // must be durable before the redirect: /student/application/new reads these back
+    await saveSession(req);
     res.redirect('/student/application/new');
   } catch (error) {
     console.error('Scholarship select error:', error);
@@ -460,7 +462,7 @@ router.post('/application', uploadMultiple, async (req, res) => {
         phone, email,
         parent_name, mother_name, occupation, education_level, parent_phone,
         school_name, exam_session, school_province_id, exam_center, exam_result,
-        major_first_choice_id, major_second_choice_id || null, scholarship_type_id || null,
+          major_first_choice_id, major_second_choice_id || null, selTypeId || null,
         scholarshipOption,
         study_level, study_period, study_shift,
         documentsReady.join(','), additional_info || null, 1,
@@ -691,29 +693,47 @@ router.get('/notifications', async (req, res) => {
 });
 
 router.post('/notifications/read-all', async (req, res) => {
-  try {
-    await req.db.query(
-      'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
-      [req.session.user.id]
-    );
-    res.redirect('/student/notifications');
-  } catch (error) {
-    console.error('Mark all read error:', error);
-    res.redirect('back');
-  }
+    try {
+        const [result] = await req.db.query(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
+            [req.session.user.id]
+        );
+        // Without a flash the page just re-renders with the button gone, which reads as
+        // "nothing happened" and makes the second click land on the Back link next to it.
+        // Report the real count so a repeat click says "nothing left to mark" instead of
+        // claiming work it did not do.
+        const marked = result && result.affectedRows ? result.affectedRows : 0;
+        if (marked > 0) {
+            return await flashAndRedirect(req, res, 'success', t(req,
+                'សារជូនដំណឹងចំនួន ' + marked + ' ត្រូវបានសម្គាល់ថាបានអានរួចហើយ។',
+                marked + ' notification' + (marked === 1 ? '' : 's') + ' marked as read.'), '/student/notifications');
+        }
+        return await flashAndRedirect(req, res, 'warning', t(req, 'មិនមានសារជូនដំណឹងដែលមិនទាន់បានអានទេ។', 'There were no unread notifications.'), '/student/notifications');
+    } catch (error) {
+        console.error('Mark all read error:', error);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('back');
+    }
 });
 
 router.post('/notification/:id/read', async (req, res) => {
-  try {
-    await req.db.query(
-      'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
-      [req.params.id, req.session.user.id]
-    );
-    res.redirect('back');
-  } catch (error) {
-    console.error('Mark notification read error:', error);
-    res.redirect('back');
-  }
+    try {
+        await req.db.query(
+            'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
+            [req.params.id, req.session.user.id]
+        );
+        req.flash('success', t(req, 'សារជូនដំណឹងត្រូវបានសម្គាល់ថាបានអានរួចហើយ។', 'Notification marked as read.'));
+        try {
+            await saveSession(req);
+        } catch (err) {
+            console.error('Session save before redirect failed:', err.message);
+        }
+        res.redirect('back');
+    } catch (error) {
+        console.error('Mark notification read error:', error);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('back');
+    }
 });
 
 // ==================== ENROLLMENT ====================

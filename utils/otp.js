@@ -1,13 +1,24 @@
 const crypto = require('crypto');
 
+// Uniform digits via crypto.randomInt. The previous version took randomBytes % 10, and
+// because 256 is not a multiple of 10 six of the ten digits were ~4% more likely to be
+// drawn than the other four, costing about a fifth of a bit of entropy per digit.
 const generateOTP = (length = 5) => {
-  const digits = '0123456789';
   let otp = '';
-  const bytes = crypto.randomBytes(length);
   for (let i = 0; i < length; i++) {
-    otp += digits[bytes[i] % 10];
+    otp += String(crypto.randomInt(0, 10));
   }
   return otp;
+};
+
+// Constant-time comparison of two equal-length digit strings.
+const codesMatch = (a, b) => {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
+  } catch (e) {
+    return false;
+  }
 };
 
 const storeOTP = async (db, userId, code) => {
@@ -48,7 +59,7 @@ const verifyOTP = async (db, userId, code) => {
     return { success: false, message: 'max_attempts', messageText: 'Too many failed attempts. Please request a new code.' };
   }
 
-  if (user.otp_code !== code) {
+  if (!codesMatch(user.otp_code, String(code || ''))) {
     await db.query('UPDATE users SET otp_attempts = otp_attempts + 1 WHERE id = ?', [userId]);
     const remaining = maxAttempts - (user.otp_attempts + 1);
     return { success: false, message: 'invalid', messageText: `Invalid code. ${remaining > 0 ? remaining + ' attempts remaining.' : 'No attempts remaining.'}` };

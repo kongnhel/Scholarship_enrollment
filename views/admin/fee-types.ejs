@@ -58,7 +58,7 @@
     <table class="w-full">
       <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">#</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
           <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><%= currentLang === 'km' ? 'ឈ្មោះ (ខ្មែរ)' : 'Name (Khmer)' %></th>
           <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><%= currentLang === 'km' ? 'ឈ្មោះ (អង់គ្លេស)' : 'Name (English)' %></th>
           <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><%= currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' %></th>
@@ -72,9 +72,9 @@
             <i class="bi bi-inbox text-4xl mb-2 block"></i>
             <p><%= currentLang === 'km' ? 'មិនមានប្រភេទថ្លៃទេ' : 'No fee types found' %></p>
           </td></tr>
-        <% } else { feeTypes.forEach(function(ft) { %>
+        <% } else { feeTypes.forEach(function(ft, index) { %>
           <tr class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4 text-sm text-gray-500 font-medium"><%= ft.id %></td>
+            <td class="px-6 py-4 text-sm text-gray-500 font-medium"><%= (currentPage - 1) * limit + index + 1 %></td>
             <td class="px-6 py-4">
               <div class="text-sm font-medium text-gray-900"><%= ft.name_kh %></div>
               <% if (ft.name_en) { %><div class="text-xs text-gray-400"><%= ft.name_en %></div><% } %>
@@ -105,7 +105,9 @@
                     <i class="bi bi-<%= ft.is_active ? 'pause-circle' : 'play-circle' %>"></i>
                   </button>
                 </form>
-                <form action="/admin/fee-types/<%= ft.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+                <form action="/admin/fee-types/<%= ft.id %>/delete" method="POST" class="inline"
+                      data-confirm="<%= currentLang === 'km' ? 'លុបប្រភេទថ្លៃនេះឬទេ?' : 'Delete this fee type?' %>"
+                      data-confirm-title="<%= currentLang === 'km' ? 'បញ្ជាក់ការលុប' : 'Confirm delete' %>">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                     <i class="bi bi-trash"></i>

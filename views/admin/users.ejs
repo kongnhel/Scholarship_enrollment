@@ -15,6 +15,10 @@
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់ទាំងអស់' : 'Manage all system users' %></p>
         </div>
       </div>
+      <button type="button" onclick="document.getElementById('createUserModal').classList.remove('hidden')"
+              class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+        <i class="bi bi-person-plus"></i><%= currentLang === 'km' ? 'បង្កើតអ្នកប្រើថ្មី' : 'Create User' %>
+      </button>
     </div>
   </div>
 
@@ -35,7 +39,7 @@
           <select class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" name="role">
             <option value=""><%= currentLang === 'km' ? 'តួនាទីទាំងអស់' : 'All Roles' %></option>
             <option value="student" <%= filters.role === 'student' ? 'selected' : '' %>><%= currentLang === 'km' ? 'សិស្ស' : 'Student' %></option>
-            <option value="committee" <%= filters.role === 'committee' ? 'selected' : '' %>><%= currentLang === 'km' ? 'គណៈកម្មការ' : 'Committee' %></option>
+            <option value="committee" <%= filters.role === 'committee' ? 'selected' : '' %>><%= currentLang === 'km' ? 'អ្នកគ្រប់គ្រងទី២' : 'Committee' %></option>
             <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>><%= currentLang === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Admin' %></option>
           </select>
         </div>
@@ -80,7 +84,7 @@
             <% users.forEach(function(u, index) { %>
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <td class="px-5 py-4">
-                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * 10 + index + 1 %></span>
+                  <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * limit + index + 1 %></span>
                 </td>
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-3">
@@ -172,5 +176,72 @@
         </div>
       </div>
     <% } %>
+  </div>
+</div>
+
+<%
+  // The admin role is only offered while a single admin exists, so the form explains
+  // the rule up front instead of letting the admin fill everything in and then eat a
+  // server-side refusal. The route re-checks the count regardless - this is courtesy,
+  // not the control.
+  var canCreateAdmin = (typeof adminCount !== 'undefined' && adminCount <= 1);
+  var adminOptionNote = canCreateAdmin
+    ? (currentLang === 'km' ? 'មិនទាន់មានអ្នកគ្រប់គ្រងទៀតទេ' : 'No other administrator exists yet')
+    : (currentLang === 'km'
+      ? 'មានអ្នកគ្រប់គ្រងចំនួនច្រើនរួចហើយ ដូច្នេះមិនអាចបង្កើតអ្នកគ្រប់គ្រងបានទេ'
+      : 'The system already has more than one administrator, so this cannot be created');
+%>
+<div id="createUserModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <form action="/admin/users" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
+        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-person-plus"></i><%= currentLang === 'km' ? 'បង្កើតអ្នកប្រើប្រាស់' : 'Create User' %></h5>
+        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          <i class="bi bi-info-circle"></i>
+          <%= currentLang === 'km'
+            ? 'ពាក្យសម្ងាត់នឹងត្រូវបង្កើតដោយស្វ័យប្រវត្តិ ហើយបង្ហាញតែម្ដងប៉ុណ្ណោះបន្ទាប់ពីបង្កើត។'
+            : 'A password is generated automatically and shown only once, after creation.' %>
+        </p>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះជាភាសាអង់គ្លេស' : 'Name (English)' %></label>
+          <input type="text" name="english_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះអង់គ្លេស' : 'Enter English name' %>" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះជាភាសាខ្មែរ' : 'Name (Khmer)' %></label>
+          <input type="text" name="khmer_name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះខ្មែរ' : 'Enter Khmer name' %>" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %></label>
+          <input type="email" name="email" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលអ៊ីមែល' : 'Enter email address' %>" required>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %> <span class="text-xs text-gray-400">(<%= currentLang === 'km' ? 'ជម្រើស' : 'optional' %>)</span></label>
+            <input type="text" name="username" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលឈ្មោះអ្នកប្រើ (អក្ខរា លេខ _)' : 'letters, numbers and _' %>">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone' %> <span class="text-xs text-gray-400">(<%= currentLang === 'km' ? 'ជម្រើស' : 'optional' %>)</span></label>
+            <input type="text" name="phone" maxlength="20" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទ' : 'Enter phone number' %>">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'តួនាទី' : 'Role' %></label>
+          <select name="role" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+            <option value="student"><%= currentLang === 'km' ? 'សិស្ស' : 'Student' %></option>
+            <option value="committee"><%= currentLang === 'km' ? 'អ្នកគ្រប់គ្រងទី២' : 'Committee' %></option>
+            <option value="admin" <%= canCreateAdmin ? '' : 'disabled' %>><%= currentLang === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Administrator' %></option>
+          </select>
+          <p class="text-xs <%= canCreateAdmin ? 'text-gray-400' : 'text-amber-600 dark:text-amber-400' %> mt-1.5"><i class="bi bi-info-circle"></i> <%= adminOptionNote %></p>
+        </div>
+      </div>
+      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+        <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'បង្កើត' : 'Create' %></button>
+      </div>
+    </form>
   </div>
 </div>

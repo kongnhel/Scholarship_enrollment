@@ -126,11 +126,6 @@ Swal.fire = function(opts) {
   });
 };
 
-var _swalConfirmCallback = null;
-function closeSwalConfirmModal(result) {
-  _swalConfirmCallback = null;
-}
-
 function showConfirmModal(title, message, callback, danger) {
   var icon = danger ? 'warning' : 'question';
   var confirmBtnText = danger
@@ -152,4 +147,3 @@ function showConfirmModal(title, message, callback, danger) {
   });
 }
 
-function closeAlertModal() {}

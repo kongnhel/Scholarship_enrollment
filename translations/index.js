@@ -99,7 +99,7 @@ const translations = {
             reports: 'របាយការណ៍',
             majors: 'ជំនាញ',
             categories: 'ប្រភេទ',
-            committee: 'គណៈកម្មការ'
+            committee: 'អ្នកគ្រប់គ្រងទី២'
         },
         auth: {
             login_title: 'ចូល',

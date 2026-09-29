@@ -10,8 +10,20 @@ const FOLDER_MAP = {
   poster: 'scholarship/posters'
 };
 
+// The stored name must never contain anything from the uploaded file. The previous
+// version used `path.extname(file.originalname)`, which happily returns values like
+// ".jpg'-alert(1)-'" - that string ended up in the database and was later echoed into
+// an inline onclick on the admin page. Keep the allowlist here as a second line of
+// defence, even though middleware/upload.js already rejects anything else.
+const SAFE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf'];
+
+function safeExtension(originalname) {
+  const ext = path.extname(String(originalname || '')).toLowerCase();
+  return SAFE_EXTENSIONS.indexOf(ext) !== -1 ? ext : '.jpg';
+}
+
 async function uploadToImageKit(file, folderType) {
-  const ext = path.extname(file.originalname);
+  const ext = safeExtension(file.originalname);
   const fileName = `${uuidv4()}${ext}`;
   const folder = FOLDER_MAP[folderType] || 'scholarship/misc';
 
@@ -54,4 +66,4 @@ function extractFileId(url) {
   }
 }
 
-module.exports = { uploadToImageKit, deleteFromImageKit, extractFileId, FOLDER_MAP };
+module.exports = { uploadToImageKit, deleteFromImageKit, extractFileId, FOLDER_MAP, safeExtension };

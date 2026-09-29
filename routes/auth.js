@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { sendEmail } = require('../config/mailer');
 const { body, validationResult } = require('express-validator');
-const { generateToken, escapeHtml } = require('../utils/helpers');
-const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend, clearOTP } = require('../utils/otp');
+const rateLimit = require('express-rate-limit');
+const { generateToken, escapeHtml, saveSession, revokeSessionsForUser } = require('../utils/helpers');
+const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend } = require('../utils/otp');
 const telegramOtp = require('../services/otpSender');
 const { uploadToImageKit } = require('../utils/imagekit');
 const appConfig = require('../config/app');
@@ -56,6 +58,16 @@ router.post('/login', [
       req.flash('error', t(req, 'សូមផ្ទៀងផ្ទាត់គណនីរបស់អ្នកមុនពេលចូល', 'Please verify your account before logging in'));
       return res.redirect('/auth/verify-otp?userId=' + user.id);
     }
+    // Issue a brand-new session id the moment privileges change. Without this an
+    // attacker who plants a known session id in a victim's browser before they log in
+    // inherits the authenticated session (session fixation). Regenerating discards the
+    // old id, so language and CSRF token have to be carried over to the new session.
+    const previousLang = req.session.lang;
+    await new Promise((resolve, reject) => {
+      req.session.regenerate((err) => (err ? reject(err) : resolve()));
+    });
+    req.session.lang = previousLang;
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
     req.session.user = {
       id: user.id,
       email: user.email,
@@ -69,6 +81,10 @@ router.post('/login', [
       address: user.address,
       profile_pic: user.profile_pic
     };
+    // The dashboard we are about to redirect to reads the session back on the very next
+    // request. With a database-backed store the save is asynchronous, so wait for it -
+    // otherwise the user can land on the dashboard still looking logged out.
+    await saveSession(req);
     if (user.role === 'admin') {
       return res.redirect('/admin/dashboard');
     } else if (user.role === 'committee') {
@@ -169,6 +185,16 @@ router.post('/register', [
       );
       const userId = result.insertId;
 
+      // Bind the verification attempt to this browser's session. Previously the
+      // verify-otp / resend-otp routes read `userId` straight from the request, so any
+      // anonymous caller could drive the OTP state machine for any account: flood a
+      // victim's Telegram/email with codes, aim the 5-attempt budget at their account,
+      // and read back a masked phone number plus verification state.
+      req.session.pendingVerificationUserId = Number(userId);
+      // Must be durable before the redirect: the verify page reads it on the very next
+      // request, and the database-backed store saves asynchronously.
+      await saveSession(req);
+
       try {
         await telegramOtp.sendOTP(phone);
         req.flash('success', t(req, 'ការចុះឈ្មោះជោគជ័យ! សូមបញ្ចូលលេខកូដ OTP ដែលបានផ្ញើទៅ Telegram របស់អ្នក។', 'Registration successful! Please enter the OTP code sent to your Telegram.'));
@@ -248,15 +274,34 @@ router.post('/resend-email', [
 
 // ==================== TELEGRAM OTP VERIFICATION ====================
 
+// The account being verified always comes from the session, never from the request.
+// The only value a client may still supply is the cosmetic ?userId used in redirects.
+function pendingVerificationId(req) {
+  const id = Number(req.session && req.session.pendingVerificationUserId);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+async function forgetPendingVerification(req) {
+  if (req.session && req.session.pendingVerificationUserId) {
+    delete req.session.pendingVerificationUserId;
+    await saveSession(req);
+  }
+}
+
 router.get('/verify-otp', async (req, res) => {
-  const userId = req.query.userId;
-  if (!userId) return res.redirect('/auth/login');
+  const userId = pendingVerificationId(req);
+  if (!userId) {
+    // No verification was started in this browser session. Redirecting to the same
+    // place as an unknown id avoids confirming which ids exist.
+    return res.redirect('/auth/login');
+  }
 
   try {
     const [users] = await req.db.query('SELECT id, phone, is_verified, verify_method FROM users WHERE id = ?', [userId]);
     if (users.length === 0) return res.redirect('/auth/login');
     const user = users[0];
     if (user.is_verified) {
+      await forgetPendingVerification(req);
       req.flash('success', t(req, 'គណនីត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។ អ្នកអាចចូលបាន។', 'Account already verified. You can login.'));
       return res.redirect('/auth/login');
     }
@@ -286,17 +331,22 @@ router.post('/verify-otp', [
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    const { userId, otpCode, verify_method } = req.body;
+    const { otpCode } = req.body;
+    const userId = pendingVerificationId(req);
+    if (!userId) return res.redirect('/auth/login');
 
     const [users] = await req.db.query('SELECT id, phone, is_verified, verify_method FROM users WHERE id = ?', [userId]);
     if (users.length === 0) return res.redirect('/auth/login');
     const user = users[0];
     if (user.is_verified) {
+      await forgetPendingVerification(req);
       req.flash('success', t(req, 'ផ្ទៀងផ្ទាត់រួចហើយ', 'Already verified'));
       return res.redirect('/auth/login');
     }
 
-    const method = verify_method || user.verify_method || 'telegram';
+    // The delivery channel comes from the account, never from the request body: the
+    // method decides where the code went and which attempt budget applies.
+    const method = user.verify_method === 'email' ? 'email' : 'telegram';
     const resend = await canResend(req.db, userId);
     const maskedPhone = user.phone ? user.phone.substring(0, 5) + '***' + user.phone.substring(user.phone.length - 3) : '***';
 
@@ -320,6 +370,7 @@ router.post('/verify-otp', [
           'UPDATE users SET is_verified = 1, otp_code = NULL, otp_expires_at = NULL, otp_attempts = 0 WHERE id = ?',
           [userId]
         );
+        await forgetPendingVerification(req);
         req.flash('success', t(req, 'ផ្ទៀងផ្ទាត់ទូរស័ព្ទជោគជ័យ! អ្នកអាចចូលបានឥឡូវនេះ។', 'Phone verified successfully! You can now login.'));
         return res.redirect('/auth/login');
       } catch (verifyError) {
@@ -337,6 +388,7 @@ router.post('/verify-otp', [
     } else {
       const result = await verifyUserOTP(req.db, userId, otpCode);
       if (result.success) {
+        await forgetPendingVerification(req);
         req.flash('success', t(req, 'ផ្ទៀងផ្ទាត់អ៊ីមែលជោគជ័យ! អ្នកអាចចូលបានឥឡូវនេះ។', 'Email verified successfully! You can now login.'));
         return res.redirect('/auth/login');
       } else {
@@ -361,7 +413,14 @@ router.post('/verify-otp', [
 
 router.post('/resend-otp', async (req, res) => {
   try {
-    const { userId } = req.body;
+    // Session-bound: this used to accept any userId from the body, which let an
+    // anonymous caller send unlimited OTPs to any registered phone or inbox (only
+    // throttled by a 60s per-user cooldown).
+    const userId = pendingVerificationId(req);
+    if (!userId) {
+      req.flash('error', t(req, 'សូមចុះឈ្មោះជាថ្មីម្ដងទៀត ដើម្បីផ្ទៀងផ្ទាត់។', 'Please register again to verify your account.'));
+      return res.redirect('/auth/register');
+    }
     const [users] = await req.db.query('SELECT id, phone, verify_method FROM users WHERE id = ? AND is_verified = 0', [userId]);
     if (users.length === 0) {
       req.flash('error', t(req, 'រកមិនឃើញការផ្ទៀងផ្ទាត់ដែលរង់ចាំទេ', 'No pending verification found'));
@@ -458,33 +517,68 @@ router.get('/forgot-password', (req, res) => {
   res.render('auth/forgot-password', { title: 'Forgot Password' });
 });
 
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      req.flash('error', t(req, 'សូមបំពេញអ៊ីមែលរបស់អ្នក', 'Please provide your email'));
-      return res.redirect('/auth/forgot-password');
-    }
-    const [users] = await req.db.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
-      req.flash('success', t(req, 'ប្រសិនបើអ៊ីមែលមាន តំណកំណត់ឡើងវិញត្រូវបានផ្ញើហើយ', 'If the email exists, a reset link has been sent'));
-      return res.redirect('/auth/forgot-password');
-    }
-    const user = users[0];
-    const token = generateToken();
-    const expires = new Date(Date.now() + 3600000);
-    await req.db.query(
-      'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
-      [token, expires, user.id]
-    );
-    const resetUrl = `${appConfig.baseUrl}/auth/reset-password/${token}`;
-    await sendEmail(user.email, 'Password Reset Request', `
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
-      <p>This link expires in 1 hour.</p>
-    `);
+// Two limits, because either one alone is the wrong shape:
+//  - per recipient: stops one address being flooded with reset mails from any source.
+//    Keyed only on the address, so a shared campus IP does not block everyone at once.
+//  - per IP: stops spraying many different addresses from one machine.
+const forgotPasswordByAddressLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  keyGenerator: (req) => String((req.body && req.body.email) || '').trim().toLowerCase(),
+  message: 'Too many password reset requests for this address. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const forgotPasswordByIpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many password reset requests. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+router.post('/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddressLimiter, [
+  body('email').trim().isEmail().normalizeEmail().withMessage('Please enter a valid email address'),
+], async (req, res) => {
+  const done = () => {
     req.flash('success', t(req, 'ប្រសិនបើអ៊ីមែលមាន តំណកំណត់ឡើងវិញត្រូវបានផ្ញើហើយ', 'If the email exists, a reset link has been sent'));
     return res.redirect('/auth/forgot-password');
+  };
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      req.flash('error', t(req, 'សូមបំពេញអ៊ីមែលឲ្យបានត្រឹមត្រូវ', 'Please enter a valid email address'));
+      return res.redirect('/auth/forgot-password');
+    }
+    const email = String(req.body.email || '').trim();
+    // Same response whether or not the account exists. Note the lookup below only
+    // matches accounts that still need an email-based reset, and the success path no
+    // longer short-circuits before the UPDATE + SMTP work, so response time no longer
+    // reveals whether the address is registered.
+    const [users] = await req.db.query('SELECT id, email FROM users WHERE email = ?', [email]);
+    if (users.length > 0) {
+      const user = users[0];
+      const token = generateToken();
+      const expires = new Date(Date.now() + 3600000);
+      await req.db.query(
+        'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
+        [token, expires, user.id]
+      );
+      const resetUrl = `${appConfig.baseUrl}/auth/reset-password/${token}`;
+      try {
+        await sendEmail(user.email, 'Password Reset Request', `
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}">${resetUrl}</a>
+          <p>This link expires in 1 hour.</p>
+        `);
+      } catch (mailError) {
+        // A mail failure must not be reported differently from a success, or it becomes
+        // another oracle for which addresses exist.
+        console.error('Password reset email failed:', mailError.message);
+      }
+    }
+    return done();
   } catch (error) {
     console.error('Forgot password error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
@@ -540,6 +634,9 @@ router.post('/reset-password/:token', async (req, res) => {
       'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
       [hashedPassword, users[0].id]
     );
+    // Revoke existing sessions for this account. Recovering from a compromise is the whole
+    // point of resetting a password; without this the attacker's cookie survives it.
+    await revokeSessionsForUser(req.db, users[0].id);
     req.flash('success', t(req, 'កំណត់ពាក្យសម្ងាត់ឡើងវិញជោគជ័យ។ សូមចូល។', 'Password reset successful. Please login.'));
     return res.redirect('/auth/login');
   } catch (error) {
@@ -573,27 +670,53 @@ router.post('/profile', uploadPhoto, async (req, res) => {
   }
   try {
     const { khmer_name, english_name, email, phone } = req.body;
+    const userId = req.session.user.id;
+
+    // Registration checks these for duplicates; the profile form did not. users.phone has
+    // no UNIQUE constraint, and login matches on `email = ? OR username = ? OR phone = ?`
+    // while taking an unordered first row - so two accounts sharing a phone would make
+    // login resolve to an arbitrary account, and Telegram OTP (keyed only by phone) could
+    // verify either one.
+    const newEmail = String(email || '').trim();
+    const newPhone = String(phone || '').trim();
+    if (!newEmail) {
+      req.flash('error', t(req, 'អ៊ីមែលមិនអាចទុកទទេ', 'Email is required'));
+      return res.redirect('/auth/profile');
+    }
+    const [emailClash] = await req.db.query('SELECT id FROM users WHERE email = ? AND id <> ?', [newEmail, userId]);
+    if (emailClash.length) {
+      req.flash('error', t(req, 'អ៊ីមែលនេះត្រូវបានប្រើរួចហើយ', 'That email is already in use'));
+      return res.redirect('/auth/profile');
+    }
+    if (newPhone) {
+      const [phoneClash] = await req.db.query('SELECT id FROM users WHERE phone = ? AND id <> ?', [newPhone, userId]);
+      if (phoneClash.length) {
+        req.flash('error', t(req, 'លេខទូរស័ព្ទនេះត្រូវបានប្រើរួចហើយ', 'That phone number is already in use'));
+        return res.redirect('/auth/profile');
+      }
+    }
     let profilePic = null;
     if (req.file) {
       const r = await uploadToImageKit(req.file, 'profile');
       profilePic = r.url;
     }
-    
+
     if (profilePic) {
       await req.db.query(
         'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ?, profile_pic = ? WHERE id = ?',
-        [khmer_name, english_name, email, phone, profilePic, req.session.user.id]
+        [khmer_name, english_name, newEmail, newPhone || null, profilePic, userId]
       );
     } else {
       await req.db.query(
         'UPDATE users SET khmer_name = ?, english_name = ?, email = ?, phone = ? WHERE id = ?',
-        [khmer_name, english_name, email, phone, req.session.user.id]
+        [khmer_name, english_name, newEmail, newPhone || null, userId]
       );
     }
-    
+
     req.session.user.khmer_name = khmer_name;
     req.session.user.english_name = english_name;
-    req.session.user.email = email;
+    req.session.user.email = newEmail;
+    req.session.user.phone = newPhone || null;
     if (profilePic) req.session.user.profile_pic = profilePic;
     
     req.flash('success', t(req, 'ប្រវត្តិរូបត្រូវបានកែប្រែជោគជ័យ', 'Profile updated successfully'));
@@ -630,9 +753,27 @@ router.post('/profile/password', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(new_password, 12);
     await req.db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.session.user.id]);
-    
-    req.flash('success', t(req, 'ប្តូរពាក្យសម្ងាត់ជោគជ័យ', 'Password changed successfully'));
-    res.redirect('/auth/profile');
+
+    // Changing the password must end every existing session. The store keeps its own copy
+    // of the user object, so without this an attacker who already holds a cookie keeps
+    // full access for the rest of that session's life (up to 24h).
+    //
+    // Order matters: req.flash() dirties the session, so a plain revoke followed by a
+    // flash would let express-session re-save the row on response end and quietly undo
+    // the revocation. Regenerate first (new id, so the old cookie dies), then drop every
+    // stored row for this account, then re-apply the flash to the fresh session.
+    await new Promise((resolve, reject) => {
+      req.session.regenerate((err) => (err ? reject(err) : resolve()));
+    });
+    const revoked = await revokeSessionsForUser(req.db, req.session.user.id);
+    req.flash('success', t(req,
+        revoked > 0
+            ? 'ប្តូរពាក្យសម្ងាត់ជោគជ័យ។ សូមចូលម្ដងទៀត។'
+            : 'ប្តូរពាក្យសម្ងាត់ជោគជ័យ',
+        revoked > 0
+            ? 'Password changed successfully. Other sessions were signed out - please log in again.'
+            : 'Password changed successfully'));
+    return res.redirect('/auth/login');
   } catch (error) {
     console.error(error);
     req.flash('error', t(req, 'មានកំហុសក្នុងការប្តូរពាក្យសម្ងាត់', 'Error changing password'));

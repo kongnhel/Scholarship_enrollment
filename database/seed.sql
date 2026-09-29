@@ -49,7 +49,7 @@ INSERT INTO scholarship_categories (name_kh, name_en, description_kh, descriptio
 
 INSERT INTO users (email, password, role, khmer_name, english_name, is_verified) VALUES
 ('admin@nmu.edu.kh', '$2a$12$.HCooHb.C/alwwreP4CAh.kCIFCAH/FJ0hW1RLjhyxT5jo0A3Ee76', 'admin', 'អ្នកគ្រប់គ្រង', 'Administrator', 1),
-('committee@nmu.edu.kh', '$2a$12$c8yzzQgVxceYswLHQtF9OO/qbn2kF.tOyOIUkFyJZ.pU3hBg2l7hO', 'committee', 'គណៈកម្មការ', 'Committee Member', 1);
+('committee@nmu.edu.kh', '$2a$12$c8yzzQgVxceYswLHQtF9OO/qbn2kF.tOyOIUkFyJZ.pU3hBg2l7hO', 'committee', 'អ្នកគ្រប់គ្រងទី២', 'Committee Member', 1);
 
 INSERT INTO settings (setting_key, setting_value, description) VALUES
 ('registration_open', '1', 'Enable or disable student registration'),
