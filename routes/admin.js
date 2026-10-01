@@ -165,7 +165,7 @@ router.get('/dashboard', async (req, res) => {
     } catch (err) {
         console.error(err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
-        res.redirect('/');
+        res.redirect('/admin/dashboard');
     }
 });
 
@@ -576,8 +576,8 @@ router.get('/majors', async (req, res) => {
         const offset = (page - 1) * limit;
         const { search } = req.query;
 
-        let query = 'SELECT * FROM majors WHERE 1=1';
-        let countQuery = 'SELECT COUNT(*) as count FROM majors WHERE 1=1';
+let query = 'SELECT m.*, (SELECT COUNT(1) FROM major_tuition mt WHERE mt.major_id = m.id AND mt.is_active = 1) as tuition_rows FROM majors m WHERE 1=1';
+    let countQuery = 'SELECT COUNT(*) as count FROM majors WHERE 1=1';
         const params = [];
         const countParams = [];
 

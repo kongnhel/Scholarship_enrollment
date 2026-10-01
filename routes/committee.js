@@ -37,7 +37,7 @@ router.get('/dashboard', async (req, res) => {
     } catch (err) {
         console.error(err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
-        res.redirect('/');
+        res.redirect('/committee/dashboard');
     }
 });
 

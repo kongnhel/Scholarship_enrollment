@@ -52,7 +52,7 @@
       <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍រួមមានអាហារូបករណ៍របស់ក្រសួង ១០០% អាហារូបករណ៍របស់សកលវិទ្យាល័យជាតិមានជ័យ និង Mekong Scholarship(អង្កការកុមារមេគង្ក)។' : 'Apply for scholarships including 100% Ministry, NMU, and Mekong scholarships.' %></p>
       <a href="/auth/register" class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-semibold hover:text-green-700 dark:hover:text-green-300"><%= currentLang === 'km' ? 'បង្កើតគណនី ដើម្បីសុំឥឡូវនេះ' : 'Create account to apply' %><i class="bi bi-arrow-right"></i></a>
     </div>
-    <!-- Enrollment + tuition payments are paused for now (see config/features.js).
+    <% if (enrollmentEnabled) { %>
     <div class="bg-white dark:bg-gray-800 rounded-3xl p-7 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
       <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-sky-500 rounded-2xl flex items-center justify-center mb-5 shadow-sm"><i class="bi bi-person-check text-white text-2xl"></i></div>
       <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ការចុះឈ្មោះចូលរៀន' : 'Enrollment' %></h3>
@@ -62,9 +62,10 @@
     <div class="bg-white dark:bg-gray-800 rounded-3xl p-7 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
       <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-2xl flex items-center justify-center mb-5 shadow-sm"><i class="bi bi-credit-card text-white text-2xl"></i></div>
       <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h3>
-      <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សាតាម Bakong KHQR យ៉ាងងាយស្រួលនិងសុវត្ថិភាព។' : 'Pay tuition via Bakong KHQR easily and securely.' %></p>
+      <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សាតាម ACLEDA Bank KHQR យ៉ាងងាយស្រួលនិងសុវត្ថិភាព។' : 'Pay tuition via ACLEDA Bank KHQR easily and securely.' %></p>
       <a href="/auth/register" class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm font-semibold hover:text-purple-700 dark:hover:text-purple-300"><%= currentLang === 'km' ? 'បង្កើតគណនី ដើម្បីទូទាត់' : 'Create account to pay' %><i class="bi bi-arrow-right"></i></a>
-    </div> -->
+    </div>
+    <% } %>
   </div>
 </section>
 
@@ -209,7 +210,7 @@
         <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍តាមអនឡាញ' : 'Apply for scholarships online' %></p>
       </div>
     </div>
-    <!-- Enrollment + tuition payments are paused for now (see config/features.js).
+    <% if (enrollmentEnabled) { %>
     <div class="flex items-start gap-3 p-5 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/40">
       <div class="w-11 h-11 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"><i class="bi bi-person-check text-white"></i></div>
       <div>
@@ -221,9 +222,10 @@
       <div class="w-11 h-11 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"><i class="bi bi-credit-card text-white"></i></div>
       <div>
         <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សា' : 'Pay Tuition' %></h4>
-        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទូទាត់តាម Bakong KHQR' : 'Pay via Bakong KHQR' %></p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទូទាត់តាម ACLEDA Bank KHQR' : 'Pay via ACLEDA Bank KHQR' %></p>
       </div>
-    </div> -->
+    </div>
+    <% } %>
     <div class="flex items-start gap-3 p-5 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-900/40">
       <div class="w-11 h-11 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"><i class="bi bi-bell text-white"></i></div>
       <div>

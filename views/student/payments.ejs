@@ -103,7 +103,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ប្រភេទការបង់' : 'Payment Type' %> *</label>
-              <select name="fee_type_id" id="fee_type_id" required onchange="autoFillAmount()" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+              <select name="fee_type_id" id="fee_type_id" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើស' : 'Select' %></option>
                 <% feeTypes.forEach(function(ft) { %>
                   <option value="<%= ft.id %>"><%= currentLang === 'km' ? ft.name_kh : ft.name_en %></option>
@@ -112,7 +112,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'រយៈពេលបង់' : 'Pay Period' %> *</label>
-              <select id="pay_period" required onchange="autoFillAmount()" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+              <select name="pay_period" id="pay_period" required onchange="autoFillAmount()" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                 <option value="year"><%= currentLang === 'km' ? '១ឆ្នាំ (១០០%)' : '1 Year (100%)' %></option>
                 <% if (!(typeof yearlyOnly !== 'undefined' && yearlyOnly)) { %>
                 <option value="semester"><%= currentLang === 'km' ? '១ឆមាស (៥០%)' : '1 Semester (50%)' %></option>

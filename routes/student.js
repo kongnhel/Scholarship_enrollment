@@ -5,10 +5,8 @@ const { verifyCsrf } = require('../middleware/csrf');
 const { ENROLLMENT_ENABLED } = require('../config/features');
 const { uploadMultiple, upload, uploadEnrollmentDocs } = require('../middleware/upload');
 const { sendEmail } = require('../config/mailer');
-const { generateKHQR, checkTransaction } = require('../config/bakong');
 const { uploadToImageKit } = require('../utils/imagekit');
-const { escapeHtml, saveSession, flashAndRedirect } = require('../utils/helpers');
-const rateLimit = require('express-rate-limit');
+const { escapeHtml, saveSession, flashAndRedirect, safeBackPath, dashboardPathFor } = require('../utils/helpers');
 const fs = require('fs');
 const path = require('path');
 
@@ -95,7 +93,7 @@ router.get('/dashboard', async (req, res) => {
   } catch (error) {
     console.error('Dashboard error:', error);
     req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកតារាងព័ត៌មាន', 'An error occurred while loading dashboard'));
-    res.redirect('/');
+    res.redirect(dashboardPathFor(req));
   }
 });
 
@@ -574,7 +572,7 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
   try {
     if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
       req.flash('error', t(req, 'តិតុក្កត់ CSRF មិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។', 'Invalid or missing CSRF token. Please try again.'));
-      return res.redirect('back');
+      return res.redirect(safeBackPath(req));
     }
     const [existing] = await req.db.query(
       'SELECT * FROM applications WHERE id = ? AND user_id = ? AND status = ?',
@@ -667,9 +665,37 @@ router.get('/status', async (req, res) => {
        WHERE a.user_id = ? ORDER BY a.submitted_at DESC`,
       [req.session.user.id]
     );
+
+    // A student needs to see WHY a row is blank, and the admin's note is the reason in
+    // most cases. admin_remark was never selected here, so the page silently dropped it
+    // and an approved application with a note rendered as if nothing had been recorded.
+    // Also surface the second major choice: applications submitted before the first
+    // choice was required have major_first_choice_id NULL but a real second choice, so
+    // the Major column showed blank for a student who had in fact picked one.
+    const [enriched] = await req.db.query(
+      `SELECT a.id, a.admin_remark, a.correction_notes,
+       m2.name_kh as major_second_name_kh, m2.name_en as major_second_name_en
+       FROM applications a
+       LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id
+       WHERE a.user_id = ?`,
+      [req.session.user.id]
+    );
+    const extra = {};
+    enriched.forEach(r => { extra[r.id] = r; });
+
     res.render('student/status', {
       title: 'Application Status',
-      applications
+      applications: applications.map(a => {
+        const e = extra[a.id] || {};
+        return Object.assign({}, a, {
+          admin_remark: e.admin_remark || null,
+          correction_notes: e.correction_notes || null,
+          // Fall back to the second choice so a blank Major column means "none chosen"
+          // rather than "we forgot to join the first one".
+          major_name_kh: a.major_name_kh || e.major_second_name_kh || null,
+          major_name_en: a.major_name_en || e.major_second_name_en || null
+        });
+      })
     });
   } catch (error) {
     console.error('Status page error:', error);
@@ -712,7 +738,7 @@ router.post('/notifications/read-all', async (req, res) => {
     } catch (error) {
         console.error('Mark all read error:', error);
         req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
-        res.redirect('back');
+        res.redirect(safeBackPath(req, '/student/notifications'));
     }
 });
 
@@ -728,11 +754,11 @@ router.post('/notification/:id/read', async (req, res) => {
         } catch (err) {
             console.error('Session save before redirect failed:', err.message);
         }
-        res.redirect('back');
+        res.redirect(safeBackPath(req, '/student/notifications'));
     } catch (error) {
         console.error('Mark notification read error:', error);
         req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
-        res.redirect('back');
+        res.redirect(safeBackPath(req, '/student/notifications'));
     }
 });
 
@@ -753,6 +779,89 @@ function getEnrollmentYear() {
 }
 
 const FUNDING_TYPES = ['gov_scholarship', 'nmu_scholarship_100', 'nmu_scholarship_50_4y', 'nmu_scholarship_50_2y', 'mekong_scholarship_40_4y', 'self_pay'];
+
+// ---------------------------------------------------------------------------
+// Single source of truth for facts the student would otherwise enter TWICE.
+//
+// The scholarship application and the enrollment form both ask for the same real-world
+// details, but stored them under different column names (address_village vs village,
+// birth_place vs place_of_birth, exam_result vs overall_grade, ...). A student could
+// type one birth place on each form and both printouts would be "correct" while
+// disagreeing. The approved application is authoritative, so enrollment renders these
+// from it rather than asking again.
+//
+// Each entry is [applicationColumn, enrollmentColumn]. Label keys let the view render a
+// read-only row without hard-coding Khmer per field.
+const SHARED_APPLICATION_FIELDS = {
+  khmer_name: ['khmer_first_name', 'khmer_first_name', 'khmer_last_name'],
+  english_name: ['english_first_name', 'english_first_name', 'english_last_name'],
+  gender: ['gender', 'gender'],
+  date_of_birth: ['date_of_birth', 'date_of_birth'],
+  place_of_birth: ['birth_place', 'place_of_birth'],
+  current_address: ['address_village', 'village'],
+  commune: ['address_commune', 'commune'],
+  district: ['address_district', 'district'],
+  province: ['address_province', 'province'],
+  phone: ['phone', 'phone'],
+  parent_name: ['parent_name', 'parent_name'],
+  parent_phone: ['parent_phone', 'parent_phone'],
+  mother_name: ['mother_name', 'mother_name'],
+  occupation: ['occupation', 'occupation'],
+  education_level: ['education_level', 'education_level'],
+  exam_session: ['exam_session', 'exam_session'],
+  exam_center: ['exam_center', 'exam_center'],
+  study_shift: ['study_shift', 'study_shift'],
+  overall_grade: ['exam_result', 'overall_grade'],
+  high_school: ['school_name', 'high_school'],
+  high_school_province: ['school_province_id', 'high_school_province'],
+  diploma_year: ['graduation_year', 'diploma_year'],
+  study_level: ['study_level', 'education_level_enroll'],
+  study_schedule: ['study_period', 'study_schedule']
+};
+
+/** Labels for the read-only "from your application" panel, in both languages. */
+const SHARED_FIELD_LABELS = {
+  khmer_name: ['ឈ្មោះ', 'Name'],
+  english_name: ['ឈ្មោះជាភាសាអង់គ្លេស', 'English Name'],
+  gender: ['ភេទ', 'Gender'],
+  date_of_birth: ['ថ្ងៃខែឆ្នាំកើត', 'Date of Birth'],
+  place_of_birth: ['ទីកន្លែងកើត', 'Place of Birth'],
+  current_address: ['ភូមិ', 'Village'],
+  commune: ['ឃុំ ឬសង្កាត់', 'Commune'],
+  district: ['ស្រុក ឬខណ្ឌ', 'District'],
+  province: ['ខេត្ត ឬរាជធានី', 'Province'],
+  phone: ['លេខទូរស័ព្ទ', 'Phone'],
+  parent_name: ['ឈ្មោះឪពុក / ម្តាយ', 'Parent Name'],
+  parent_phone: ['លេខទូរស័ព្ទឪពុក / ម្តាយ', 'Parent Phone'],
+  mother_name: ['ឈ្មោះម្តាយ', "Mother's Name"],
+  occupation: ['មុខរាជ្យ', 'Occupation'],
+  education_level: ['កម្រិតអប់រំ', 'Education Level'],
+  exam_session: ['វគ្គបុប្អន្ត', 'Exam Session'],
+  exam_center: ['មជ្ឈមណ្ឌលបុប្អន្ត', 'Exam Centre'],
+  study_shift: ['វឺកវិស័យ', 'Study Shift'],
+  overall_grade: ['ពិន្ទុបុប្អន្ត', 'Exam Result'],
+  high_school: ['សាលារៀនខ្នែរ', 'School'],
+  high_school_province: ['ខេត្តសាលា', 'School Province'],
+  diploma_year: ['ឆ្នាំបញ្ចប់', 'Graduation Year'],
+  study_level: ['កម្រិតសិក្សា', 'Study Level'],
+  study_schedule: ['រយៈពេលសិក្សា', 'Study Period']
+};
+
+/**
+ * Read one value from an application row, handling the name fields which the application
+ * splits into first/last but the enrollment form entered as one combined string.
+ */
+function applicationValue(app, key) {
+  if (!app || !key) return null;
+  const spec = SHARED_APPLICATION_FIELDS[key];
+  if (!spec) return null;
+  const v = app[spec[0]];
+  if (spec[2]) {
+    // combined name: join whatever parts exist
+    return [v, app[spec[1]]].filter(Boolean).join(' ').trim() || null;
+  }
+  return v === undefined || v === null || v === '' ? null : v;
+}
 
 const FUNDING_COVERAGE = {
   gov_scholarship: 100,
@@ -778,7 +887,83 @@ const FUNDING_LABELS_KH = {
 };
 
 function fundingCoverage(fundingType) {
-  return FUNDING_COVERAGE[fundingType] || 0;
+    return FUNDING_COVERAGE[fundingType] || 0;
+}
+
+// scholarship_option is stored as "<coverage>/<duration>" e.g. "100/4", "50/4", "50/2",
+// "40/4". That is the award the committee actually granted, so it - not anything the
+// student clicks - decides the funding type recorded on the enrollment. Letting the
+// student pick meant someone granted 50% could record a 100% enrollment and be quoted
+// half the tuition they owe.
+const SCHOLARSHIP_OPTION_FUNDING = {
+  '100/4': 'nmu_scholarship_100',
+  '100/2': 'nmu_scholarship_100',
+  '50/4': 'nmu_scholarship_50_4y',
+  '50/2': 'nmu_scholarship_50_2y',
+  '40/4': 'mekong_scholarship_40_4y'
+};
+
+/**
+ * Resolve the funding type an approved application entitles a student to.
+ *
+ * Only the percentage awards are derivable: scholarship_option is the coverage/duration
+ * the committee granted. A GOVERNMENT scholarship is deliberately not derivable -- it is a
+ * different scheme with its own admin fee (FUNDING_ADMIN_FEE), and nothing on the
+ * applications row identifies it (scholarship_categories has no MoEYS/provider flag), so
+ * inferring one would silently relabel a government enrolment as an NMU award and drop
+ * the fee. It therefore stays an explicit choice, still gated on an approved application.
+ *
+ * Returns null when the application grants no recognisable percentage award.
+ */
+function fundingTypeForApplication(application) {
+  if (!application) return null;
+  const opt = String(application.scholarship_option || '').trim();
+  const derived = SCHOLARSHIP_OPTION_FUNDING[opt];
+  return derived && FUNDING_TYPES.includes(derived) ? derived : null;
+}
+
+// Single source of truth for what a student owes.
+//
+// This arithmetic used to be duplicated: the KHQR-generation route derived the amount
+// from major_tuition, while the manual "submit payment proof" route trusted a hidden
+// `amount` input that the browser controlled outright. The KHQR route is gone (students
+// scan a QR the admin uploaded instead), so this is now the only implementation - which
+// is exactly why it must stay the only one, and why the browser's amount is ignored.
+async function computeTuitionDue(db, enrollment) {
+    const majorId = enrollment.major_choice_id || enrollment.major_choice;
+    if (!majorId) return { error: 'No major selected in enrollment' };
+
+    const [tuition] = await db.query(
+        'SELECT * FROM major_tuition WHERE major_id = ? AND is_active = 1 ORDER BY academic_year DESC LIMIT 1',
+        [majorId]
+    );
+    if (tuition.length === 0) return { error: 'No tuition set for your major' };
+
+    const yearlyTuition = Number(tuition[0].tuition_per_year);
+    let coveragePct = null;
+    let owed = yearlyTuition;
+    let scholarshipApplied = false;
+
+    if (enrollment.scholarship_category_id) {
+        const [scholarship] = await db.query(
+            'SELECT * FROM scholarship_types WHERE id = ? AND is_active = 1',
+            [enrollment.scholarship_category_id]
+        );
+        if (scholarship.length > 0) {
+            coveragePct = Number(scholarship[0].coverage_percentage);
+            const ministryFee = Number(scholarship[0].ministry_fee || 0);
+            owed = yearlyTuition - Math.round(yearlyTuition * coveragePct / 100) + ministryFee;
+            scholarshipApplied = true;
+        }
+    }
+    if (!scholarshipApplied) {
+        coveragePct = fundingCoverage(enrollment.funding_type);
+        owed = yearlyTuition - Math.round(yearlyTuition * coveragePct / 100)
+            + (FUNDING_ADMIN_FEE[enrollment.funding_type] || 0);
+    }
+    if (owed < 0) owed = 0;
+
+    return { yearlyTuition, coveragePct, owedYearly: owed, semesterAmount: Math.round(owed / 2) };
 }
 
 router.get('/enroll-success', enrollmentPaused, async (req, res) => {
@@ -813,15 +998,73 @@ router.get('/enroll', enrollmentPaused, async (req, res) => {
       (enrollStartDay && enrollStartDay > today) ||
       (enrollEndDay && enrollEndDay < today);
     const [users] = await req.db.query('SELECT * FROM users WHERE id = ?', [userId]);
+    // Two different applications are needed, and they must not be confused:
+    //  - `application` drives the form's pre-filled values (newest of any status)
+    //  - `approvedApplication` decides what funding the student is entitled to
+    // Previously one unfiltered `LIMIT 1` row served both, so a newer *pending*
+    // application could supply the form data while the POST recorded the *approved* one
+    // as application_id - two different records for one enrollment.
     const [applications] = await req.db.query(
       'SELECT a.*, m.name_kh as major_first_name_kh, m2.name_kh as major_second_name_kh, p.name_kh as province_name_kh FROM applications a LEFT JOIN majors m ON a.major_first_choice_id = m.id LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id LEFT JOIN provinces p ON a.school_province_id = p.id WHERE a.user_id = ? ORDER BY a.submitted_at DESC LIMIT 1',
       [userId]
     );
+    const [approvedApplications] = await req.db.query(
+      "SELECT a.*, m.name_kh as major_first_name_kh, m2.name_kh as major_second_name_kh, p.name_kh as province_name_kh FROM applications a LEFT JOIN majors m ON a.major_first_choice_id = m.id LEFT JOIN majors m2 ON a.major_second_choice_id = m2.id LEFT JOIN provinces p ON a.school_province_id = p.id WHERE a.user_id = ? AND a.status = 'approved' ORDER BY a.submitted_at DESC LIMIT 1",
+      [userId]
+    );
+    const approvedApplication = approvedApplications[0] || null;
+    const entitledFunding = fundingTypeForApplication(approvedApplication);
+    // Which tiles to offer. `self_pay` is always available. A government scholarship is
+    // an explicit scheme the student selects (the data model cannot derive it from the
+    // application), so it is offered whenever an approved application backs the enrolment.
+    // The percentage award itself is offered only when that is what was granted.
+    const allowedFunding = ['self_pay'];
+    if (approvedApplication) {
+      if (entitledFunding) allowedFunding.push(entitledFunding);
+      if (entitledFunding !== 'gov_scholarship') allowedFunding.push('gov_scholarship');
+    }
+
+    // Majors this student has already asked for, to float to the top of the picker.
+    // Only APPROVED applications count: a pending or rejected application is not a
+    // statement of settled intent, and steering a student back towards the major on a
+    // rejected application would be actively unhelpful.
+    // Both the first and second choice count, newest application first, and the list is
+    // ordered rather than set-derived so the display order is deterministic.
+    const [requestedMajors] = await req.db.query(
+      `SELECT a.major_first_choice_id, a.major_second_choice_id, a.submitted_at
+       FROM applications a
+       WHERE a.user_id = ? AND a.status = 'approved'
+       ORDER BY a.submitted_at DESC, a.id DESC`,
+      [userId]
+    );
+    const suggestedMajorIds = [];
+    requestedMajors.forEach(r => {
+      [r.major_first_choice_id, r.major_second_choice_id].forEach(id => {
+        if (id && suggestedMajorIds.indexOf(Number(id)) === -1) suggestedMajorIds.push(Number(id));
+      });
+    });
+
+    // Which majors actually have a price. This mirrors computeTuitionDue() exactly --
+    // that lookup takes the newest ACTIVE row for ANY academic year
+    // (ORDER BY academic_year DESC LIMIT 1, no year filter). Scoping this to the
+    // enrollment year instead would flag every major right now, because 2026-2027 has no
+    // tuition rows, and the marker would be noise rather than information.
+    const [pricedMajorRows] = await req.db.query(
+      'SELECT DISTINCT major_id FROM major_tuition WHERE is_active = 1'
+    );
+    const pricedMajorIds = pricedMajorRows.map(r => Number(r.major_id));
+    // Pre-fill from the approved application when there is one, so the values shown and
+    // the record the enrollment will point at are always the same row.
+    const application = approvedApplication || applications[0] || null;
     const [existingEnrollment] = await req.db.query(
       "SELECT * FROM enrollments WHERE user_id = ? AND academic_year = ? ORDER BY id DESC LIMIT 1",
       [userId, getEnrollmentYear()]
     );
-    const selectedFunding = FUNDING_TYPES.includes(req.query.funding) ? req.query.funding : null;
+    // A scholarship funding choice is only offered when it is the one the application
+    // actually granted; otherwise the tiles fall back to self_pay only.
+    const requestedFunding = FUNDING_TYPES.includes(req.query.funding) ? req.query.funding : null;
+    const selectedFunding =
+      allowedFunding.indexOf(requestedFunding) !== -1 ? requestedFunding : null;
     const [feeTypes] = await req.db.query('SELECT * FROM fee_types WHERE is_active = 1 ORDER BY id ASC');
     const [payments] = await req.db.query(
       'SELECT p.*, ft.name_kh as fee_name_kh, ft.name_en as fee_name_en FROM payments p JOIN fee_types ft ON p.fee_type_id = ft.id WHERE p.user_id = ? ORDER BY p.created_at DESC',
@@ -830,7 +1073,13 @@ router.get('/enroll', enrollmentPaused, async (req, res) => {
     res.render('student/enroll', {
       title: 'Enrollment',
       userData: users[0] || null,
-      application: applications[0] || null,
+      application,
+      approvedApplication,
+      entitledFunding,
+      hasApprovedScholarship: !!approvedApplication,
+      allowedFunding,
+      suggestedMajorIds,
+      pricedMajorIds,
       enrollment: existingEnrollment[0] || null,
       feeTypes,
       payments,
@@ -903,7 +1152,7 @@ router.get('/enroll/tuition/:majorId', enrollmentPausedJson, async (req, res) =>
 router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf, async (req, res) => {
   try {
     const userId = req.session.user.id;
-    const {
+    let {
       khmer_name, english_name,
       gender, date_of_birth, place_of_birth,
       village, commune, district, province,
@@ -916,27 +1165,78 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       doc_transcript, doc_birth_cert, doc_photo_4x6, doc_photo_3x4,
       additional_info, confirmation
     } = req.body;
-    const funding_type = req.body.funding_type;
-    const funding_payment_mode = funding_type === 'gov_scholarship' ? 'full_pay' : null;
+    // funding_type arrives from a hidden field, so it is NOT trusted. It is re-derived from
+    // the approved application below; the only value the client genuinely owns is
+    // 'self_pay', which is always available to everyone.
+    const requestedFunding = req.body.funding_type;
 
-    if (!FUNDING_TYPES.includes(funding_type)) {
+    if (!FUNDING_TYPES.includes(requestedFunding)) {
       req.flash('error', t(req, 'សូមជ្រើសរើសប្រភេទអាហារូបករណ៍ ឬបង់ថ្លៃមុនចុះឈ្មោះ', 'Please choose a scholarship or pay-the-fee option first'));
       return res.redirect('/student/enroll');
     }
 
-    // A scholarship-backed enrollment must be backed by a real approved application.
-    // funding_type arrives from a hidden field, so without this check a student could
-    // self-declare a fully funded scholarship and be quoted the reduced tuition amount.
+    // The approved application is the authority for both the link and the funding type.
+    // Selecting the full row (not just the id) is what lets funding be derived here.
     const [approvedRows] = await req.db.query(
-      "SELECT id FROM applications WHERE user_id = ? AND status = 'approved' ORDER BY submitted_at DESC LIMIT 1",
+      "SELECT * FROM applications WHERE user_id = ? AND status = 'approved' ORDER BY submitted_at DESC LIMIT 1",
       [userId]
     );
-    const approvedApplicationId = approvedRows.length ? approvedRows[0].id : null;
-    const isSelfPay = funding_type === 'self_pay';
+    const approvedApplication = approvedRows[0] || null;
+    const approvedApplicationId = approvedApplication ? approvedApplication.id : null;
+    const entitledFunding = fundingTypeForApplication(approvedApplication);
+
+    const isSelfPay = requestedFunding === 'self_pay';
     if (!isSelfPay && !approvedApplicationId) {
       req.flash('error', t(req, 'អ្នកមិនមានពាក្យសុំអាហារូបករណ៍ដែលត្រូវបានអនុម័តនៅឡើយទេ។', 'You have no approved scholarship application.'));
       return res.redirect('/student/enroll');
     }
+
+    // A student may always pay their own way, and a GOVERNMENT scholarship is an explicit
+    // scheme with its own admin fee rather than a percentage award, so both are honoured
+    // as chosen - the approved-application gate above still applies to the latter. Every
+    // other scholarship is derived from the application, so submitting 100/4 in the hidden
+    // field while holding a 50/4 award still stores 50/4: an award cannot be upgraded by
+    // editing a hidden input.
+    const isExplicitScheme = requestedFunding === 'self_pay' || requestedFunding === 'gov_scholarship';
+    const funding_type = isExplicitScheme ? requestedFunding : (entitledFunding || 'self_pay');
+
+    // The approved application is authoritative for every fact it already records.
+    // The form still POSTs these fields (they are rendered read-only, but a read-only
+    // input is still an input), so the submitted values are discarded here rather than
+    // trusted -- otherwise removing the `readonly` attribute in devtools would let a
+    // student write a different birth place onto the enrollment record.
+    // Only fields the application actually has a value for are overridden, so a
+    // self-paying student with no application keeps whatever they entered.
+    if (approvedApplication) {
+      const applyFromApplication = (key, target) => {
+        const v = applicationValue(approvedApplication, key);
+        return v ? v : target;
+      };
+      khmer_name = applyFromApplication('khmer_name', khmer_name);
+      english_name = applyFromApplication('english_name', english_name);
+      gender = applyFromApplication('gender', gender);
+      date_of_birth = applyFromApplication('date_of_birth', date_of_birth);
+      place_of_birth = applyFromApplication('place_of_birth', place_of_birth);
+      village = applyFromApplication('current_address', village);
+      commune = applyFromApplication('commune', commune);
+      district = applyFromApplication('district', district);
+      province = applyFromApplication('province', province);
+      phone = applyFromApplication('phone', phone);
+      mother_name = applyFromApplication('mother_name', mother_name);
+      occupation = applyFromApplication('occupation', occupation);
+      education_level = applyFromApplication('education_level', education_level);
+      exam_session = applyFromApplication('exam_session', exam_session);
+      exam_center = applyFromApplication('exam_center', exam_center);
+      study_shift = applyFromApplication('study_shift', study_shift);
+      overall_grade = applyFromApplication('overall_grade', overall_grade);
+      high_school = applyFromApplication('high_school', high_school);
+      high_school_province = applyFromApplication('high_school_province', high_school_province);
+      education_level_enroll = applyFromApplication('study_level', education_level_enroll);
+      study_schedule = applyFromApplication('study_schedule', study_schedule);
+      father_name = applyFromApplication('parent_name', father_name);
+      guardian_phone = applyFromApplication('parent_phone', guardian_phone);
+    }
+    const fundingPaymentMode = funding_type === 'gov_scholarship' ? 'full_pay' : null;
 
     const academic_year = getEnrollmentYear();
     const semester = '1';
@@ -1030,6 +1330,25 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
     }
     const studyHistoryVal = Object.keys(studyHistory).length > 0 ? JSON.stringify(studyHistory) : null;
 
+    // The application stores the name split into first/last; the enrollment form has one
+    // combined box. Previously the combined string went into khmer_first_name with
+    // khmer_last_name hard-coded NULL, so every enrollment printout and the admin list
+    // showed the surname sitting in the given-name field and left the surname blank.
+    // Prefer the application's own split; otherwise split the combined value so the two
+    // parts are at least not lost.
+    const splitName = (full) => {
+      const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 0) return { first: null, last: null };
+      if (parts.length === 1) return { first: parts[0], last: null };
+      return { first: parts[0], last: parts.slice(1).join(' ') };
+    };
+    const khmerNameParts = approvedApplication && approvedApplication.khmer_last_name
+      ? { first: approvedApplication.khmer_first_name, last: approvedApplication.khmer_last_name }
+      : splitName(khmer_name);
+    const englishNameParts = approvedApplication && approvedApplication.english_last_name
+      ? { first: approvedApplication.english_first_name, last: approvedApplication.english_last_name }
+      : splitName(english_name);
+
     await req.db.query(
       `INSERT INTO enrollments (
         user_id, academic_year, semester, status, application_id,
@@ -1054,7 +1373,7 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
         ?, ?, ?, ?)`,
       [
         userId, academic_year, semester, 'pending', approvedApplicationId,
-        khmer_name || null, null, english_name || null, null,
+        khmerNameParts.first || null, khmerNameParts.last || null, englishNameParts.first || null, englishNameParts.last || null,
         gender || null, date_of_birth || null, place_of_birth || null, phone || null,
         village || null, null, province || null, district || null, commune || null,
         father_name || null, mother_name || null, occupation || null, education_level || null, guardian_phone || null,
@@ -1062,7 +1381,7 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
         mother_alive || null, mother_job || null, mother_org || null, mother_phone || null,
         siblingsInfo, studyHistoryVal,
         exam_session || null, overall_grade || null, high_school || null, high_school_province || null, exam_center || null,
-        education_level_enroll || null, majorName, majorId, funding_type, funding_payment_mode, study_schedule || null, study_shift || null,
+        education_level_enroll || null, majorName, majorId, funding_type, fundingPaymentMode, study_schedule || null, study_shift || null,
         documents.length > 0 ? documents.join(',') : null, additional_info || null, confirmation ? 1 : 0,
         doc_transcript_path, doc_birth_cert_path, doc_photo_4x6_path, doc_photo_3x4_path
       ]
@@ -1160,161 +1479,100 @@ router.get('/payments', enrollmentPaused, async (req, res) => {
   }
 });
 
-router.post('/payments/generate-qr', enrollmentPausedJson, async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-    const { enrollment_id, payment_type } = req.body;
-
-    if (!enrollment_id || !payment_type) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const [enrollment] = await req.db.query(
-      'SELECT * FROM enrollments WHERE id = ? AND user_id = ?',
-      [enrollment_id, userId]
-    );
-    if (enrollment.length === 0) {
-      return res.status(400).json({ error: 'Invalid enrollment' });
-    }
-
-    const majorId = enrollment[0].major_choice_id || enrollment[0].major_choice;
-    if (!majorId) {
-      return res.status(400).json({ error: 'No major selected in enrollment' });
-    }
-
-    const [tuition] = await req.db.query(
-      'SELECT * FROM major_tuition WHERE major_id = ? AND is_active = 1 ORDER BY academic_year DESC LIMIT 1',
-      [majorId]
-    );
-    if (tuition.length === 0) {
-      return res.status(400).json({ error: 'No tuition set for your major' });
-    }
-
-    const yearlyTuition = Number(tuition[0].tuition_per_year);
-    let studentPayYearly = yearlyTuition;
-
-    const scholarshipCategoryId = enrollment[0].scholarship_category_id;
-    let scholarshipApplied = false;
-    let coveragePct = null;
-    if (scholarshipCategoryId) {
-      const [scholarship] = await req.db.query(
-        'SELECT * FROM scholarship_types WHERE id = ? AND is_active = 1',
-        [scholarshipCategoryId]
-      );
-      if (scholarship.length > 0) {
-        const coverage = Number(scholarship[0].coverage_percentage);
-        coveragePct = coverage;
-        const ministryFee = Number(scholarship[0].ministry_fee || 0);
-        const discount = Math.round(yearlyTuition * coverage / 100);
-        studentPayYearly = yearlyTuition - discount + ministryFee;
-        if (studentPayYearly < 0) studentPayYearly = 0;
-        scholarshipApplied = true;
-      }
-    }
-    if (!scholarshipApplied) {
-      const coverage = fundingCoverage(enrollment[0].funding_type);
-      coveragePct = coverage;
-      studentPayYearly = yearlyTuition - Math.round(yearlyTuition * coverage / 100) + (FUNDING_ADMIN_FEE[enrollment[0].funding_type] || 0);
-      if (studentPayYearly < 0) studentPayYearly = 0;
-    }
-
-    const payPeriod = coveragePct === 100 ? 'year' : payment_type;
-    const paymentAmount = payPeriod === 'semester' ? Math.round(studentPayYearly / 2) : studentPayYearly;
-
-    const [user] = await req.db.query('SELECT * FROM users WHERE id = ?', [userId]);
-    const phone = user[0].phone || '';
-
-    const [feeType] = await req.db.query('SELECT id FROM fee_types WHERE is_active = 1 LIMIT 1');
-    const feeTypeId = feeType.length > 0 ? feeType[0].id : 1;
-
-    const billNumber = `PAY-${Date.now()}-${userId}`;
-    const result = await generateKHQR({
-      amount: paymentAmount,
-      currency: 'khr',
-      billNumber,
-      mobileNumber: phone
-    });
-
-    await req.db.query(
-      `INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, khqr_md5, khqr_string, status, transaction_ref)
-       VALUES (?, ?, ?, ?, 'bakong_khqr', ?, ?, 'pending', ?)`,
-      [enrollment_id, userId, feeTypeId, paymentAmount, result.md5Hash, result.qrString, payPeriod]
-    );
-
-    res.json({
-      success: true,
-      qrImage: result.qrImageBase64,
-      md5Hash: result.md5Hash,
-      amount: paymentAmount,
-      expiryMinutes: 10
-    });
-  } catch (error) {
-    console.error('Generate QR error:', error);
-    res.status(500).json({ error: 'Failed to generate QR code' });
-  }
-});
-
-const transactionCheckLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 10,
-  message: 'Too many transaction checks, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-router.get('/payments/check-transaction/:md5', enrollmentPausedJson, transactionCheckLimiter, async (req, res) => {
-  try {
-    const md5Hash = req.params.md5;
-    const result = await checkTransaction(md5Hash);
-
-    if (result.status === 'success') {
-      await req.db.query(
-        "UPDATE payments SET status = 'verified', verified_at = NOW() WHERE khqr_md5 = ? AND status = 'pending'",
-        [md5Hash]
-      );
-      return res.json({ success: true, status: 'verified' });
-    } else if (result.status === 'not_found') {
-      return res.json({ success: false, status: 'pending' });
-    } else {
-      return res.json({ success: false, status: result.status });
-    }
-  } catch (error) {
-    console.error('Check transaction error:', error);
-    res.status(500).json({ error: 'Failed to check transaction' });
-  }
-});
-
 router.post('/payments', enrollmentPaused, (req, res) => {
-  proofUpload(req, res, async (err) => {
-    try {
-      if (err) {
-        req.flash('error', t(req, err.message || 'ការជោ្នាយប្ន់លង់ការ', err.message || 'File upload error'));
-        return res.redirect('/student/payments');
-      }
-      if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
-        req.flash('error', t(req, 'សិទ្ធិមិនត្រឹមត្រូវ', 'Invalid CSRF token'));
-        return res.redirect('/student/payments');
-      }
-      const userId = req.session.user.id;
-      const { enrollment_id, fee_type_id, amount, payment_method, transaction_ref } = req.body;
-      let proofPath = null;
-      if (req.file) {
-        const r = await uploadToImageKit(req.file, 'payment');
-        proofPath = r.url;
-      }
+    proofUpload(req, res, async (err) => {
+        try {
+            if (err) {
+                req.flash('error', t(req, err.message || 'ការជោ្នាយប្ន់លង់ការ', err.message || 'File upload error'));
+                return res.redirect('/student/payments');
+            }
+            if (!req.body._csrf || req.body._csrf !== req.session.csrfToken) {
+                req.flash('error', t(req, 'សិទ្ធិមិនត្រឹមត្រូវ', 'Invalid CSRF token'));
+                return res.redirect('/student/payments');
+            }
+            const userId = req.session.user.id;
+            // `amount` is deliberately ignored. The form ships it in a hidden input that
+            // the browser controls, so a student could declare any figure they liked -
+            // including 1 KHR against a full tuition fee. The amount owed is derived from
+            // major_tuition and the scholarship coverage instead.
+            const { enrollment_id, transaction_ref } = req.body;
 
-      await req.db.query(
-        'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [enrollment_id, userId, fee_type_id, parseFloat(amount), payment_method || 'bank_transfer', transaction_ref || '', proofPath]
-      );
-      req.flash('success', t(req, 'ការទូទាត់ត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Payment submitted successfully'));
-      res.redirect('/student/payments');
-    } catch (error) {
-      console.error('Payment submit error:', error);
-      req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
-      res.redirect('/student/payments');
-    }
-  });
+            // Same reasoning for the fee type: payments.fee_type_id is NOT NULL, so it
+            // must always resolve to a real row. The submitted value is honoured, but
+            // validated against the active list - previously this was taken on trust, and
+            // before the server-derived change it was taken on trust AND crashed when
+            // absent. A student must be able to pick the kind of payment they are making.
+            const [feeTypes] = await req.db.query('SELECT id FROM fee_types WHERE is_active = 1 ORDER BY id ASC');
+            if (feeTypes.length === 0) {
+                return await flashAndRedirect(req, res, 'error',
+                    t(req, 'មិនទាន់មានប្រភេទថ្លៃសិក្សា', 'No active fee type is configured.'), '/student/payments');
+            }
+            const activeFeeTypeIds = feeTypes.map(f => Number(f.id));
+            const chosenFeeTypeId = Number(req.body.fee_type_id);
+            const feeTypeId = activeFeeTypeIds.indexOf(chosenFeeTypeId) !== -1
+                ? chosenFeeTypeId
+                : activeFeeTypeIds[0];
+
+            if (!enrollment_id) {
+                return await flashAndRedirect(req, res, 'error',
+                    t(req, 'សូមជ្រើសរើសការចុះឈ្មោះ', 'Please choose an enrollment.'), '/student/payments');
+            }
+
+            // The select only ever offered the student's own enrollments, but that is a UI
+            // constraint, not a control: the id arrived from the browser and was previously
+            // inserted unchecked, so a student could file a payment against somebody
+            // else's enrollment. Re-read it scoped to this user.
+            const [enrollmentRows] = await req.db.query(
+                'SELECT * FROM enrollments WHERE id = ? AND user_id = ?',
+                [enrollment_id, userId]
+            );
+            if (enrollmentRows.length === 0) {
+                return await flashAndRedirect(req, res, 'error',
+                    t(req, 'រកមិនឃើញការចុះឈ្មោះនេះ។', 'Enrollment not found.'), '/student/payments');
+            }
+            const enrollment = enrollmentRows[0];
+
+            const due = await computeTuitionDue(req.db, enrollment);
+            if (due.error) {
+                return await flashAndRedirect(req, res, 'error', t(req, 'មានកំហុស', due.error), '/student/payments');
+            }
+
+            // Only the two periods the form offers are accepted, and the amount always
+            // comes from the calculation above. An unrecognised or missing period falls
+            // back to the full year, so omitting it can never be cheaper.
+            const payPeriod = req.body.pay_period === 'semester' ? 'semester' : 'year';
+            const amount = payPeriod === 'semester' ? due.semesterAmount : due.owedYearly;
+
+            // Nothing stopped the same proof being posted repeatedly, so one enrollment
+            // could accumulate an unbounded pile of pending rows. Keyed on amount too, so
+            // a genuine second instalment (a different figure) is still allowed through.
+            const [pending] = await req.db.query(
+                "SELECT id FROM payments WHERE enrollment_id = ? AND user_id = ? AND amount = ? AND status = 'pending'",
+                [enrollment_id, userId, amount]
+            );
+            if (pending.length > 0) {
+                return await flashAndRedirect(req, res, 'warning',
+                    t(req, 'មានការទូទាត់ដដែលកំពុងរង់ចាំការត្រួតពិនិត្យរួចហើយ។',
+                        'A payment of that amount is already awaiting review.'), '/student/payments');
+            }
+
+            let proofPath = null;
+            if (req.file) {
+                const r = await uploadToImageKit(req.file, 'payment');
+                proofPath = r.url;
+            }
+
+            await req.db.query(
+                'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [enrollment_id, userId, feeTypeId, amount, 'bank_transfer', transaction_ref || payPeriod, proofPath]
+            );
+            await flashAndRedirect(req, res, 'success',
+                t(req, 'ការទូទាត់ត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Payment submitted successfully'), '/student/payments');
+        } catch (error) {
+            console.error('Payment submit error:', error);
+            await flashAndRedirect(req, res, 'error', t(req, 'មានកំហុស', 'An error occurred'), '/student/payments');
+        }
+    });
 });
 
 module.exports = router;

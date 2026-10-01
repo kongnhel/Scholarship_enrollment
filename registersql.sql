@@ -320,11 +320,9 @@ CREATE TABLE `payments` (
   `user_id` int NOT NULL,
   `fee_type_id` int NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `payment_method` enum('bank_transfer','aba','acleda','wing','cash','bakong_khqr') COLLATE utf8mb4_unicode_ci DEFAULT 'bakong_khqr',
+  `payment_method` enum('bank_transfer','aba','acleda','wing','cash') COLLATE utf8mb4_unicode_ci DEFAULT 'bank_transfer',
   `transaction_ref` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `proof_path` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `khqr_md5` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `khqr_string` text COLLATE utf8mb4_unicode_ci,
   `status` enum('pending','verified','rejected') COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
   `admin_notes` text COLLATE utf8mb4_unicode_ci,
   `verified_by` int DEFAULT NULL,
@@ -337,10 +335,9 @@ CREATE TABLE `payments` (
   KEY `idx_payments_user` (`user_id`),
   KEY `idx_payments_enrollment` (`enrollment_id`),
   KEY `idx_payments_status` (`status`),
-  KEY `idx_payments_khqr_md5` (`khqr_md5`),
   CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `payments_ibfk_3` FOREIGN KEY (`fee_type_id`) REFERENCES `fee_types` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `payments_ibfk_3` FOREIGN KEY (`fee_type_id`) REFERENCES `fee_types` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `payments_ibfk_4` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

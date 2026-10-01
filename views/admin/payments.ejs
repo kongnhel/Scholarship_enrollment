@@ -137,9 +137,10 @@
                 </td>
                 <td class="px-5 py-4">
                   <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                    <% if (p.payment_method === 'bakong_khqr') { %>
-                      <i class="bi bi-qr-code"></i>KHQR
-                    <% } else if (p.payment_method === 'aba') { %>
+                    <%# The 'bakong_khqr' branch was removed with QR generation. Students
+                        now pay by scanning a QR the admin uploaded, so every payment is a
+                        manual bank transfer. %>
+                    <% if (p.payment_method === 'aba') { %>
                       <i class="bi bi-bank"></i>ABA
                     <% } else if (p.payment_method === 'wing') { %>
                       <i class="bi bi-phone"></i>Wing

@@ -1,3 +1,11 @@
+const { dashboardPathFor } = require('../utils/helpers');
+
+// A role mismatch used to `res.redirect('/')`. That lands the user on the public
+// marketing page while their session is still valid, so it reads as "I got logged out"
+// even though nothing was logged out -- and the flash message disappears before it can be
+// read. Send them to THEIR OWN dashboard instead: still denied, but somewhere that makes
+// sense for them and shows they are still signed in.
+
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) {
     return next();
@@ -11,7 +19,7 @@ const isAdmin = (req, res, next) => {
     return next();
   }
   req.flash('error', 'Access denied. Admin privileges required.');
-  return res.redirect('/');
+  return res.redirect(dashboardPathFor(req));
 };
 
 const isCommittee = (req, res, next) => {
@@ -19,7 +27,7 @@ const isCommittee = (req, res, next) => {
     return next();
   }
   req.flash('error', 'Access denied. Committee privileges required.');
-  return res.redirect('/');
+  return res.redirect(dashboardPathFor(req));
 };
 
 const isStudent = (req, res, next) => {
@@ -27,7 +35,7 @@ const isStudent = (req, res, next) => {
     return next();
   }
   req.flash('error', 'Access denied. Student privileges required.');
-  return res.redirect('/');
+  return res.redirect(dashboardPathFor(req));
 };
 
 module.exports = {

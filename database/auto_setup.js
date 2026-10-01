@@ -119,8 +119,6 @@ async function autoSetup() {
       payment_method ENUM('bank_transfer','aba','acleda','wing','cash') DEFAULT 'bank_transfer',
       transaction_ref VARCHAR(255),
       proof_path VARCHAR(500),
-      khqr_md5 VARCHAR(255),
-      khqr_string TEXT,
       status ENUM('pending','verified','rejected') DEFAULT 'pending',
       admin_notes TEXT,
       verified_by INT,
@@ -129,12 +127,11 @@ async function autoSetup() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (fee_type_id) REFERENCES fee_types(id) ON DELETE CASCADE,
+      FOREIGN KEY (fee_type_id) REFERENCES fee_types(id) ON DELETE RESTRICT,
       FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL,
       INDEX idx_payments_user (user_id),
       INDEX idx_payments_enrollment (enrollment_id),
-      INDEX idx_payments_status (status),
-      INDEX idx_payments_khqr_md5 (khqr_md5)
+      INDEX idx_payments_status (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
     await safeQuery(conn, `CREATE TABLE IF NOT EXISTS major_tuition (
@@ -211,9 +208,41 @@ async function autoSetup() {
       "ALTER TABLE settings ADD COLUMN enrollment_start DATETIME DEFAULT NULL AFTER enrollment_open",
       "ALTER TABLE settings ADD COLUMN enrollment_end DATETIME DEFAULT NULL AFTER enrollment_start",
       // Bakong KHQR columns (on payments)
-      "ALTER TABLE payments ADD COLUMN khqr_md5 VARCHAR(255) AFTER proof_path",
-      "ALTER TABLE payments ADD COLUMN khqr_string TEXT AFTER khqr_md5",
-      "ALTER TABLE payments MODIFY COLUMN payment_method ENUM('bank_transfer','aba','acleda','wing','cash','bakong_khqr') DEFAULT 'bakong_khqr'",
+      // QR generation was removed: students scan a QR image the admin uploads in
+      // /admin/settings and then submit a payment screenshot. These two migrations used
+      // to add khqr_md5/khqr_string AND rewrite payment_method so its default became
+      // 'bakong_khqr' - which meant a clean install was degraded on first boot, and any
+      // insert that omitted payment_method would be silently labelled Bakong. This single
+      // corrective statement restores the real default and drops the unused enum value.
+      // The khqr_* columns are intentionally left in place on existing databases: nothing
+      // reads them, and dropping columns is not reversible.
+      "ALTER TABLE payments MODIFY COLUMN payment_method ENUM('bank_transfer','aba','acleda','wing','cash') DEFAULT 'bank_transfer'",
+      // A fee type is a label on a payment, not an owner of it. This FK was
+      // ON DELETE CASCADE, so deleting a lookup row would silently delete every payment
+      // that referenced it - financial records must never disappear because someone
+      // tidied up a category. The admin delete route already refuses an in-use fee type;
+      // this makes the database enforce it too.
+      "ALTER TABLE payments DROP FOREIGN KEY payments_ibfk_3",
+      "ALTER TABLE payments ADD CONSTRAINT payments_ibfk_3 FOREIGN KEY (fee_type_id) REFERENCES fee_types(id) ON DELETE RESTRICT",
+      // Same reasoning for the enrollment link. This FK was ON DELETE CASCADE, so
+      // deleting one enrollment silently deleted every payment recorded against it --
+      // a verified 200,000 KHR receipt can vanish with the enrollment row and leave no
+      // trace. An enrollment is the owner of its payment history, never a child of it.
+      // Name is positional and differs per database (this one is payments_ibfk_1),
+      // so resolve it from information_schema rather than guessing; safeQuery also
+      // swallows the DROP if it is absent.
+      "SET @enr_fk := (SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'payments' AND COLUMN_NAME = 'enrollment_id' AND REFERENCED_TABLE_NAME = 'enrollments' LIMIT 1)",
+      "SET @drop_enr_fk := IFNULL(concat('ALTER TABLE payments DROP FOREIGN KEY `', @enr_fk, '`'), 'DO 0')",
+      "PREPARE stmt_drop_enr_fk FROM @drop_enr_fk",
+      "EXECUTE stmt_drop_enr_fk",
+      "DEALLOCATE PREPARE stmt_drop_enr_fk",
+      "ALTER TABLE payments ADD CONSTRAINT payments_enrollment_fk FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE RESTRICT",
+      // The enrollment form has always offered five scholarship funding choices, but
+      // existing databases only ever got a 3-value enum. With STRICT_ALL_TABLES active
+      // an out-of-enum value is REJECTED, not coerced, so a student who picked
+      // "NMU Scholarship 100%" filled in the whole form and then got a server error.
+      // MODIFY is idempotent, so re-running it on an already-correct column is a no-op.
+      "ALTER TABLE enrollments MODIFY COLUMN funding_type ENUM('gov_scholarship','nmu_scholarship','nmu_scholarship_100','nmu_scholarship_50_4y','nmu_scholarship_50_2y','mekong_scholarship_40_4y','self_pay') NULL AFTER major_choice",
       // Family / sibling / study-history details (printable letter IV, V, VI)
       "ALTER TABLE enrollments ADD COLUMN father_alive VARCHAR(10) NULL AFTER guardian_phone",
       "ALTER TABLE enrollments ADD COLUMN father_job VARCHAR(255) NULL AFTER father_alive",
@@ -386,10 +415,9 @@ async function autoSetup() {
     "ALTER TABLE settings ADD COLUMN enrollment_start DATETIME DEFAULT NULL AFTER enrollment_open",
     "ALTER TABLE settings ADD COLUMN enrollment_end DATETIME DEFAULT NULL AFTER enrollment_start",
     // Bakong KHQR columns
-    "ALTER TABLE payments ADD COLUMN khqr_md5 VARCHAR(255) AFTER proof_path",
-    "ALTER TABLE payments ADD COLUMN khqr_string TEXT AFTER khqr_md5",
-    "ALTER TABLE payments MODIFY COLUMN payment_method ENUM('bank_transfer','aba','acleda','wing','cash','bakong_khqr') DEFAULT 'bakong_khqr'",
-    "CREATE INDEX idx_payments_khqr_md5 ON payments(khqr_md5)",
+    // See the note in the migrations list above: QR generation is gone, and this
+    // statement only restores the correct payment_method default / enum.
+    "ALTER TABLE payments MODIFY COLUMN payment_method ENUM('bank_transfer','aba','acleda','wing','cash') DEFAULT 'bank_transfer'",
     // Major tuition table
     `CREATE TABLE IF NOT EXISTS major_tuition (
       id INT AUTO_INCREMENT PRIMARY KEY,

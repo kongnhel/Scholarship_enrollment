@@ -55,6 +55,7 @@
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Name (Khmer)' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'Name (English)' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ថ្លៃសិក្សា' : 'Tuition' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
           </tr>
@@ -78,6 +79,26 @@
                 <td class="px-5 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"><%= major.name_kh %></td>
                 <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= major.name_en %></td>
                 <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? (major.faculty_kh || '—') : (major.faculty_en || '—') %></td>
+                <td class="px-5 py-4">
+                  <%
+                    // A major with no active major_tuition row can still be selected by a
+                    // student, but computeTuitionDue() cannot price it and returns "No
+                    // tuition set for your major" at the quote step. Warning here, where the
+                    // major is added, is far cheaper than the student finding it out.
+                    var unpriced = Number(major.tuition_rows || 0) === 0;
+                  %>
+                  <% if (unpriced) { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300" title="<%= currentLang === 'km' ? 'ត្រូវកំណត់ថ្លៃសិក្សាសម្រាប់មុខជំនាញនេះ' : 'Set tuition for this major' %>">
+                      <i class="bi bi-exclamation-triangle"></i>
+                      <%= currentLang === 'km' ? 'មិនទាន់កំណត់ថ្លៃសិក្សា' : 'Tuition not set' %>
+                    </span>
+                  <% } else { %>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                      <i class="bi bi-check-circle"></i>
+                      <%= currentLang === 'km' ? 'បានកំណត់ថ្លៃ' : 'Priced' %>
+                    </span>
+                  <% } %>
+                </td>
                 <td class="px-5 py-4">
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= major.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400' %>">
                     <span class="w-1.5 h-1.5 rounded-full <%= major.is_active ? 'bg-green-500' : 'bg-gray-400' %>"></span>

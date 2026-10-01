@@ -39,7 +39,7 @@ enrollments: id, user_id, application_id, academic_year, semester,
   student_signature_date, parent_signature_date, enrolled_at, updated_at
 
 payments: id, enrollment_id, user_id, fee_type_id, amount,
-  payment_method(bank_transfer/aba/acleda/wing/cash/bakong_khqr),
+  payment_method(bank_transfer/aba/acleda/wing/cash)  -- default bank_transfer,
   transaction_ref, proof_path, khqr_md5, khqr_string,
   status(pending/verified/rejected), admin_notes, verified_by, verified_at, paid_at, created_at
 
@@ -95,22 +95,16 @@ IMAGEKIT_PUBLIC_KEY=your_public_key
 IMAGEKIT_PRIVATE_KEY=your_private_key
 IMAGEKIT_URL_ENDPOINT=your_url_endpoint
 
-BAKONG_API_URL=https://sit-api-bakong.nbc.org.kh/v1/check_transaction_by_md5
-BAKONG_API_TOKEN=your_bakong_token
-BAKONG_ACCOUNT_ID=your_account_id
-BAKONG_MERCHANT_NAME=NMU
-BAKONG_MERCHANT_CITY=Battambang
-BAKONG_MERCHANT_ID=your_merchant_id
-BAKONG_ACQUIRING_BANK=your_bank
+# No payment-gateway variables. Students scan a QR image that an admin uploads in
+# /admin/settings, stored in the `payment_qr_path` setting, then submit a screenshot.
 
 ================================================================================
 3. PACKAGE.JSON DEPENDENCIES
 ================================================================================
 
-bakong-khqr, bcryptjs, connect-flash, cors, dotenv, ejs, exceljs, express,
+bcryptjs, connect-flash, cors, dotenv, ejs, exceljs, express,
 express-ejs-layouts, express-rate-limit, express-session, express-validator,
-helmet, imagekit, multer, mysql2, node-telegram-bot-api, nodemailer, nodemon,
-pdfkit, qrcode, resend, telegram, uuid
+helmet, imagekit, multer, mysql2, nodemailer, nodemon, pdfkit, resend, telegram, uuid
 
 ================================================================================
 4. SERVER.JS ARCHITECTURE
@@ -177,9 +171,11 @@ GET  /enroll             - Enrollment form (loads majors, tuition, scholarships,
 GET  /enroll/tuition/:majorId - AJAX tuition lookup (JSON)
 POST /enroll             - Submit enrollment (4 doc uploads, academic_year=2026-2027, semester=1)
 GET  /payments           - Payment page (tuition calc, scholarship discount, payment history)
-POST /payments/generate-qr - Generate Bakong KHQR (compute discount, create QR, store md5)
-GET  /payments/check-transaction/:md5 - Poll transaction status (rate limited 10/min)
-POST /payments           - Manual payment upload (proof image to ImageKit)
+POST /payments           - Payment proof upload (screenshot to ImageKit). enrollment_id is
+                           ownership-checked and the amount is derived server-side from
+                           major_tuition + scholarship coverage; the browser-supplied
+                           amount is ignored. There is NO QR-generation endpoint and no
+                           transaction-polling endpoint.
 
 ================================================================================
 7. ROUTES/ADMIN.JS (47 routes, all require isAuthenticated + isAdmin)
@@ -276,10 +272,6 @@ Folders: profiles, enrollments, applications, payments
 --- utils/otp.js ---
 generateOTP(length=5), storeOTP(db, userId, code), verifyOTP(db, userId, code),
 canResend(db, userId), clearOTP(db, userId)
-
---- config/bakong.js ---
-generateKHQR({amount, currency, billNumber, mobileNumber}) -> {qrString, md5Hash, qrImageBase64}
-checkTransaction(md5Hash) -> {success, status, data}
 
 --- config/mailer.js ---
 sendEmail(to, subject, html) - Tries Resend API first, falls back to SMTP nodemailer
@@ -392,13 +384,14 @@ New password + confirm password, client-side match validation.
    check enrollment window -> check duplicate per year+semester ->
    upload docs to ImageKit -> status=pending -> Admin approves/rejects
 
-6. PAYMENT (Bakong KHQR):
-   Student views tuition page -> system calculates:
+6. PAYMENT (manual, admin-uploaded QR):
+   Student views tuition page -> system calculates (computeTuitionDue in routes/student.js):
      discount = tuition_per_year * coverage_percentage / 100
      studentPays = tuition_per_year - discount + ministry_fee
-   Student generates QR -> system calls generateKHQR() -> stores khqr_md5+khqr_string
-   Student scans QR with banking app -> system polls check-transaction/:md5
-   On success: payment auto-verified -> receipt page
+   Page shows the QR image the admin uploaded in /admin/settings (`payment_qr_path`)
+   Student scans it with their banking app and pays
+   Student submits a payment SCREENSHOT -> status=pending
+   Admin verifies or rejects from /admin/payments -> student is notified
    Fallback: manual payment with proof upload -> admin verifies
 
 7. ADMIN MANAGEMENT:
@@ -415,13 +408,11 @@ New password + confirm password, client-side match validation.
 12. EXTERNAL SERVICES
 ================================================================================
 
-1. Bakong KHQR (bakong-khqr npm) - Payment QR generation
-2. Bakong API - Transaction verification (check_transaction_by_md5)
-3. Telegram MTProto (gramjs) - Phone OTP via auth.SendCode/auth.SignIn
-4. Telegram Bot API - Bot notifications and phone-linking
-5. ImageKit - Cloud file storage (profiles, applications, enrollments, payments)
-6. Resend API / SMTP - Email delivery
-7. MySQL (mysql2/promise) - Database
+1. Telegram MTProto (gramjs) - Phone OTP via auth.SendCode/auth.SignIn
+2. Telegram Bot API - Bot notifications and phone-linking
+3. ImageKit - Cloud file storage (profiles, applications, enrollments, payments)
+4. Resend API / SMTP - Email delivery
+5. MySQL (mysql2/promise) - Database
 
 ================================================================================
                               END OF REFERENCE

@@ -1,3 +1,25 @@
+<%
+  // Status labels reuse the terms already used on the admin application pages, so a
+  // student and a committee member read the same word for the same state. This used to
+  // print status.toUpperCase(), which showed a raw "APPROVED" on a Khmer page.
+  var STATUS_LABEL = {
+    pending:              ['រង់ចាំ', 'Pending'],
+    under_review:         ['កំពុងពិនិត្យ', 'Under Review'],
+    approved:             ['អនុម័ត', 'Approved'],
+    rejected:             ['បដិសេធ', 'Rejected'],
+    correction_requested: ['តម្រូវការកែប្រែ', 'Correction Required']
+  };
+  var statusLabel = function (st) {
+    var l = STATUS_LABEL[st];
+    if (l) return currentLang === 'km' ? l[0] : l[1];
+    return st || '-';
+  };
+  // A missing value has to say so. The old ternary only carried the 'N/A' fallback on
+  // the English branch, so in Khmer a NULL rendered as an empty cell - which reads as a
+  // broken page rather than "not recorded".
+  var NA = currentLang === 'km' ? 'មិនមាន' : 'N/A';
+  var show = function (v) { return (v === null || v === undefined || v === '') ? NA : v; };
+%>
 <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
   <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
   <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -35,6 +57,7 @@
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំណាំ' : 'Notes' %></th>
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">.</th>
           </tr>
         </thead>
@@ -42,10 +65,11 @@
           <% applications.forEach(function(app, index) { %>
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= index + 1 %></td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.major_name_kh : (app.major_name_en || 'N/A') %></td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.category_name_kh : (app.category_name_en || 'N/A') %></td>
-              <td class="px-5 py-4"><span class="px-2 py-1 text-xs font-bold rounded-full <%= app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : app.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : app.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= app.status.replace('_', ' ').toUpperCase() %></span></td>
-              <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : 'N/A' %></td>
+<td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= show(currentLang === 'km' ? app.major_name_kh : (app.major_name_en || app.major_name_kh)) %></td>
+                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= show(currentLang === 'km' ? app.category_name_kh : (app.category_name_en || app.category_name_kh)) %></td>
+                <td class="px-5 py-4"><span class="px-2 py-1 text-xs font-bold rounded-full <%= app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : app.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : app.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= statusLabel(app.status) %></span></td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : show(null) %></td>
+                <td class="px-5 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs"><%= show(app.admin_remark || app.correction_notes) %></td>
               <td class="px-5 py-4"><a href="/student/application/<%= app.id %>" class="text-green-600 dark:text-green-400 hover:text-green-700 text-sm font-medium"><%= currentLang === 'km' ? 'មើល' : 'View' %> →</a></td>
             </tr>
           <% }); %>

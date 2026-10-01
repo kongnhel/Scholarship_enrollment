@@ -1,9 +1,10 @@
 // Feature switches.
 //
 // ENROLLMENT_ENABLED turns the whole online-enrollment + tuition-payment module on or off.
-// It is currently false because the scholarship application flow is the active focus; all
-// of the enrollment/payment code (routes, views, Bakong KHQR integration) is kept intact
-// and comes straight back by flipping this single flag to true — no other change needed.
-const ENROLLMENT_ENABLED = false;
+// It is true: the scholarship application flow and the enrollment/payment module are both
+// live. The module is gated only here - 9 student routes read it through the three
+// enrollmentPaused* middleware variants - so this single flag is still the only switch.
+// Set it back to false to close enrollment and payments together without touching code.
+const ENROLLMENT_ENABLED = true;
 
 module.exports = { ENROLLMENT_ENABLED };

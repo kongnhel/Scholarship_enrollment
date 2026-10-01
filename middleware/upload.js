@@ -24,29 +24,52 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-const upload = multer({
+// Per-request caps. Without these, memoryStorage buffers everything it is sent: the
+// application form allows 8 files, so ~40 MB of RAM could be held per request by a
+// single authenticated (or cross-site multipart) POST.
+//
+// `parts` is sized PER FORM, because multer counts every field as well as every file
+// and the forms are nowhere near the same size:
+//
+//   payments / admin single-file forms .......... ~8 parts
+//   application form (37 fields + up to 8 files)  ~45 parts
+//   enrollment form   (52 fields + 4 files)       56 parts  <-- was 4 away from the
+//                                                              old shared cap of 60,
+//                                                              so adding one field to
+//                                                              that form would have
+//                                                              blocked EVERY student
+//                                                              from enrolling, with
+//                                                              only "too many files"
+//                                                              shown to explain it.
+//
+// The wide cap is deliberately generous so the enrollment form has real headroom, not
+// 4 spare parts. fieldSize still bounds any single field, and files:10 still bounds the
+// file count, so a hostile POST cannot use the larger part ceiling to hold more files.
+const makeUploader = (parts) => multer({
   storage,
   fileFilter,
   limits: {
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024,
-    // Per-request caps. Without these, memoryStorage buffers everything it is sent:
-    // the application form allows 8 files, so ~40 MB of RAM could be held per request
-    // by a single authenticated (or cross-site multipart) POST.
     files: 10,
-    parts: 60,
+    parts,
     fieldSize: 1024 * 1024
   }
 });
 
+// Small forms keep the tight cap.
+const upload = makeUploader(60);
+// The two 40+ field forms get their own uploader.
+const uploadWideForm = makeUploader(90);
+
 const uploadPhoto = upload.single('photo');
-const uploadMultiple = upload.fields([
+const uploadMultiple = uploadWideForm.fields([
   { name: 'photo', maxCount: 1 },
   { name: 'photo_3x4', maxCount: 1 },
   { name: 'transcript', maxCount: 1 },
   { name: 'additionalDocuments', maxCount: 5 }
 ]);
 
-const uploadEnrollmentDocs = upload.fields([
+const uploadEnrollmentDocs = uploadWideForm.fields([
   { name: 'doc_transcript_file', maxCount: 1 },
   { name: 'doc_birth_cert_file', maxCount: 1 },
   { name: 'doc_photo_4x6_file', maxCount: 1 },

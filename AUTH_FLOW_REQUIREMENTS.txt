@@ -31,7 +31,7 @@ DATABASE TABLES (14 tables)
 2. applications               - Scholarship applications
 3. application_status_history - Status change audit trail
 4. enrollments                - Student enrollments with personal details
-5. payments                   - Payment records (Bakong KHQR + manual)
+5. payments                   - Payment records (manual: screenshot proof, admin verified)
 6. fee_types                  - Fee categories (e.g., Tuition Fee)
 7. major_tuition              - Per-major tuition fees by academic year
 8. majors                     - Available majors (5 faculties)
@@ -213,37 +213,40 @@ Where:
 - coverage_percentage comes from scholarship_types table
 - ministry_fee comes from scholarship_types table
 
---- BAKONG KHQR PAYMENT (POST /student/payments/generate-qr) ---
+--- HOW PAYMENT ACTUALLY WORKS (there is no QR generation) ---
 
-1. Validate enrollment ownership
-2. Compute student payment amount with scholarship discount
-3. Split semester vs yearly payment if applicable
-4. Generate bill number: PAY-{timestamp}-{userId}
-5. Call generateKHQR({amount, currency:'khr', billNumber, mobileNumber})
-6. Insert payment record with khqr_md5, khqr_string, status='pending'
-7. Return JSON: {success, qrImage, md5Hash, amount, expiryMinutes:10}
+The Bakong KHQR integration was removed. Students do not generate a QR code. Instead:
 
---- TRANSACTION CHECK (GET /student/payments/check-transaction/:md5) ---
+  Admin uploads a bank QR image in /admin/settings -> saved in the `payment_qr_path`
+      setting (an ImageKit URL).
+  Student opens /student/payments -> the page renders that uploaded image.
+  Student scans it with their banking app and pays.
+  Student submits a payment SCREENSHOT to /student/payments (proof + transaction ref).
+  Admin verifies or rejects it from /admin/payments.
 
-1. Rate limited (10 requests/min per IP)
-2. Call checkTransaction(md5Hash) from Bakong API
-3. If responseCode = 0 (success): UPDATE payments SET status='verified', verified_at=NOW()
-4. Return JSON: {success, status}
+The khqr_md5 / khqr_string columns still exist on older databases but nothing reads them.
 
 --- MANUAL PAYMENT (POST /student/payments) ---
 
-1. Upload proof image to ImageKit
-2. Insert payment with default status='pending'
-3. Admin manually verifies later
+1. CSRF check
+2. Reject if no enrollment_id given
+3. Verify the enrollment belongs to the logged-in student (ownership check)
+4. Derive the amount server-side from major_tuition + scholarship coverage via
+   computeTuitionDue(); the browser-supplied `amount` is ignored entirely
+5. pay_period accepted only as 'year' | 'semester'; amount is recomputed, never trusted
+6. Reject a duplicate pending payment for the same enrollment + amount
+7. Upload proof image to ImageKit
+8. Insert payment with payment_method='bank_transfer', status='pending'
+9. Admin manually verifies later
 
 --- PAYMENT STATUSES ---
 
-pending -> verified (by admin or auto via KHQR)
-pending -> rejected (by admin)
+pending -> verified (by admin)
+pending -> rejected (by admin, with a reason recorded in admin_notes)
 
 --- PAYMENT METHODS ---
 
-bank_transfer, aba, acleda, wing, cash, bakong_khqr (default)
+bank_transfer (default), aba, acleda, wing, cash
 
 ================================================================================
 5. ADMIN DASHBOARD
@@ -350,9 +353,7 @@ File constraints:
 8. EXTERNAL SERVICES
 ================================================================================
 
-1. Bakong KHQR (bakong-khqr npm) - Payment QR code generation
-2. Bakong API - Transaction verification (check_transaction_by_md5)
-3. Telegram MTProto (gramjs) - Phone OTP verification via auth.SendCode/auth.SignIn
+1. Telegram MTProto (gramjs) - Phone OTP verification via auth.SendCode/auth.SignIn
 4. Telegram Bot API (node-telegram-bot-api) - Bot notifications and phone-linking
 5. ImageKit - Cloud file storage
 6. Resend API / SMTP nodemailer - Email delivery

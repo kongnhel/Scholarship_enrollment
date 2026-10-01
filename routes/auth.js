@@ -658,7 +658,7 @@ router.get('/profile', async (req, res) => {
   } catch (error) {
     console.error(error);
     req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទុកប្រវត្តិរូប', 'Error loading profile'));
-    res.redirect('back');
+    res.redirect(safeBackPath(req));
   }
 });
 

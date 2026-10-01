@@ -92,11 +92,70 @@ async function revokeSessionsForUser(db, userId) {
       await db.query('DELETE FROM sessions WHERE session_id IN (?)', [ids]);
     }
     return ids.length;
-  } catch (e) {
-    console.error('session revoke failed:', e.message);
-    return 0;
+    } catch (e) {
+      console.error('session revoke failed:', e.message);
+      return 0;
+    }
   }
-}
+
+  /**
+   * Resolve a "go back" destination that can only ever stay on this site.
+   *
+   * The Referer header is supplied by the client, so echoing it back is an open
+   * redirect: an attacker sends a victim to
+   *   /student/enroll  (with Referer: https://evil.example)
+   * and the post-submit redirect carries them off to the attacker's site for a
+   * convincing phishing page.
+   *
+   * Both `res.redirect('back')` and the previously-used
+   * `res.redirect(req.get('referer') || '/')` have this flaw -- 'back' is *defined* as
+   * the Referer, so swapping one for the other changes nothing. The Referer is only
+   * honoured when it resolves to this host, and only its path+query is returned, so the
+   * result is always a relative, same-site URL.
+   */
+  /**
+   * The dashboard belonging to whoever is currently signed in.
+   *
+   * Error handlers and role guards used to `res.redirect('/')`, which drops a signed-in
+   * user on the public marketing page while their session is still alive -- they look
+   * logged out even though they are not. Anything that has to send a user somewhere safe
+   * should send them to their OWN dashboard instead.
+   */
+  function dashboardPathFor(req) {
+    const role = req && req.session && req.session.user && req.session.user.role;
+    if (role === 'admin') return '/admin/dashboard';
+    if (role === 'committee') return '/committee/dashboard';
+    if (role === 'student') return '/student/dashboard';
+    return '/';
+  }
+
+  function safeBackPath(req, fallback) {
+    const fb = fallback || dashboardPathFor(req);
+    if (!req || typeof req.get !== 'function') return fb;
+    const ref = req.get('referer');
+    if (!ref) return fb;
+    let target;
+    try {
+      // Fixed dummy base so a relative Referer still parses. The security guarantee
+      // below does NOT rest on the Host header, which is itself client-supplied: only
+      // the path is ever returned, so the browser resolves it against the origin it is
+      // already on and cannot be sent to another site.
+      target = new URL(ref, 'https://placeholder.invalid');
+    } catch (e) {
+      return fb;
+    }
+    const path = `${target.pathname || '/'}${target.search || ''}`;
+    // A plain absolute path only. This rejects the protocol-relative "//evil.example"
+    // and backslash "/\evil.example" forms, which browsers treat as another origin.
+    if (!/^\/[^/\\]/.test(path)) return fb;
+    // Correctness, not security: an off-site Referer should land the user on the
+    // fallback rather than a same-origin 404. A relative Referer is already safe.
+    if (ref.charAt(0) !== '/') {
+      const host = req.get('host');
+      if (!host || target.host !== host) return fb;
+    }
+    return path;
+  }
 
 // Flash a message and redirect, but only after the session write has landed.
 //
@@ -126,6 +185,8 @@ module.exports = {
   escapeHtml,
   generateToken,
   saveSession,
-  flashAndRedirect,
-  revokeSessionsForUser
-};
+    flashAndRedirect,
+revokeSessionsForUser,
+      dashboardPathFor,
+      safeBackPath
+    };
