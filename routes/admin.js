@@ -1678,7 +1678,7 @@ router.get('/enrollments', async (req, res) => {
 router.get('/enrollments/:id', async (req, res) => {
     try {
         const [rows] = await req.db.query(`
-            SELECT e.*, u.username, u.email, u.khmer_name, u.english_name, u.phone, u.profile_pic,
+            SELECT e.*, u.username, u.email, u.khmer_name, u.english_name, u.phone as user_phone, u.profile_pic,
                 m.name_kh as major_name_kh, m.name_en as major_name_en,
                 sc.name_kh as category_name_kh, sc.name_en as category_name_en,
                 st.name_kh as scholarship_name_kh, st.name_en as scholarship_name_en, st.coverage_percentage as scholarship_percentage,
@@ -1724,12 +1724,45 @@ router.get('/enrollments/:id/print', async (req, res) => {
         if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
         if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
         if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
-        const [rows] = await req.db.query('SELECT * FROM enrollments WHERE id = ?', [req.params.id]);
+        // The reference print carries fields the enrollment row does not own (national ID,
+        // nationality, exam date, study level/period/shift). Those live on the linked
+        // scholarship application, which is the source of truth for them, so join it in
+        // rather than re-collecting them on the enrollment form.
+        const [rows] = await req.db.query(`
+            SELECT e.*,
+                a.national_id AS app_national_id,
+                a.nationality AS app_nationality,
+                a.exam_date AS app_exam_date,
+                a.study_level AS app_study_level,
+                a.study_period AS app_study_period,
+                a.study_shift AS app_study_shift
+            FROM enrollments e
+            LEFT JOIN applications a ON a.id = e.application_id
+            WHERE e.id = ?`, [req.params.id]);
         if (rows.length === 0) {
             req.flash('error', t(req, 'រកមិនឃើញព័ត៌មានចុះឈ្មោះ', 'Enrollment not found'));
             return res.redirect('/admin/enrollments');
         }
         const enrollment = rows[0];
+
+        // Student number and registration number are printed by the reference but were
+        // never collected by the form, so they are derived here and never trusted from
+        // the client. The registration number is stable and human readable; the student
+        // number is simply the enrollment id.
+        const regYear = String(enrollment.academic_year || new Date().getFullYear()).slice(0, 4);
+        const registrationNumber = 'NMU-' + regYear + '-' + String(enrollment.id).padStart(3, '0');
+        const studentId = String(enrollment.id);
+
+        // Flatten the application-owned values so the template can read them directly,
+        // preferring the application and falling back to the enrollment/user copy.
+        const application = {
+            national_id: enrollment.app_national_id || null,
+            nationality: enrollment.app_nationality || null,
+            exam_date: enrollment.app_exam_date || null,
+            study_level: enrollment.app_study_level || null,
+            study_period: enrollment.app_study_period || null,
+            study_shift: enrollment.app_study_shift || null
+        };
         let major = null;
         if (enrollment.major_choice_id) {
             const [m] = await req.db.query('SELECT name_kh, name_en FROM majors WHERE id = ?', [enrollment.major_choice_id]);
@@ -1749,7 +1782,10 @@ router.get('/enrollments/:id/print', async (req, res) => {
             layout: false,
             enrollment,
             major,
-            userData: users[0] || null
+            userData: users[0] || null,
+            application,
+            registrationNumber,
+            studentId
         });
     } catch (err) {
         console.error(err);

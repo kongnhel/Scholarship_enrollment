@@ -1157,13 +1157,10 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       gender, date_of_birth, place_of_birth,
       village, commune, district, province,
       father_name, mother_name, occupation, education_level,
-      father_alive, father_job, father_org, father_phone,
-      mother_alive, mother_job, mother_org, mother_phone,
-      phone, guardian_phone,
       exam_session, overall_grade, high_school, high_school_province, exam_center,
       education_level_enroll, major_choice, study_schedule, study_shift,
       doc_transcript, doc_birth_cert, doc_photo_4x6, doc_photo_3x4,
-      additional_info, confirmation
+      confirmation
     } = req.body;
     // funding_type arrives from a hidden field, so it is NOT trusted. It is re-derived from
     // the approved application below; the only value the client genuinely owns is
@@ -1221,7 +1218,6 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       commune = applyFromApplication('commune', commune);
       district = applyFromApplication('district', district);
       province = applyFromApplication('province', province);
-      phone = applyFromApplication('phone', phone);
       mother_name = applyFromApplication('mother_name', mother_name);
       occupation = applyFromApplication('occupation', occupation);
       education_level = applyFromApplication('education_level', education_level);
@@ -1234,7 +1230,6 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       education_level_enroll = applyFromApplication('study_level', education_level_enroll);
       study_schedule = applyFromApplication('study_schedule', study_schedule);
       father_name = applyFromApplication('parent_name', father_name);
-      guardian_phone = applyFromApplication('parent_phone', guardian_phone);
     }
     const fundingPaymentMode = funding_type === 'gov_scholarship' ? 'full_pay' : null;
 
@@ -1306,29 +1301,7 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       }
     }
 
-    const siblings = [];
-    for (let i = 1; i <= 3; i++) {
-      const sName = String(req.body['sibling_' + i + '_name'] || '').trim();
-      const sGender = String(req.body['sibling_' + i + '_gender'] || '').trim();
-      const sJob = String(req.body['sibling_' + i + '_job'] || '').trim();
-      const sPhone = String(req.body['sibling_' + i + '_phone'] || '').trim();
-      if (sName || sGender || sJob || sPhone) {
-        siblings.push({ name: sName, gender: sGender, job: sJob, phone: sPhone });
-      }
-    }
-    const siblingsInfo = siblings.length > 0 ? JSON.stringify(siblings) : null;
 
-    const studyHistory = {};
-    for (const lv of ['primary', 'lower', 'upper', 'university']) {
-      const years = String(req.body['study_' + lv + '_years'] || '').trim();
-      const cls = String(req.body['study_' + lv + '_class'] || '').trim();
-      const school = String(req.body['study_' + lv + '_school'] || '').trim();
-      const diploma = String(req.body['study_' + lv + '_diploma'] || '').trim();
-      if (years || cls || school || diploma) {
-        studyHistory[lv] = { years, class: cls, school, diploma };
-      }
-    }
-    const studyHistoryVal = Object.keys(studyHistory).length > 0 ? JSON.stringify(studyHistory) : null;
 
     // The application stores the name split into first/last; the enrollment form has one
     // combined box. Previously the combined string went into khmer_first_name with
@@ -1353,36 +1326,31 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       `INSERT INTO enrollments (
         user_id, academic_year, semester, status, application_id,
         khmer_first_name, khmer_last_name, english_first_name, english_last_name,
-        gender, date_of_birth, place_of_birth, phone,
+        gender, date_of_birth, place_of_birth,
         village, current_address, province, district, commune,
-        father_name, mother_name, occupation, education_level, guardian_phone,
-        father_alive, father_job, father_org, father_phone, mother_alive, mother_job, mother_org, mother_phone, siblings_info, study_history,
+        father_name, mother_name, occupation, education_level,
         exam_session, overall_grade, high_school, high_school_province, exam_center,
         education_level_enroll, major_choice, major_choice_id, funding_type, funding_payment_mode, study_schedule, study_shift,
-        documents_checklist, additional_info, confirmation,
+        documents_checklist, confirmation,
         doc_transcript_path, doc_birth_cert_path, doc_photo_4x6_path, doc_photo_3x4_path
       ) VALUES (?, ?, ?, ?, ?,
         ?, ?, ?, ?,
+        ?, ?, ?,
+        ?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?,
+        ?, ?,
         ?, ?, ?, ?)`,
       [
         userId, academic_year, semester, 'pending', approvedApplicationId,
         khmerNameParts.first || null, khmerNameParts.last || null, englishNameParts.first || null, englishNameParts.last || null,
-        gender || null, date_of_birth || null, place_of_birth || null, phone || null,
+        gender || null, date_of_birth || null, place_of_birth || null,
         village || null, null, province || null, district || null, commune || null,
-        father_name || null, mother_name || null, occupation || null, education_level || null, guardian_phone || null,
-        father_alive || null, father_job || null, father_org || null, father_phone || null,
-        mother_alive || null, mother_job || null, mother_org || null, mother_phone || null,
-        siblingsInfo, studyHistoryVal,
+        father_name || null, mother_name || null, occupation || null, education_level || null,
         exam_session || null, overall_grade || null, high_school || null, high_school_province || null, exam_center || null,
         education_level_enroll || null, majorName, majorId, funding_type, fundingPaymentMode, study_schedule || null, study_shift || null,
-        documents.length > 0 ? documents.join(',') : null, additional_info || null, confirmation ? 1 : 0,
+        documents.length > 0 ? documents.join(',') : null, confirmation ? 1 : 0,
         doc_transcript_path, doc_birth_cert_path, doc_photo_4x6_path, doc_photo_3x4_path
       ]
     );

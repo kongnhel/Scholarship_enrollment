@@ -193,7 +193,7 @@
           <i class="bi bi-arrow-repeat"></i><%= currentLang === 'km' ? 'ផ្លាស់ប្តូរជម្រើស' : 'Change Choice' %>
         </a>
       </div>
-      <div class="px-6 py-4">
+      <div class="p-6 space-y-4">
         <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800 flex items-start gap-3">
           <i class="bi bi-award text-green-500 text-lg mt-0.5"></i>
           <div>
@@ -218,20 +218,20 @@
           </div>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'I. ព័ត៌មាននិស្សិត' : 'I. Student Information' %></span>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២. គោត្តនាម និងនាម - ជាអក្សរខ្មែរ' : '2. Full Name in Khmer' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១. គោត្តនាម និងនាម - ជាអក្សរខ្មែរ' : '1. Full Name in Khmer' %> *</label>
               <input type="text" name="khmer_name" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ សុខ ដារ៉ា' : 'e.g. SOK Dara' %>" value="<%= (application && application.khmer_last_name) ? (application.khmer_first_name + ' ' + application.khmer_last_name) : (userData ? userData.khmer_name : '') %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៣. Full Name in English / Latin' : '3. Full Name in English / Latin' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២. Full Name in English / Latin' : '2. Full Name in English / Latin' %> *</label>
               <input type="text" name="english_name" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ SOK DARA' : 'e.g. SOK DARA' %>" value="<%= (application && application.english_first_name) ? (application.english_first_name + ' ' + application.english_last_name) : (userData ? userData.english_name : '') %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៤. ភេទ' : '4. Gender' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៣. ភេទ' : '3. Gender' %> *</label>
               <select name="gender" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសភេទ' : 'Select gender' %></option>
                 <option value="male" <%= (application && application.gender === 'male') ? 'selected' : '' %>><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></option>
@@ -239,12 +239,12 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៥. ថ្ងៃ ខែ ឆ្នាំកំណើត' : '5. Date of Birth' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៤. ថ្ងៃ ខែ ឆ្នាំកំណើត' : '4. Date of Birth' %> *</label>
               <input type="date" name="date_of_birth" value="<%= (application && application.date_of_birth) ? new Date(application.date_of_birth).toISOString().split('T')[0] : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៦. ទីកន្លែងកំណើត' : '6. Place of Birth' %> *</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៥. ទីកន្លែងកំណើត' : '5. Place of Birth' %> *</label>
             <input type="text" name="place_of_birth" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ជាក់ ភូមិ ឃុំ/សង្កាត់ ស្រុក/ក្រុង និងខេត្ត/រាជធានី' : 'Village, Commune, District, Province' %>" value="<%= (application && application.place_of_birth) ? application.place_of_birth : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
           </div>
 
@@ -252,19 +252,19 @@
             <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3"><%= currentLang === 'km' ? 'អាសយដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %> *</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៧. ភូមិ' : '7. Village' %> *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៦. ភូមិ' : '6. Village' %> *</label>
                 <input type="text" name="village" placeholder="<%= currentLang === 'km' ? 'ភូមិ' : 'Village' %>" value="<%= (application && application.village) ? application.village : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៨. ឃុំ / សង្កាត់' : '8. Commune / Sangkat' %> *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៧. ឃុំ / សង្កាត់' : '7. Commune / Sangkat' %> *</label>
                 <input type="text" name="commune" placeholder="<%= currentLang === 'km' ? 'ឃុំ ឬ សង្កាត់' : 'Commune or Sangkat' %>" value="<%= (application && application.commune) ? application.commune : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៩. ស្រុក / ក្រុង / ខណ្ឌ' : '9. District / City / Khan' %> *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៨. ស្រុក / ក្រុង / ខណ្ឌ' : '8. District / City / Khan' %> *</label>
                 <input type="text" name="district" placeholder="<%= currentLang === 'km' ? 'ស្រុក ក្រុង ឬ ខណ្ឌ' : 'District, City, or Khan' %>" value="<%= (application && application.district) ? application.district : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១០. ខេត្ត / រាជធានី' : '10. Province / City' %> *</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៩. ខេត្ត / រាជធានី' : '9. Province / City' %> *</label>
                 <input type="text" name="province" placeholder="<%= currentLang === 'km' ? 'ខេត្ត ឬ រាជធានី' : 'Province or City' %>" value="<%= (application && application.province) ? application.province : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
             </div>
@@ -272,82 +272,24 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-          <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-            <i class="bi bi-people text-purple-600 dark:text-purple-400 text-sm"></i>
-          </div>
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានគ្រួសារ' : 'Family Information' %></span>
-        </div>
-        <div class="p-6 space-y-4">
+      <div class="space-y-5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១១. ឈ្មោះឪពុក' : '11. Father\'s Name' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១០. ឈ្មោះឪពុក' : '10. Father\'s Name' %> *</label>
               <input type="text" name="father_name" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញរបស់ឪពុក' : 'Father\'s full name' %>" value="<%= (application && application.parent_name && application.parent_relationship === 'father') ? application.parent_name : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១២. ឈ្មោះម្តាយ' : '12. Mother\'s Name' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១១. ឈ្មោះម្តាយ' : '11. Mother\'s Name' %> *</label>
               <input type="text" name="mother_name" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញរបស់ម្តាយ' : 'Mother\'s full name' %>" value="" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
-            </div>
-          </div>
-          <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
-            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3"><%= currentLang === 'km' ? 'ព័ត៌មានលម្អិតឪពុកម្តាយ / អាណាព្យាបាល' : 'Parent / Guardian Details' %> *</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ស្ថានភាពឪពុក' : 'Father\'s Status' %> *</label>
-                <select name="father_alive" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                  <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសស្ថានភាព' : 'Select status' %></option>
-                  <option value="alive"><%= currentLang === 'km' ? 'រស់' : 'Alive' %></option>
-                  <option value="dead"><%= currentLang === 'km' ? 'ស្លាប់' : 'Deceased' %></option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ស្ថានភាពម្តាយ' : 'Mother\'s Status' %> *</label>
-                <select name="mother_alive" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                  <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសស្ថានភាព' : 'Select status' %></option>
-                  <option value="alive"><%= currentLang === 'km' ? 'រស់' : 'Alive' %></option>
-                  <option value="dead"><%= currentLang === 'km' ? 'ស្លាប់' : 'Deceased' %></option>
-                </select>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'មុខរបរឪពុក' : 'Father\'s Occupation' %> *</label>
-                <input type="text" name="father_job" placeholder="<%= currentLang === 'km' ? 'មុខរបរឪពុក' : 'Father\'s occupation' %>" value="" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'មុខរបរម្តាយ' : 'Mother\'s Occupation' %> *</label>
-                <input type="text" name="mother_job" placeholder="<%= currentLang === 'km' ? 'មុខរបរម្តាយ' : 'Mother\'s occupation' %>" value="" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អង្គភាពឪពុក' : 'Father\'s Organization' %></label>
-                <input type="text" name="father_org" placeholder="<%= currentLang === 'km' ? 'អង្គភាព / កន្លែងធ្វើការ' : 'Organization / Workplace' %>" value="" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អង្គភាពម្តាយ' : 'Mother\'s Organization' %></label>
-                <input type="text" name="mother_org" placeholder="<%= currentLang === 'km' ? 'អង្គភាព / កន្លែងធ្វើការ' : 'Organization / Workplace' %>" value="" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខទូរស័ព្ទឪពុក' : 'Father\'s Phone Number' %></label>
-                <input type="tel" name="father_phone" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ 012 345 678' : 'e.g. 012 345 678' %>" value="" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខទូរស័ព្ទម្តាយ' : 'Mother\'s Phone Number' %></label>
-                <input type="tel" name="mother_phone" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ 012 345 678' : 'e.g. 012 345 678' %>" value="" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៣. មុខរបរសព្វថ្ងៃរបស់បេក្ខជន' : '13. Current Occupation' %></label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១២. មុខរបរសព្វថ្ងៃរបស់បេក្ខជន' : '12. Current Occupation' %></label>
               <input type="text" name="occupation" placeholder="<%= currentLang === 'km' ? 'មុខរបរបច្ចុប្បន្ន' : 'Current occupation' %>" value="" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៤. កម្រិតវប្បធម៌' : '14. Education Level' %></label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៣. កម្រិតវប្បធម៌' : '13. Education Level' %></label>
               <select name="education_level" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសកម្រិតវប្បធម៌' : 'Select education level' %></option>
                 <option value="primary"><%= currentLang === 'km' ? 'កម្រិតបឋមសិក្សា៖ ថ្នាក់ទី ១ ដល់ទី ៦' : 'Primary Education: Grades 1-6' %></option>
@@ -357,70 +299,9 @@
               </select>
             </div>
           </div>
-        </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-          <div class="w-8 h-8 bg-pink-100 dark:bg-pink-900/40 rounded-lg flex items-center justify-center">
-            <i class="bi bi-people-fill text-pink-600 dark:text-pink-400 text-sm"></i>
-          </div>
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានបងប្អូនបង្កើត' : 'Sibling Information' %></span>
-        </div>
-        <div class="p-6 space-y-4">
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមដាក់ឈ្មោះបងខាងលើគេ និងប្អូនដាក់បន្តបន្ទាប់។ (សូមទុកឱ្យនៅទំនេរ បើគ្មាន)' : 'List the eldest sibling first, then the younger ones in order. (Leave blank if none)' %></p>
-          <% [1, 2, 3].forEach(function(si) { %>
-          <div class="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
-            <p class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-2"><%= ['១', '២', '៣'][si - 1] %>.</p>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></label>
-                <input type="text" name="sibling_<%= si %>_name" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញ' : 'Full name' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></label>
-                <select name="sibling_<%= si %>_gender" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                  <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើស' : 'Select' %></option>
-                  <option value="male"><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></option>
-                  <option value="female"><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'មុខរបរ' : 'Occupation' %></label>
-                <input type="text" name="sibling_<%= si %>_job" placeholder="<%= currentLang === 'km' ? 'មុខរបរ' : 'Occupation' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone' %></label>
-                <input type="tel" name="sibling_<%= si %>_phone" placeholder="<%= currentLang === 'km' ? '012 345 678' : '012 345 678' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-            </div>
-          </div>
-          <% }); %>
-        </div>
-      </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-          <div class="w-8 h-8 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex items-center justify-center">
-            <i class="bi bi-telephone text-amber-600 dark:text-amber-400 text-sm"></i>
-          </div>
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></span>
-        </div>
-        <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៥. លេខទូរស័ព្ទសាមីខ្លួន' : '15. Personal Phone Number' %> *</label>
-              <input type="tel" name="phone" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ 012 345 678' : 'e.g. 012 345 678' %>" value="<%= (application && application.phone) ? application.phone : (userData ? userData.phone : '') %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
-              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'ឧទាហរណ៍៖ 012 345 678' : 'e.g. 012 345 678' %></p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៦. លេខទូរស័ព្ទអាណាព្យាបាល' : '16. Guardian Phone Number' %> *</label>
-              <input type="tel" name="guardian_phone" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទដែលអាចទាក់ទងបាន' : 'Enter a contactable phone number' %>" value="<%= (application && application.parent_phone) ? application.parent_phone : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
-              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទដែលអាចទាក់ទងបាន។' : 'Please enter a reachable phone number.' %></p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
@@ -429,72 +310,35 @@
           </div>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'II. ព័ត៌មានអំពីប្រវត្តិសិក្សា' : 'II. Education History' %></span>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-5">
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានអំពីការសិក្សា និងការប្រឡងសញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ។' : 'Information about your education and high school diploma exam.' %></p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៧. សម័យប្រឡងមធ្យមសិក្សាទុតិយភូមិ' : '17. High School Exam Session' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៤. សម័យប្រឡងមធ្យមសិក្សាទុតិយភូមិ' : '14. High School Exam Session' %> *</label>
               <input type="text" name="exam_session" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ សម័យប្រឡង ២០២៦' : 'e.g. Exam Session 2026' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៨. និទ្ទេសរួម' : '18. Overall Grade' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៥. និទ្ទេសរួម' : '15. Overall Grade' %> *</label>
               <input type="text" name="overall_grade" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលនិទ្ទេសតាមលទ្ធផលប្រឡង' : 'Enter grade based on exam results' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៩. មកពីវិទ្យាល័យ' : '19. High School Name' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៦. មកពីវិទ្យាល័យ' : '16. High School Name' %> *</label>
               <input type="text" name="high_school" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះវិទ្យាល័យ' : 'High school name' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២០. ខេត្ត / រាជធានីរបស់វិទ្យាល័យ' : '20. High School Province / City' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៧. ខេត្ត / រាជធានីរបស់វិទ្យាល័យ' : '17. High School Province / City' %> *</label>
               <input type="text" name="high_school_province" placeholder="<%= currentLang === 'km' ? 'ខេត្ត ឬ រាជធានី' : 'Province or City' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២១. មណ្ឌលប្រឡង' : '21. Exam Center' %></label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៨. មណ្ឌលប្រឡង' : '18. Exam Center' %></label>
             <input type="text" name="exam_center" placeholder="<%= currentLang === 'km' ? 'មណ្ឌលប្រឡង' : 'Exam center' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
           </div>
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
-        <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-          <div class="w-8 h-8 bg-cyan-100 dark:bg-cyan-900/40 rounded-lg flex items-center justify-center">
-            <i class="bi bi-journal-text text-cyan-600 dark:text-cyan-400 text-sm"></i>
-          </div>
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ប្រវត្តិការសិក្សា' : 'Study History' %></span>
-        </div>
-        <div class="p-6 space-y-4">
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមបំពេញប្រវត្តិការសិក្សាតាមលំដាប់លំដោយ ពីបឋមសិក្សាដល់សាកលវិទ្យាល័យ។' : 'Fill in your study history in order, from primary school to university.' %></p>
-          <% [{ key: 'primary', kh: '១. បឋមសិក្សា', en: '1. Primary School' },
-              { key: 'lower', kh: '២. អនុវិទ្យាល័យ', en: '2. Lower Secondary School' },
-              { key: 'upper', kh: '៣. វិទ្យាល័យ', en: '3. Upper Secondary School' },
-              { key: 'university', kh: '៤. សាកលវិទ្យាល័យ', en: '4. University' }].forEach(function(row) { %>
-          <div class="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
-            <p class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-2"><%= currentLang === 'km' ? row.kh : row.en %></p>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'ឆ្នាំចូលនិងបញ្ចប់' : 'Years (start - end)' %></label>
-                <input type="text" name="study_<%= row.key %>_years" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ ២០១២ - ២០១៨' : 'e.g. 2012 - 2018' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'ថ្នាក់ទី' : 'Class' %></label>
-                <input type="text" name="study_<%= row.key %>_class" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ ៩' : 'e.g. 9' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'ឈ្មោះសាលា' : 'School Name' %></label>
-                <input type="text" name="study_<%= row.key %>_school" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះសាលា' : 'School name' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"><%= currentLang === 'km' ? 'កម្រិតសញ្ញាបត្រ / និទ្ទេស' : 'Diploma / Grade' %></label>
-                <input type="text" name="study_<%= row.key %>_diploma" placeholder="<%= currentLang === 'km' ? 'កម្រិតសញ្ញាបត្រ ឬ និទ្ទេស' : 'Diploma or grade' %>" value="" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              </div>
-            </div>
-          </div>
-          <% }); %>
-        </div>
-      </div>
 
       <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-6">
         <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
@@ -503,11 +347,11 @@
           </div>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន' : 'III. Enrollment Information' %></span>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-5">
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមបញ្ជាក់កម្រិតសិក្សា មុខជំនាញ និងពេលសិក្សាដែលចង់ជ្រើសរើស។' : 'Specify the education level, major, and study schedule you want to choose.' %></p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២២. កម្រិតសិក្សា' : '22. Education Level to Enroll' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៩. កម្រិតសិក្សា' : '19. Education Level to Enroll' %> *</label>
               <select name="education_level_enroll" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសកម្រិតសិក្សា' : 'Select education level' %></option>
                 <option value="bachelor"><%= currentLang === 'km' ? 'បរិញ្ញាបត្រ' : 'Bachelor\'s Degree' %></option>
@@ -515,7 +359,7 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២៣. មុខជំនាញដែលចង់សិក្សា' : '23. Major to Study' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២០. មុខជំនាញដែលចង់សិក្សា' : '20. Major to Study' %> *</label>
               <select name="major_choice" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសមុខជំនាញ' : 'Select major' %></option>
                 <%
@@ -557,7 +401,7 @@
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២៤. ពេលសិក្សា' : '24. Study Schedule' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២១. ពេលសិក្សា' : '21. Study Schedule' %> *</label>
               <select name="study_schedule" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសពេលសិក្សា' : 'Select study schedule' %></option>
                 <option value="mon_fri"><%= currentLang === 'km' ? 'ចន្ទ - សុក្រ' : 'Monday - Friday' %></option>
@@ -565,7 +409,7 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២៥. វេនសិក្សា' : '25. Study Shift' %> *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២២. វេនសិក្សា' : '22. Study Shift' %> *</label>
               <select name="study_shift" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសវេនសិក្សា' : 'Select study shift' %></option>
                 <option value="morning"><%= currentLang === 'km' ? 'ព្រឹក' : 'Morning' %></option>
@@ -582,9 +426,9 @@
           <div class="w-8 h-8 bg-rose-100 dark:bg-rose-900/40 rounded-lg flex items-center justify-center">
             <i class="bi bi-file-earmark-check text-rose-600 dark:text-rose-400 text-sm"></i>
           </div>
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ឯកសារភ្ជាប់' : 'Attached Documents' %></span>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'IV. ឯកសារភ្ជាប់' : 'IV. Attached Documents' %></span>
         </div>
-        <div class="p-6 space-y-3">
+        <div class="p-6 space-y-5">
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សូមពិនិត្យ និងត្រៀមឯកសារតាមតម្រូវការរបស់សាកលវិទ្យាល័យជាតិមានជ័យ។' : 'Please check and prepare the required documents for NMU.' %></p>
           <div class="space-y-3">
 
@@ -643,15 +487,11 @@
           </div>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'V. កិច្ចសន្យា និងការធានាទទួលខុសត្រូវ' : 'V. Agreement & Responsibility' %></span>
         </div>
-        <div class="p-6 space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២៧. ព័ត៌មានបន្ថែម / សេចក្តីបញ្ជាក់របស់បេក្ខជន' : '27. Additional Information / Candidate Statement' %></label>
-            <textarea name="additional_info" rows="3" placeholder="<%= currentLang === 'km' ? 'ប្រសិនបើមានព័ត៌មានចាំបាច់ផ្សេងទៀត សូមបញ្ជាក់នៅទីនេះ។' : 'If there is any other necessary information, please specify here.' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"></textarea>
-          </div>
+        <div class="p-6 space-y-5">
           <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
             <label class="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" name="confirmation" value="1" required class="mt-0.5 w-4 h-4 text-blue-600 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500">
-              <span class="text-sm text-blue-800 dark:text-blue-300 font-medium"><%= currentLang === 'km' ? '២៨. ខ្ញុំសូមបញ្ជាក់ថា ព័ត៌មានដែលខ្ញុំបានបំពេញខាងលើគឺត្រឹមត្រូវ ហើយខ្ញុំទទួលខុសត្រូវចំពោះព័ត៌មានដែលបានផ្តល់។' : '28. I confirm that the information provided above is correct and I take full responsibility for the information given.' %></span>
+              <span class="text-sm text-blue-800 dark:text-blue-300 font-medium"><%= currentLang === 'km' ? '២៣. ខ្ញុំសូមបញ្ជាក់ថា ព័ត៌មានដែលខ្ញុំបានបំពេញខាងលើគឺត្រឹមត្រូវ ហើយខ្ញុំទទួលខុសត្រូវចំពោះព័ត៌មានដែលបានផ្តល់។' : '23. I confirm that the information provided above is correct and I take full responsibility for the information given.' %></span>
             </label>
           </div>
         </div>
@@ -675,9 +515,9 @@
         <div class="w-8 h-8 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex items-center justify-center">
           <i class="bi bi-clock-history text-amber-600 dark:text-amber-400 text-sm"></i>
         </div>
-        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ប្រវត្តិនៃការទូទាត់' : 'Payment History' %></span>
+        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'VI. ប្រវត្តិនៃការទូទាត់' : 'VI. Payment History' %></span>
       </div>
-      <div class="p-6">
+      <div class="p-6 space-y-4">
         <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
           <%= currentLang === 'km' ? 'សរុបប្រាក់ដែលបានផ្ទៀងផ្ទាត់៖ ' : 'Total Verified: ' %>
           <span class="font-bold text-emerald-600 dark:text-emerald-400"><%= Math.round(Number(payments.filter(p => p.status === 'verified').reduce((s, p) => s + Number(p.amount), 0)) / 4000).toLocaleString() %>$</span>

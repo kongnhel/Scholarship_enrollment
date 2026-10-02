@@ -208,18 +208,20 @@
       border: 1px solid #e5e7eb;
     }
 
-    /* Strict A4 Dimensions (210mm x 297mm) */
-    .a4-page {
-      width: 210mm;
-      height: 297mm;
-      min-height: 297mm;
-      max-height: 297mm;
-      padding: 12mm 15mm 12mm 15mm;
-      margin: 0 auto 25px auto;
-      background: #ffffff;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      box-sizing: border-box;
-      position: relative;
+/* Strict A4 Dimensions (210mm x 297mm) */
+      .a4-page {
+        width: 210mm;
+        /* Matches the scholarship print: one page tall, but ALLOWED to grow beyond it.
+           This template previously set min-height AND max-height to 297mm, which silently
+           clipped everything past the first page -- with seven sections, a study-history
+           table and two signature blocks that was a live risk of losing the signature
+           block off the printed page. */
+        padding: 10mm 15mm;
+        margin: 20px auto;
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        position: relative;
       overflow: hidden;
     }
 
@@ -484,7 +486,7 @@
 
       <!-- Section I -->
       <div class="space-y-2 mt-1">
-        <h2 class="font-moul text-[13.5px]">I. ព័ត៌មាននិស្សិត</h2>
+        <h4 class="font-moul text-[11.5px] mb-1">I. ព័ត៌មាននិស្សិត</h4>
 
         <div class="flex items-baseline pl-3">
           <span class="whitespace-nowrap">១.គោត្តនាម-នាម៖</span>
@@ -534,7 +536,7 @@
 
       <!-- Section II -->
       <div class="space-y-2 mt-3">
-        <h2 class="font-moul text-[13.5px]">II. ព័ត៌មានអំពីគ្រឹះស្ថានចំណេះដឹងទូទៅ</h2>
+        <h4 class="font-moul text-[11.5px] mb-1">II. ព័ត៌មានអំពីគ្រឹះស្ថានចំណេះដឹងទូទៅ</h4>
         <div class="flex items-baseline pl-3">
           <span class="whitespace-nowrap">លេខសញ្ញាបត្រ ឬវិញ្ញាបនបត្របណ្ដោះអាសន្នមធ្យមសិក្សាទុតិយភូមិ៖</span>
           <span class="dotted-line-fill mx-1"></span>
@@ -551,7 +553,7 @@
 
       <!-- Section III -->
       <div class="space-y-2 mt-3">
-        <h2 class="font-moul text-[13.5px]">III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន</h2>
+        <h4 class="font-moul text-[11.5px] mb-1">III. ព័ត៌មាននៃការចុះឈ្មោះចូលរៀន</h4>
         <div class="flex items-baseline pl-3">
           <span class="whitespace-nowrap">១. កម្រិតបណ្តុះបណ្តាល៖</span>
           <span class="dotted-line w-32 text-center font-semibold"><%= levelText %></span>
@@ -583,7 +585,7 @@
 
       <!-- Section IV -->
       <div class="space-y-2 mt-3">
-        <h2 class="font-moul text-[13.5px]">IV. ព័ត៌មានឪពុកម្តាយ ឬអាណាព្យាបាល</h2>
+        <h4 class="font-moul text-[11.5px] mb-1">IV. ព័ត៌មានឪពុកម្តាយ ឬអាណាព្យាបាល</h4>
 
         <div class="flex items-baseline pl-3">
           <span class="whitespace-nowrap">១. ឪពុកឈ្មោះ៖</span>
@@ -622,7 +624,7 @@
 
       <!-- Section V -->
       <div class="space-y-2 mt-3">
-        <h2 class="font-moul text-[13.5px]">V. ព័ត៌មានបងប្អូនបង្កើត <span class="font-battambang font-normal text-xs">(សូមដាក់ឈ្មោះបងខាងលើគេ និងប្អូនដាក់បន្តបន្ទាប់)</span></h2>
+        <h4 class="font-moul text-[11.5px] mb-1">V. ព័ត៌មានបងប្អូនបង្កើត <span class="font-battambang font-normal text-xs">(សូមដាក់ឈ្មោះបងខាងលើគេ និងប្អូនដាក់បន្តបន្ទាប់)</span></h4>
 
         <% siblingRows.forEach(function(sib, sIdx) { %>
         <div class="flex items-baseline pl-3">
@@ -640,7 +642,7 @@
 
       <!-- Section VI Table -->
       <div class="mt-3">
-        <h2 class="font-moul text-[13.5px] mb-1">VI. ប្រវត្តិការសិក្សា</h2>
+        <h4 class="font-moul text-[11.5px] mb-1">VI. ប្រវត្តិការសិក្សា</h4>
         <table class="form-table">
           <thead>
             <tr>
@@ -692,7 +694,7 @@
     <div>
       <!-- Section VII -->
       <div class="mt-2 space-y-4">
-        <h2 class="font-moul text-[14px]">VII. កិច្ចសន្យានិងការធានាខុសត្រូវរបស់សាមីខ្លួន</h2>
+        <h4 class="font-moul text-[11.5px] mb-1">VII. កិច្ចសន្យានិងការធានាខុសត្រូវរបស់សាមីខ្លួន</h4>
 
         <div class="space-y-4 pt-2">
           <div class="dotted-line w-full h-5"></div>
