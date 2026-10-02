@@ -15,6 +15,21 @@
   // self-paying student with no application still has to supply them, so the lock is
   // conditional rather than permanent - otherwise they would face locked empty fields.
   var lockShared = typeof hasApprovedScholarship !== 'undefined' && hasApprovedScholarship;
+  // Values the application already supplied, resolved in the route from the real column
+  // names. A field is locked only when a value actually came back: locking an empty field
+  // would strip `required` and post nothing at all.
+  var sharedValues = (typeof sharedValues !== 'undefined' && sharedValues) ? sharedValues : {};
+  var hasShared = function (key) { return lockShared && !!(sharedValues[key]); };
+  var sv = function (key) { return sharedValues[key] || ''; };
+  var isSelected = function (key, val) { return sharedValues[key] === val ? 'selected' : ''; };
+  // <input type="date"> only accepts yyyy-mm-dd, so this cannot use formatDateOnly
+  // (dd/mm/yyyy) and it cannot use toISOString() either -- that shifts a local-midnight
+  // DATE back a day under UTC, which is how 2004-03-09 rendered as 2004-03-08.
+  var dateInputValue = function (v) {
+    var dp = cambodiaDateParts(v);
+    if (!dp) return '';
+    return dp.year + '-' + String(dp.month).padStart(2, '0') + '-' + String(dp.day).padStart(2, '0');
+  };
   // Funding tiles this student may pick. Defaults to self-pay only, so a missing local can
   // never widen what is offered.
   var allowedFunding = (typeof allowedFunding !== 'undefined' && allowedFunding && allowedFunding.length)
@@ -222,30 +237,30 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១. គោត្តនាម និងនាម - ជាអក្សរខ្មែរ' : '1. Full Name in Khmer' %> *</label>
-              <input type="text" name="khmer_name" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ សុខ ដារ៉ា' : 'e.g. SOK Dara' %>" value="<%= (application && application.khmer_last_name) ? (application.khmer_first_name + ' ' + application.khmer_last_name) : (userData ? userData.khmer_name : '') %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="khmer_name" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ សុខ ដារ៉ា' : 'e.g. SOK Dara' %>" value="<%= sv('khmer_name') || (userData ? userData.khmer_name : '') %>" <%= hasShared('khmer_name') ? 'readonly' : '' %><%= hasShared('khmer_name') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('khmer_name') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២. Full Name in English / Latin' : '2. Full Name in English / Latin' %> *</label>
-              <input type="text" name="english_name" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ SOK DARA' : 'e.g. SOK DARA' %>" value="<%= (application && application.english_first_name) ? (application.english_first_name + ' ' + application.english_last_name) : (userData ? userData.english_name : '') %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="english_name" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ SOK DARA' : 'e.g. SOK DARA' %>" value="<%= sv('english_name') || (userData ? userData.english_name : '') %>" <%= hasShared('english_name') ? 'readonly' : '' %><%= hasShared('english_name') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('english_name') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៣. ភេទ' : '3. Gender' %> *</label>
-              <select name="gender" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <select name="gender" <%= hasShared('gender') ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសភេទ' : 'Select gender' %></option>
-                <option value="male" <%= (application && application.gender === 'male') ? 'selected' : '' %>><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></option>
-                <option value="female" <%= (application && application.gender === 'female') ? 'selected' : '' %>><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></option>
+                <option value="male" <%= isSelected('gender', 'male') %>><%= currentLang === 'km' ? 'ប្រុស' : 'Male' %></option>
+                <option value="female" <%= isSelected('gender', 'female') %>><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៤. ថ្ងៃ ខែ ឆ្នាំកំណើត' : '4. Date of Birth' %> *</label>
-              <input type="date" name="date_of_birth" value="<%= (application && application.date_of_birth) ? new Date(application.date_of_birth).toISOString().split('T')[0] : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="date" name="date_of_birth" value="<%= dateInputValue(sharedValues.date_of_birth) %>" <%= hasShared('date_of_birth') ? 'readonly' : '' %><%= hasShared('date_of_birth') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('date_of_birth') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៥. ទីកន្លែងកំណើត' : '5. Place of Birth' %> *</label>
-            <input type="text" name="place_of_birth" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ជាក់ ភូមិ ឃុំ/សង្កាត់ ស្រុក/ក្រុង និងខេត្ត/រាជធានី' : 'Village, Commune, District, Province' %>" value="<%= (application && application.place_of_birth) ? application.place_of_birth : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+            <input type="text" name="place_of_birth" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ជាក់ ភូមិ ឃុំ/សង្កាត់ ស្រុក/ក្រុង និងខេត្ត/រាជធានី' : 'Village, Commune, District, Province' %>" value="<%= sv('place_of_birth') %>" <%= hasShared('place_of_birth') ? 'readonly' : '' %><%= hasShared('place_of_birth') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('place_of_birth') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
           </div>
 
           <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
@@ -253,19 +268,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៦. ភូមិ' : '6. Village' %> *</label>
-                <input type="text" name="village" placeholder="<%= currentLang === 'km' ? 'ភូមិ' : 'Village' %>" value="<%= (application && application.village) ? application.village : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+                <input type="text" name="village" placeholder="<%= currentLang === 'km' ? 'ភូមិ' : 'Village' %>" value="<%= sv('current_address') %>" <%= hasShared('current_address') ? 'readonly' : '' %><%= hasShared('current_address') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('current_address') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៧. ឃុំ / សង្កាត់' : '7. Commune / Sangkat' %> *</label>
-                <input type="text" name="commune" placeholder="<%= currentLang === 'km' ? 'ឃុំ ឬ សង្កាត់' : 'Commune or Sangkat' %>" value="<%= (application && application.commune) ? application.commune : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+                <input type="text" name="commune" placeholder="<%= currentLang === 'km' ? 'ឃុំ ឬ សង្កាត់' : 'Commune or Sangkat' %>" value="<%= sv('commune') %>" <%= hasShared('commune') ? 'readonly' : '' %><%= hasShared('commune') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('commune') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៨. ស្រុក / ក្រុង / ខណ្ឌ' : '8. District / City / Khan' %> *</label>
-                <input type="text" name="district" placeholder="<%= currentLang === 'km' ? 'ស្រុក ក្រុង ឬ ខណ្ឌ' : 'District, City, or Khan' %>" value="<%= (application && application.district) ? application.district : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+                <input type="text" name="district" placeholder="<%= currentLang === 'km' ? 'ស្រុក ក្រុង ឬ ខណ្ឌ' : 'District, City, or Khan' %>" value="<%= sv('district') %>" <%= hasShared('district') ? 'readonly' : '' %><%= hasShared('district') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('district') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៩. ខេត្ត / រាជធានី' : '9. Province / City' %> *</label>
-                <input type="text" name="province" placeholder="<%= currentLang === 'km' ? 'ខេត្ត ឬ រាជធានី' : 'Province or City' %>" value="<%= (application && application.province) ? application.province : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+                <input type="text" name="province" placeholder="<%= currentLang === 'km' ? 'ខេត្ត ឬ រាជធានី' : 'Province or City' %>" value="<%= sv('province') %>" <%= hasShared('province') ? 'readonly' : '' %><%= hasShared('province') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('province') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
               </div>
             </div>
           </div>
@@ -276,26 +291,26 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១០. ឈ្មោះឪពុក' : '10. Father\'s Name' %> *</label>
-              <input type="text" name="father_name" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញរបស់ឪពុក' : 'Father\'s full name' %>" value="<%= (application && application.parent_name && application.parent_relationship === 'father') ? application.parent_name : '' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="father_name" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញរបស់ឪពុក' : 'Father\'s full name' %>" value="<%= sv('father_name') %>" <%= hasShared('father_name') ? 'readonly' : '' %><%= hasShared('father_name') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('father_name') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១១. ឈ្មោះម្តាយ' : '11. Mother\'s Name' %> *</label>
-              <input type="text" name="mother_name" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញរបស់ម្តាយ' : 'Mother\'s full name' %>" value="" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="mother_name" value="<%= sv('mother_name') %>" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះពេញរបស់ម្តាយ' : 'Mother\'s full name' %>" value="" <%= hasShared('mother_name') ? 'readonly' : '' %><%= hasShared('mother_name') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('mother_name') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១២. មុខរបរសព្វថ្ងៃរបស់បេក្ខជន' : '12. Current Occupation' %></label>
-              <input type="text" name="occupation" placeholder="<%= currentLang === 'km' ? 'មុខរបរបច្ចុប្បន្ន' : 'Current occupation' %>" value="" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="occupation" value="<%= sv('occupation') %>" placeholder="<%= currentLang === 'km' ? 'មុខរបរបច្ចុប្បន្ន' : 'Current occupation' %>" value="" <%= hasShared('occupation') ? 'readonly' : '' %><%= hasShared('occupation') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('occupation') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៣. កម្រិតវប្បធម៌' : '13. Education Level' %></label>
-              <select name="education_level" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <select name="education_level" <%= hasShared('education_level') ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសកម្រិតវប្បធម៌' : 'Select education level' %></option>
-                <option value="primary"><%= currentLang === 'km' ? 'កម្រិតបឋមសិក្សា៖ ថ្នាក់ទី ១ ដល់ទី ៦' : 'Primary Education: Grades 1-6' %></option>
-                <option value="lower_secondary"><%= currentLang === 'km' ? 'កម្រិតមធ្យមសិក្សាបឋមភូមិ (ឌីប្លូម)៖ ថ្នាក់ទី ៧ ដល់ទី ៩' : 'Lower Secondary (Diploma): Grades 7-9' %></option>
-                <option value="upper_secondary"><%= currentLang === 'km' ? 'កម្រិតមធ្យមសិក្សាទុតិយភូមិ (បាក់ឌុប)៖ ថ្នាក់ទី ១០ ដល់ទី ១២' : 'Upper Secondary (Baccalaureate): Grades 10-12' %></option>
-                <option value="higher_education"><%= currentLang === 'km' ? 'កម្រិតឧត្តមសិក្សា៖ កម្រិតបរិញ្ញាបត្ររង បរិញ្ញាបត្រ អនុបណ្ឌិត' : 'Higher Education: Associate, Bachelor\'s, Master\'s' %></option>
+                <option value="primary" <%= isSelected('education_level', 'primary') %>><%= currentLang === 'km' ? 'កម្រិតបឋមសិក្សា៖ ថ្នាក់ទី ១ ដល់ទី ៦' : 'Primary Education: Grades 1-6' %></option>
+                <option value="lower_secondary" <%= isSelected('education_level', 'lower_secondary') %>><%= currentLang === 'km' ? 'កម្រិតមធ្យមសិក្សាបឋមភូមិ (ឌីប្លូម)៖ ថ្នាក់ទី ៧ ដល់ទី ៩' : 'Lower Secondary (Diploma): Grades 7-9' %></option>
+                <option value="upper_secondary" <%= isSelected('education_level', 'upper_secondary') %>><%= currentLang === 'km' ? 'កម្រិតមធ្យមសិក្សាទុតិយភូមិ (បាក់ឌុប)៖ ថ្នាក់ទី ១០ ដល់ទី ១២' : 'Upper Secondary (Baccalaureate): Grades 10-12' %></option>
+                <option value="higher_education" <%= isSelected('education_level', 'higher_education') %>><%= currentLang === 'km' ? 'កម្រិតឧត្តមសិក្សា៖ កម្រិតបរិញ្ញាបត្ររង បរិញ្ញាបត្រ អនុបណ្ឌិត' : 'Higher Education: Associate, Bachelor\'s, Master\'s' %></option>
               </select>
             </div>
           </div>
@@ -315,26 +330,26 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៤. សម័យប្រឡងមធ្យមសិក្សាទុតិយភូមិ' : '14. High School Exam Session' %> *</label>
-              <input type="text" name="exam_session" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ សម័យប្រឡង ២០២៦' : 'e.g. Exam Session 2026' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="exam_session" value="<%= sv('exam_session') %>" placeholder="<%= currentLang === 'km' ? 'ឧទាហរណ៍៖ សម័យប្រឡង ២០២៦' : 'e.g. Exam Session 2026' %>" <%= hasShared('exam_session') ? 'readonly' : '' %><%= hasShared('exam_session') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('exam_session') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៥. និទ្ទេសរួម' : '15. Overall Grade' %> *</label>
-              <input type="text" name="overall_grade" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលនិទ្ទេសតាមលទ្ធផលប្រឡង' : 'Enter grade based on exam results' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="overall_grade" value="<%= sv('overall_grade') %>" placeholder="<%= currentLang === 'km' ? 'សូមបញ្ចូលនិទ្ទេសតាមលទ្ធផលប្រឡង' : 'Enter grade based on exam results' %>" <%= hasShared('overall_grade') ? 'readonly' : '' %><%= hasShared('overall_grade') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('overall_grade') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៦. មកពីវិទ្យាល័យ' : '16. High School Name' %> *</label>
-              <input type="text" name="high_school" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះវិទ្យាល័យ' : 'High school name' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="high_school" value="<%= sv('high_school') %>" placeholder="<%= currentLang === 'km' ? 'ឈ្មោះវិទ្យាល័យ' : 'High school name' %>" <%= hasShared('high_school') ? 'readonly' : '' %><%= hasShared('high_school') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('high_school') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៧. ខេត្ត / រាជធានីរបស់វិទ្យាល័យ' : '17. High School Province / City' %> *</label>
-              <input type="text" name="high_school_province" placeholder="<%= currentLang === 'km' ? 'ខេត្ត ឬ រាជធានី' : 'Province or City' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <input type="text" name="high_school_province" value="<%= sv('high_school_province') %>" placeholder="<%= currentLang === 'km' ? 'ខេត្ត ឬ រាជធានី' : 'Province or City' %>" <%= hasShared('high_school_province') ? 'readonly' : '' %><%= hasShared('high_school_province') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('high_school_province') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៨. មណ្ឌលប្រឡង' : '18. Exam Center' %></label>
-            <input type="text" name="exam_center" placeholder="<%= currentLang === 'km' ? 'មណ្ឌលប្រឡង' : 'Exam center' %>" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+            <input type="text" name="exam_center" value="<%= sv('exam_center') %>" placeholder="<%= currentLang === 'km' ? 'មណ្ឌលប្រឡង' : 'Exam center' %>" <%= hasShared('exam_center') ? 'readonly' : '' %><%= hasShared('exam_center') ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= hasShared('exam_center') ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
           </div>
         </div>
       </div>
@@ -352,10 +367,10 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១៩. កម្រិតសិក្សា' : '19. Education Level to Enroll' %> *</label>
-              <select name="education_level_enroll" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <select name="education_level_enroll" <%= hasShared('study_level') ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសកម្រិតសិក្សា' : 'Select education level' %></option>
-                <option value="bachelor"><%= currentLang === 'km' ? 'បរិញ្ញាបត្រ' : 'Bachelor\'s Degree' %></option>
-                <option value="associate"><%= currentLang === 'km' ? 'បរិញ្ញាបត្ររង' : 'Associate Degree' %></option>
+                <option value="bachelor" <%= isSelected('study_level', 'bachelor') %>><%= currentLang === 'km' ? 'បរិញ្ញាបត្រ' : 'Bachelor\'s Degree' %></option>
+                <option value="associate" <%= isSelected('study_level', 'associate') %>><%= currentLang === 'km' ? 'បរិញ្ញាបត្ររង' : 'Associate Degree' %></option>
               </select>
             </div>
             <div>
@@ -402,19 +417,19 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២១. ពេលសិក្សា' : '21. Study Schedule' %> *</label>
-              <select name="study_schedule" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <select name="study_schedule" <%= hasShared('study_schedule') ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសពេលសិក្សា' : 'Select study schedule' %></option>
-                <option value="mon_fri"><%= currentLang === 'km' ? 'ចន្ទ - សុក្រ' : 'Monday - Friday' %></option>
-                <option value="sat_sun"><%= currentLang === 'km' ? 'សៅរ៍ - អាទិត្យ' : 'Saturday - Sunday' %></option>
+                <option value="mon_fri" <%= isSelected('study_schedule', 'mon_fri') %>><%= currentLang === 'km' ? 'ចន្ទ - សុក្រ' : 'Monday - Friday' %></option>
+                <option value="sat_sun" <%= isSelected('study_schedule', 'sat_sun') %>><%= currentLang === 'km' ? 'សៅរ៍ - អាទិត្យ' : 'Saturday - Sunday' %></option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '២២. វេនសិក្សា' : '22. Study Shift' %> *</label>
-              <select name="study_shift" <%= lockShared ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
+              <select name="study_shift" <%= hasShared('study_shift') ? 'readonly' : '' %><%= lockShared ? '' : 'required' %> class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none <%= lockShared ? 'bg-gray-50 dark:bg-gray-900/40' : 'bg-white dark:bg-gray-800' %> text-gray-900 dark:text-gray-100">
                 <option value=""><%= currentLang === 'km' ? 'ជ្រើសរើសវេនសិក្សា' : 'Select study shift' %></option>
-                <option value="morning"><%= currentLang === 'km' ? 'ព្រឹក' : 'Morning' %></option>
-                <option value="afternoon"><%= currentLang === 'km' ? 'រសៀល' : 'Afternoon' %></option>
-                <option value="weekend"><%= currentLang === 'km' ? 'សៅរ៍អាទិត្យ' : 'Weekend' %></option>
+                <option value="morning" <%= isSelected('study_shift', 'morning') %>><%= currentLang === 'km' ? 'ព្រឹក' : 'Morning' %></option>
+                <option value="afternoon" <%= isSelected('study_shift', 'afternoon') %>><%= currentLang === 'km' ? 'រសៀល' : 'Afternoon' %></option>
+                <option value="weekend" <%= isSelected('study_shift', 'weekend') %>><%= currentLang === 'km' ? 'សៅរ៍អាទិត្យ' : 'Weekend' %></option>
               </select>
             </div>
           </div>

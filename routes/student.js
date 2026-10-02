@@ -875,10 +875,29 @@ function applicationValue(app, key) {
   if (!spec) return null;
   const v = app[spec[0]];
   if (spec[2]) {
-    // combined name: join whatever parts exist
-    return [v, app[spec[1]]].filter(Boolean).join(' ').trim() || null;
+    // Combined name: join the given-name column (spec[0]) with the surname column
+    // (spec[2]). Joining spec[0] with spec[1] instead repeated the given name, because
+    // spec[1] is the *enrollment* column and for the two name fields that is also the
+    // first name -- "Bopha Bopha".
+    return [v, app[spec[2]]].filter(Boolean).join(' ').trim() || null;
   }
   return v === undefined || v === null || v === '' ? null : v;
+}
+
+// The scholarship application captures the previous education level as free text
+// ("Associate / Bachelor"), while the enrollment form offers a fixed list of four options.
+// Both the pre-fill and the submit-time override go through this so the value shown on the
+// form, the value written to the row, and the value printed later are the same string.
+// Returns null when the text is not recognisable, so the caller can leave the field to the
+// student instead of locking an empty control.
+function mapEducationLevel(text) {
+  const t = String(text || '').toLowerCase();
+  if (!t) return null;
+  if (/កុម្ភ|primary/.test(t)) return 'primary';
+  if (/ទុតិយភូមិ|ឌីប្លូម|lower/.test(t)) return 'lower_secondary';
+  if (/វិទ្យាល|បាក់|upper/.test(t)) return 'upper_secondary';
+  if (/ឧត្តមសិក្សា|សាកលវិទ្យាល័យ|higher|university/.test(t)) return 'higher_education';
+  return null;
 }
 
 const FUNDING_COVERAGE = {
@@ -1088,11 +1107,41 @@ router.get('/enroll', enrollmentPaused, async (req, res) => {
       'SELECT p.*, ft.name_kh as fee_name_kh, ft.name_en as fee_name_en FROM payments p JOIN fee_types ft ON p.fee_type_id = ft.id WHERE p.user_id = ? ORDER BY p.created_at DESC',
       [userId]
     );
-    res.render('student/enroll', {
+    // Values to pre-fill the enrollment form from the student's own application.
+  //
+  // The view used to read `application.<column>` inline, but several of those column names
+  // do not exist on `applications`: the form asked for place_of_birth/village/commune/
+  // district/province where the table stores birth_place/address_village/
+  // address_commune/address_district/address_province, and father_name was gated on a
+  // parent_relationship column that was never created. Every one of those silently
+  // evaluated to an empty string, so students were asked to retype data they had already
+  // submitted. Resolving the mapping once here -- from the same table the POST validates
+  // against -- fixes the whole class of mismatch at its source.
+  const prefillSource = application || approvedApplication;
+  const sharedValues = {};
+  if (prefillSource) {
+    Object.keys(SHARED_APPLICATION_FIELDS).forEach(key => {
+      sharedValues[key] = applicationValue(prefillSource, key);
+    });
+    // The application stores the school province as an id; the form wants the name.
+    sharedValues.high_school_province = prefillSource.province_name_kh || null;
+    // applications records ONE parent in parent_name, while the form asks for father and
+    // mother separately, and nothing in the table says which is which. Prefer mother_name
+    // when it is known, and only fall back to parent_name for the father.
+    sharedValues.father_name = prefillSource.parent_name || null;
+    sharedValues.mother_name = prefillSource.mother_name || null;
+    // The application captures the previous education level as free text while the
+    // enrollment form offers a fixed list, so map it onto an option where the text is
+    // recognisable and leave it null otherwise (the field then stays unlocked).
+    sharedValues.education_level = mapEducationLevel(sharedValues.education_level);
+  }
+
+  res.render('student/enroll', {
       title: 'Enrollment',
       userData: users[0] || null,
       application,
       approvedApplication,
+      sharedValues,
       entitledFunding,
       hasApprovedScholarship: !!approvedApplication,
       allowedFunding,
@@ -1238,7 +1287,9 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       province = applyFromApplication('province', province);
       mother_name = applyFromApplication('mother_name', mother_name);
       occupation = applyFromApplication('occupation', occupation);
-      education_level = applyFromApplication('education_level', education_level);
+      // Stored as the mapped option, not the application's raw text, so the stored value is one
+      // the form can actually show and the print can reproduce.
+      education_level = mapEducationLevel(applyFromApplication('education_level', education_level)) || education_level;
       exam_session = applyFromApplication('exam_session', exam_session);
       exam_center = applyFromApplication('exam_center', exam_center);
       study_shift = applyFromApplication('study_shift', study_shift);
