@@ -7,6 +7,7 @@ const { uploadMultiple, upload, uploadEnrollmentDocs } = require('../middleware/
 const { sendEmail } = require('../config/mailer');
 const { uploadToImageKit } = require('../utils/imagekit');
 const { escapeHtml, saveSession, flashAndRedirect, safeBackPath, dashboardPathFor } = require('../utils/helpers');
+const { notifyAdmins } = require('../utils/notifications');
 const fs = require('fs');
 const path = require('path');
 
@@ -468,10 +469,19 @@ router.post('/application', uploadMultiple, async (req, res) => {
       ]
     );
 
-    await req.db.query(
-      'INSERT INTO application_status_history (application_id, new_status, changed_by, notes) VALUES (?, ?, ?, ?)',
-      [result.insertId, 'pending', req.session.user.id, 'Application submitted']
-    );
+await req.db.query(
+    'INSERT INTO application_status_history (application_id, new_status, changed_by, notes) VALUES (?, ?, ?, ?)',
+    [result.insertId, 'pending', req.session.user.id, 'Application submitted']
+  );
+
+  // A new application used to sit unnoticed until an admin happened to open the list.
+  await notifyAdmins(req.db, {
+    title: 'New application submitted',
+    message: (khmer_last_name ? khmer_last_name + ' ' : '') + (khmer_first_name || '') +
+      ' submitted a new scholarship application.',
+    type: 'new_application',
+    detail: 'Application #' + result.insertId + ' is waiting for review.'
+  });
 
     await sendEmail(
       req.session.user.email,
@@ -639,10 +649,18 @@ router.post('/application/:id/correct', uploadMultiple, async (req, res) => {
       ]
     );
 
-    await req.db.query(
-      'INSERT INTO application_status_history (application_id, new_status, changed_by, notes) VALUES (?, ?, ?, ?)',
-      [req.params.id, 'pending', req.session.user.id, correction_notes || 'Application corrected and resubmitted']
-    );
+await req.db.query(
+    'INSERT INTO application_status_history (application_id, new_status, changed_by, notes) VALUES (?, ?, ?, ?)',
+    [req.params.id, 'pending', req.session.user.id, correction_notes || 'Application corrected and resubmitted']
+  );
+
+  // A correction puts the row back into the review queue, so staff need to know it moved.
+  await notifyAdmins(req.db, {
+    title: 'Application corrected and resubmitted',
+    message: 'A student corrected and resubmitted application #' + req.params.id + '.',
+    type: 'application_corrected',
+    detail: (correction_notes || '').trim() || null
+  });
 
     req.flash('success', t(req, 'ពាក្យសុំត្រូវបានកែប្រែនិងដាក់ឡើងវិញដោយជោគជ័យ', 'Application corrected and resubmitted successfully'));
     res.redirect('/student/application/' + req.params.id);
@@ -1322,7 +1340,7 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       ? { first: approvedApplication.english_first_name, last: approvedApplication.english_last_name }
       : splitName(english_name);
 
-    await req.db.query(
+    const [enrollmentInsert] = await req.db.query(
       `INSERT INTO enrollments (
         user_id, academic_year, semester, status, application_id,
         khmer_first_name, khmer_last_name, english_first_name, english_last_name,
@@ -1355,6 +1373,15 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
       ]
     );
       req.flash('success', t(req, 'ការចុះឈ្មោះត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Enrollment submitted successfully'));
+
+  // The enrollment sits at status 'pending' until staff act on it, so tell them it exists.
+  await notifyAdmins(req.db, {
+    title: 'New enrollment submitted',
+    message: (khmerNameParts.last ? khmerNameParts.last + ' ' : '') + (khmerNameParts.first || '') +
+      ' submitted an enrollment for ' + (majorName || 'an undeclared major') + '.',
+    type: 'new_enrollment',
+    detail: 'Enrollment #' + enrollmentInsert.insertId + ' is waiting for approval.'
+  });
       res.redirect('/student/enroll-success');
   } catch (error) {
     console.error('Enroll error:', error);
@@ -1534,8 +1561,17 @@ router.post('/payments', enrollmentPaused, (req, res) => {
                 'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
                 [enrollment_id, userId, feeTypeId, amount, 'bank_transfer', transaction_ref || payPeriod, proofPath]
             );
-            await flashAndRedirect(req, res, 'success',
-                t(req, 'ការទូទាត់ត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Payment submitted successfully'), '/student/payments');
+// A pending payment has to be matched against the QR slip by hand, so staff need it.
+  await notifyAdmins(req.db, {
+    title: 'New payment submitted',
+    message: 'A student submitted a payment of ' + Math.round(amount).toLocaleString('en-US') +
+      '៛ against enrollment #' + enrollment_id + '.',
+    type: 'new_payment',
+    detail: (transaction_ref || '').trim() || null
+  });
+
+  await flashAndRedirect(req, res, 'success',
+    t(req, 'ការទូទាត់ត្រូវបានដាក់ស្នើដោយជោគជ័យ', 'Payment submitted successfully'), '/student/payments');
         } catch (error) {
             console.error('Payment submit error:', error);
             await flashAndRedirect(req, res, 'error', t(req, 'មានកំហុស', 'An error occurred'), '/student/payments');

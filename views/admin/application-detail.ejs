@@ -403,7 +403,7 @@
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                     <i class="bi bi-person"></i> <%= h.changed_by_name || 'System' %>
                     <span class="mx-1">·</span>
-                    <i class="bi bi-clock"></i> <%= h.created_at ? new Date(h.created_at).toLocaleString() : '—' %>
+                    <i class="bi bi-clock"></i> <%= h.created_at ? formatDateTime(h.created_at) : '—' %>
                   </p>
                 </div>
               <% }); %>

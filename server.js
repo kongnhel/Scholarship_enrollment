@@ -11,7 +11,7 @@ const rateLimit = require('express-rate-limit');
 const MySQLStoreFactory = require('express-mysql-session');
 const db = require('./config/database');
 const { ENROLLMENT_ENABLED } = require('./config/features');
-const { safeBackPath, dashboardPathFor } = require('./utils/helpers');
+const { safeBackPath, dashboardPathFor, formatDateTime, formatDateOnly, cambodiaDateParts } = require('./utils/helpers');
 
 // A single listener for the whole process. There used to be two identical
 // unhandledRejection handlers, so every rejection was logged twice.
@@ -127,9 +127,13 @@ app.use('/student', generalLimiter);
 app.use('/admin', generalLimiter);
 app.use('/committee', generalLimiter);
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   req.db = db;
   res.locals.user = req.session.user || null;
+  // Timestamps come out of MySQL as naive UTC; these render them in Cambodia time.
+  res.locals.formatDateTime = formatDateTime;
+  res.locals.formatDateOnly = formatDateOnly;
+  res.locals.cambodiaDateParts = cambodiaDateParts;
   res.locals.messages = {
     success: req.flash('success'),
     error: req.flash('error'),
@@ -153,6 +157,20 @@ app.use((req, res, next) => {
   // commented out, so nothing was reachable. Driving the UI from the same flag keeps the
   // two from drifting apart again.
   res.locals.enrollmentEnabled = ENROLLMENT_ENABLED;
+  // Unread count for the sidebar bell. A failure here must not take the page down, and an
+  // anonymous visitor has no inbox, so both cases fall through to 0.
+  res.locals.unreadNotifications = 0;
+  if (req.session.user && req.session.user.id) {
+    try {
+      const [unread] = await db.query(
+        'SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND is_read = 0',
+        [req.session.user.id]
+      );
+      res.locals.unreadNotifications = unread && unread[0] ? Number(unread[0].n) || 0 : 0;
+    } catch (err) {
+      console.error('Unread notification count failed:', err.message);
+    }
+  }
   next();
 });
 

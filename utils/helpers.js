@@ -1,24 +1,70 @@
 const { v4: uuidv4 } = require('uuid');
 
-const formatDate = (date) => {
-  if (!date) return '';
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
+// Cambodia has no daylight saving, so this is a fixed +07:00 year round.
+const APP_TIMEZONE = 'Asia/Phnom_Penh';
+
+// MySQL runs with a UTC system timezone, so every DATETIME it hands back is a naive UTC
+// wall-clock string like "2026-10-02 03:02:19". Passing that to `new Date(str)` makes
+// JavaScript treat it as *local* time, which renders each timestamp exactly 7 hours
+// behind Cambodia. Mark the naive value as UTC first, then format it for Cambodia.
+const parseDbDate = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (value instanceof Date) return isNaN(value) ? null : value;
+  if (typeof value === 'number') {
+    const d = new Date(value);
+    return isNaN(d) ? null : d;
+  }
+
+  const s = String(value).trim();
+  // Already carries an explicit offset (e.g. an ISO string from a JS Date): trust it.
+  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(s)) {
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+
+  const isoLike = s.replace(' ', 'T');
+  const naive = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)?$/.test(isoLike);
+  const d = new Date(naive ? isoLike + 'Z' : isoLike);
+  return isNaN(d) ? null : d;
 };
 
-const formatDateShort = (date) => {
-  if (!date) return '';
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
+// "02/10/2026 10:02"
+const formatDateTime = (value) => {
+  const d = parseDbDate(value);
+  if (!d) return '';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: APP_TIMEZONE,
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  }).format(d).replace(/,/, '');
 };
+
+// "02/10/2026"
+const formatDateOnly = (value) => {
+  const d = parseDbDate(value);
+  if (!d) return '';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: APP_TIMEZONE,
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  }).format(d);
+};
+
+// Calendar parts of an instant, as seen on a clock in Cambodia. Used by the printable
+// letters, which build Khmer date strings day-by-day rather than through a formatter.
+const cambodiaDateParts = (value) => {
+  const d = parseDbDate(value);
+  if (!d) return null;
+  const p = new Intl.DateTimeFormat('en-GB', {
+    timeZone: APP_TIMEZONE,
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  }).formatToParts(d);
+  const get = (t) => (p.find(x => x.type === t) || {}).value;
+  return { day: Number(get('day')), month: Number(get('month')), year: Number(get('year')) };
+};
+
+const formatDate = (value) => formatDateTime(value);
+
+const formatDateShort = (value) => formatDateOnly(value);
 
 const getStatusColor = (status) => {
   const colors = {
@@ -177,6 +223,11 @@ const flashAndRedirect = async (req, res, type, message, location) => {
 };
 
 module.exports = {
+  APP_TIMEZONE,
+  parseDbDate,
+  cambodiaDateParts,
+  formatDateTime,
+  formatDateOnly,
   formatDate,
   formatDateShort,
   getStatusColor,

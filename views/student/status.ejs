@@ -68,7 +68,7 @@
 <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= show(currentLang === 'km' ? app.major_name_kh : (app.major_name_en || app.major_name_kh)) %></td>
                 <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= show(currentLang === 'km' ? app.category_name_kh : (app.category_name_en || app.category_name_kh)) %></td>
                 <td class="px-5 py-4"><span class="px-2 py-1 text-xs font-bold rounded-full <%= app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : app.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : app.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>"><%= statusLabel(app.status) %></span></td>
-                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : show(null) %></td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? formatDateOnly(app.submitted_at) : show(null) %></td>
                 <td class="px-5 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs"><%= show(app.admin_remark || app.correction_notes) %></td>
               <td class="px-5 py-4"><a href="/student/application/<%= app.id %>" class="text-green-600 dark:text-green-400 hover:text-green-700 text-sm font-medium"><%= currentLang === 'km' ? 'មើល' : 'View' %> →</a></td>
             </tr>

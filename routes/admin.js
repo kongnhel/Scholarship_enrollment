@@ -1168,6 +1168,66 @@ router.get('/reports/print', async (req, res) => {
     }
 });
 
+// Staff notifications. These are the inbox for the four student-side events that used to
+// arrive silently: a new application, a corrected resubmission, an enrollment and a
+// payment. Scoped to the signed-in admin, so one admin marking a row read never affects
+// the other.
+router.get('/notifications', async (req, res) => {
+    try {
+        if (flashValidationErrors(req, res, '/admin/dashboard')) return;
+        const [notifications] = await req.db.query(
+            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC',
+            [req.session.user.id]
+        );
+        res.render('admin/notifications', { title: 'Notifications', notifications });
+    } catch (err) {
+        console.error('Admin notifications error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/dashboard');
+    }
+});
+
+router.post('/notifications/read-all', async (req, res) => {
+    try {
+        const [result] = await req.db.query(
+            'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
+            [req.session.user.id]
+        );
+        // Report the real count so a repeat click says "nothing left" instead of claiming
+        // work it did not do.
+        const marked = result && result.affectedRows ? result.affectedRows : 0;
+        if (marked > 0) {
+            return await flashAndRedirect(req, res, 'success', t(req,
+                'សារជូនដំណឹងចំនួន ' + marked + ' ត្រូវបានសម្គាល់ថាបានអាន។',
+                marked + ' notification' + (marked === 1 ? '' : 's') + ' marked as read.'), '/admin/notifications');
+        }
+        return await flashAndRedirect(req, res, 'warning', t(req,
+            'មិនមានសារជូនដំណឹងដែលមិនទាន់អាន។',
+            'No unread notifications.'), '/admin/notifications');
+    } catch (err) {
+        console.error('Admin mark all read error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/dashboard');
+    }
+});
+
+router.post('/notification/:id/read', async (req, res) => {
+    try {
+        // The user_id predicate is what stops one admin marking another admin's row read.
+        await req.db.query(
+            'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
+            [req.params.id, req.session.user.id]
+        );
+        return await flashAndRedirect(req, res, 'success', t(req,
+            'សារជូនដំណឹងត្រូវបានសម្គាល់ថាបានអាន។',
+            'Notification marked as read.'), '/admin/notifications');
+    } catch (err) {
+        console.error('Admin mark notification read error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/dashboard');
+    }
+});
+
 router.post('/notifications/send',
     remarkRule('message', 'Message'),
     async (req, res) => {

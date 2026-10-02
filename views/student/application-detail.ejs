@@ -14,7 +14,7 @@
               <%= application.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : application.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : application.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : application.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'UNDER REVIEW') : application.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECTION') : String(application.status || '').replace('_', ' ').toUpperCase() %>
             </span>
             <% if (application.submitted_at) { %>
-              <span class="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400"><i class="bi bi-calendar-check"></i><%= new Date(application.submitted_at).toLocaleDateString() %></span>
+              <span class="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400"><i class="bi bi-calendar-check"></i><%= formatDateOnly(application.submitted_at) %></span>
             <% } %>
           </div>
           <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានពាក្យសុំ' : 'Application Detail' %></h1>
@@ -65,7 +65,7 @@
                 <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><i class="bi bi-calendar text-green-600 dark:text-green-400 text-sm"></i></div>
                 <div>
                   <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %></p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.date_of_birth ? new Date(application.date_of_birth).toLocaleDateString() : '—' %></p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= application.date_of_birth ? formatDateOnly(application.date_of_birth) : '—' %></p>
                 </div>
               </div>
             </div>
@@ -262,7 +262,7 @@
               </div>
               <div class="-mt-0.5 min-w-0">
                 <p class="text-sm font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ដាក់ស្នើ' : 'Submitted' %></p>
-                <p class="text-xs text-gray-400 dark:text-gray-500"><%= application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : (application.created_at ? new Date(application.created_at).toLocaleDateString() : '—') %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= application.submitted_at ? formatDateOnly(application.submitted_at) : (application.created_at ? formatDateOnly(application.created_at) : '—') %></p>
               </div>
             </div>
             <div class="relative flex gap-3 pb-4">
@@ -287,7 +287,7 @@
           </div>
           <div class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
             <span><%= currentLang === 'km' ? 'ធ្វើបច្ចុប្បន្នភាព' : 'Last updated' %></span>
-            <span class="font-medium text-gray-500 dark:text-gray-400"><%= application.updated_at ? new Date(application.updated_at).toLocaleDateString() : '—' %></span>
+            <span class="font-medium text-gray-500 dark:text-gray-400"><%= application.updated_at ? formatDateOnly(application.updated_at) : '—' %></span>
           </div>
         </div>
       </div>
@@ -356,7 +356,7 @@
                   <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full <%= dotColor.split(' ')[0] %>"></div>
                   <p class="text-sm font-bold <%= dotColor.split(' ')[2] %>"><%= item.new_status.replace('_', ' ').toUpperCase() %></p>
                   <p class="text-xs text-gray-500 dark:text-gray-400"><%= item.notes || (currentLang === 'km' ? 'គ្មានកំណត់សម្គាល់' : 'No notes') %></p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><i class="bi bi-person"></i> <%= item.changed_by_name || 'System' %> <span class="mx-1">·</span> <i class="bi bi-clock"></i> <%= item.created_at ? new Date(item.created_at).toLocaleString() : '—' %></p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><i class="bi bi-person"></i> <%= item.changed_by_name || 'System' %> <span class="mx-1">·</span> <i class="bi bi-clock"></i> <%= item.created_at ? formatDateTime(item.created_at) : '—' %></p>
                 </div>
               <% }); %>
             </div>

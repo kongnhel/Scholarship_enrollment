@@ -62,7 +62,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div><span class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឆ្នាំសិក្សា' : 'Year' %>:</span> <span class="font-medium text-gray-900 dark:text-gray-100"><%= enrollment.academic_year %></span></div>
           <div><span class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឆ្នាំទី' : 'Semester' %>:</span> <span class="font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ឆ្នាំទី ' + enrollment.semester : 'Year ' + enrollment.semester %></span></div>
-          <div><span class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %>:</span> <span class="font-medium text-gray-900 dark:text-gray-100"><%= new Date(enrollment.enrolled_at).toLocaleDateString() %></span></div>
+          <div><span class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %>:</span> <span class="font-medium text-gray-900 dark:text-gray-100"><%= formatDateOnly(enrollment.enrolled_at) %></span></div>
           <% if (enrollment.khmer_first_name) { %>
             <div><span class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %>:</span> <span class="font-medium text-gray-900 dark:text-gray-100"><%= enrollment.khmer_first_name %> <%= enrollment.khmer_last_name %></span></div>
           <% } %>
@@ -389,12 +389,12 @@
                   };
                 %>
                 <% if (suggestedMajors.length) { %>
-                  <optgroup label="<%= currentLang === 'km' ? 'ជំនាញដែលអ្នកបានស្នើសុំម្តងម្នា' : 'Majors you requested before' %>"><%- suggestedMajors.map(optionHtml).join('') %></optgroup>
+                  <optgroup label="<%= currentLang === 'km' ? 'ជំនាញដែលអ្នកបានស្នើសុំអ.រ' : 'Majors you requested before' %>"><%- suggestedMajors.map(optionHtml).join('') %></optgroup>
                 <% } %>
                 <%# An empty optgroup still renders its label in some browsers, so the
                     "all majors" group is only emitted when something is left in it. %>
                 <% if (otherMajors.length) { %>
-                  <optgroup label="<%= currentLang === 'km' ? 'ម្រើបសេនងទាំងអស់' : 'All majors' %>"><%- otherMajors.map(optionHtml).join('') %></optgroup>
+                  <optgroup label="<%= currentLang === 'km' ? 'ជម្រើសផ្សេង' : 'All majors' %>"><%- otherMajors.map(optionHtml).join('') %></optgroup>
                 <% } %>
               </select>
             </div>

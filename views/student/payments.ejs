@@ -196,7 +196,7 @@
                       <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span><%= currentLang === 'km' ? 'រង់ចាំ' : 'Pending' %></span>
                     <% } %>
                   </td>
-                  <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400"><%= new Date(p.created_at).toLocaleDateString() %></td>
+                  <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400"><%= formatDateOnly(p.created_at) %></td>
                   <td class="px-4 py-3">
                     <% if (p.proof_path) { %>
                       <a href="<%= p.proof_path %>" target="_blank" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all inline-flex items-center gap-1"><i class="bi bi-eye"></i><%= currentLang === 'km' ? 'មើល' : 'View' %></a>

@@ -16,7 +16,7 @@
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Khmer Name' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.khmer_first_name %> <%= application.khmer_last_name %></span></p>
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'English Name' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.english_first_name %> <%= application.english_last_name %></span></p>
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (currentLang === 'km' ? 'ស្រី' : 'Female') %></span></p>
-            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.date_of_birth ? new Date(application.date_of_birth).toLocaleDateString() : 'N/A' %></span></p>
+            <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'ថ្ងៃខែឆ្នាំកំណើត' : 'Date of Birth' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.date_of_birth ? formatDateOnly(application.date_of_birth) : 'N/A' %></span></p>
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'សញ្ជាតិ' : 'Nationality' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.nationality || 'N/A' %></span></p>
             <p class="text-sm"><span class="font-semibold text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? 'អាស័យដ្ឋានបច្ចុប្បន្ន' : 'Current Address' %>:</span> <span class="text-gray-600 dark:text-gray-300"><%= application.current_address || 'N/A' %></span></p>
           </div>
@@ -91,7 +91,7 @@
               <div class="border-l-4 border-blue-500 pl-3">
                 <p class="text-sm font-bold text-gray-800"><%= h.new_status.replace('_', ' ').toUpperCase() %></p>
                 <p class="text-xs text-gray-400 dark:text-gray-500"><%= h.notes || 'N/A' %></p>
-                <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ដោយ' : 'By' %>: <%= h.changed_by_name || 'System' %> | <%= h.created_at ? new Date(h.created_at).toLocaleString() : 'N/A' %></p>
+                <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ដោយ' : 'By' %>: <%= h.changed_by_name || 'System' %> | <%= h.created_at ? formatDateTime(h.created_at) : 'N/A' %></p>
               </div>
             <% }); %>
           </div>

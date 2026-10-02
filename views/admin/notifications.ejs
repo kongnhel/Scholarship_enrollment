@@ -12,17 +12,14 @@
             <%= notifications.length %> <%= currentLang === 'km' ? 'សារ' : 'notifications' %>
           </div>
           <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានជូនដំណឹងពីប្រព័ន្ធអាហារូបករណ៍' : 'Updates from the scholarship system' %></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ព័ត៌មានជូនដំណឹងពីសិស្ស' : 'Updates from students' %></p>
         </div>
       </div>
       <% var hasUnread = notifications.some(function(n) { return !n.is_read; }); %>
       <div class="flex gap-2 self-start sm:self-auto">
-        <%# The control keeps its exact footprint whether or not anything is unread.
-            It used to be wrapped in `if (hasUnread)`, so the whole form vanished on
-            success and the Back link below slid into the gap - which is how a second
-            click ended up on /student/dashboard instead of re-marking anything.
-            The label is deliberately unchanged so the width cannot shift either. %>
-        <form action="/student/notifications/read-all" method="POST" class="flex-shrink-0">
+        <%# The control keeps its exact footprint whether or not anything is unread, so the
+            form cannot vanish on success and slide the Back link into the gap. %>
+        <form action="/admin/notifications/read-all" method="POST" class="flex-shrink-0">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" <%= hasUnread ? '' : 'disabled' %>
                   class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5 <%= hasUnread ? '' : 'opacity-50 cursor-not-allowed hover:from-green-600 hover:to-emerald-500' %>"
@@ -32,50 +29,80 @@
             <i class="bi bi-check-all"></i><%= currentLang === 'km' ? 'អានទាំងអស់' : 'Mark All Read' %>
           </button>
         </form>
-        <a href="/student/dashboard" class="flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
+        <a href="/admin/dashboard" class="flex-shrink-0 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-arrow-left"></i><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
       </div>
+    </div>
   </div>
 
   <%
-    // Localized copy per notification type. The stored `message` is English-only
-    // (it is what the admin wrote / what other consumers read), so the template supplies
-    // the language and `detail` supplies the committee's own remark, reason or notes.
+    // The four student-side events, plus the status events this inbox can also receive.
+    // Copy is supplied here rather than stored, so the same row reads correctly in both
+    // languages; `detail` carries the id, remark or reference the admin needs to act.
     var notifTranslations = {
+      new_application: {
+        title: { km: 'ពាក្យសុំថ្មី', en: 'New Application' },
+        msg: { km: 'សិស្សបានដាក់ពាក្យសុំអាហារូបករណ៍ថ្មី។', en: 'A student submitted a new scholarship application.' },
+        icon: 'bi-file-earmark-plus-fill text-blue-500'
+      },
+      application_corrected: {
+        title: { km: 'ពាក្យសុំត្រូវបានកែប្រែ', en: 'Application Corrected' },
+        msg: { km: 'សិស្សបានកែប្រែនិងដាក់ពាក្យសុំឡើងវិញ។', en: 'A student corrected and resubmitted an application.' },
+        icon: 'bi-pencil-fill text-orange-500'
+      },
+      new_enrollment: {
+        title: { km: 'ការចុះឈ្មោះថ្មី', en: 'New Enrollment' },
+        msg: { km: 'សិស្សបានដាក់ពាក្យសុំចុះឈ្មោះ។', en: 'A student submitted an enrollment.' },
+        icon: 'bi-person-check-fill text-indigo-500'
+      },
+      new_payment: {
+        title: { km: 'ការទូទាត់ថ្មី', en: 'New Payment' },
+        msg: { km: 'សិស្សបានដាក់ពាក្យសុំបង់ប្រាក់។ សូមផ្ទៀងផ្ទាត់។', en: 'A student submitted a payment for verification.' },
+        icon: 'bi-cash-coin text-emerald-500'
+      },
       status: {
         title: { km: 'ស្ថានភាពពាក្យសុំ', en: 'Application Status' },
-        msg: { km: 'ពាក្យសុំរបស់អ្នកកំពុងស្ថិតក្រោមការពិនិត្យ។', en: 'Your application is now under review.' }
+        msg: { km: 'ពាក្យសុំមួយបានផ្លាស់ប្តូរស្ថានភាព។', en: 'An application changed status.' },
+        icon: 'bi-info-circle-fill text-blue-500'
       },
       approval: {
         title: { km: 'ពាក្យសុំបានអនុម័ត', en: 'Application Approved' },
-        msg: { km: 'សូមអបអរសាទរ! ពាក្យសុំអាហារូបករណ៍របស់អ្នកត្រូវបានអនុម័ត។', en: 'Congratulations! Your scholarship application has been approved.' }
+        msg: { km: 'ពាក្យសុំមួយត្រូវបានអនុម័ត។', en: 'An application was approved.' },
+        icon: 'bi-check-circle-fill text-green-500'
       },
       rejection: {
         title: { km: 'ពាក្យសុំត្រូវបានបដិសេធ', en: 'Application Rejected' },
-        msg: { km: 'ពាក្យសុំអាហារូបករណ៍របស់អ្នកត្រូវបានបដិសេធ។', en: 'Your scholarship application has been rejected.' }
+        msg: { km: 'ពាក្យសុំមួយត្រូវបានបដិសេធ។', en: 'An application was rejected.' },
+        icon: 'bi-x-circle-fill text-red-500'
       },
       correction: {
         title: { km: 'ស្នើកែប្រែពាក្យសុំ', en: 'Correction Requested' },
-        msg: { km: 'ពាក្យសុំរបស់អ្នកត្រូវការកែប្រែ។ សូមពិនិត្យមើលកំណត់សម្គាល់និងដាក់សុំឡើងវិញ។', en: 'Your application requires corrections. Please review the notes and resubmit.' }
+        msg: { km: 'ពាក្យសុំមួយត្រូវការកែប្រែ។', en: 'An application requires corrections.' },
+        icon: 'bi-pencil-fill text-orange-500'
       },
       exam_notification: {
         title: { km: 'ព័ត៌មានប្រឡង', en: 'Exam Schedule Notification' },
-        msg: { km: 'មានព័ត៌មានប្រឡងថ្មី។ សូមពិនិត្យមើលព័ត៌មានលម្អិត។', en: 'New exam schedule information. Please check the details.' }
+        msg: { km: 'មានព័ត៌មានប្រឡងថ្មី។', en: 'New exam schedule information.' },
+        icon: 'bi-calendar-event-fill text-purple-500'
       },
       enrollment_approval: {
-        title: { km: 'ព័ត៌មានចុះឈ្មោះត្រូវបានអនុម័ត', en: 'Enrollment Approved' },
-        msg: { km: 'ព័ត៌មានចុះឈ្មោះរបស់អ្នកត្រូវបានអនុម័ត។', en: 'Your enrollment has been approved.' }
+        title: { km: 'ចុះឈ្មោះត្រូវបានអនុម័ត', en: 'Enrollment Approved' },
+        msg: { km: 'ការចុះឈ្មោះមួយត្រូវបានអនុម័ត។', en: 'An enrollment was approved.' },
+        icon: 'bi-check-circle-fill text-green-500'
       },
       enrollment_rejection: {
-        title: { km: 'ព័ត៌មានចុះឈ្មោះត្រូវបានបដិសេធ', en: 'Enrollment Rejected' },
-        msg: { km: 'ព័ត៌មានចុះឈ្មោះរបស់អ្នកត្រូវបានបដិសេធ។', en: 'Your enrollment has been rejected.' }
+        title: { km: 'ចុះឈ្មោះត្រូវបានបដិសេធ', en: 'Enrollment Rejected' },
+        msg: { km: 'ការចុះឈ្មោះមួយត្រូវបានបដិសេធ។', en: 'An enrollment was rejected.' },
+        icon: 'bi-x-circle-fill text-red-500'
       },
       payment_verified: {
         title: { km: 'ការទូទាត់ត្រូវបានផ្ទៀងផ្ទាត់', en: 'Payment Verified' },
-        msg: { km: 'ការទូទាត់របស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់។', en: 'Your payment has been verified.' }
+        msg: { km: 'ការទូទាត់មួយត្រូវបានផ្ទៀងផ្ទាត់។', en: 'A payment was verified.' },
+        icon: 'bi-check-circle-fill text-green-500'
       },
       payment_rejected: {
         title: { km: 'ការទូទាត់ត្រូវបានបដិសេធ', en: 'Payment Rejected' },
-        msg: { km: 'ការទូទាត់របស់អ្នកត្រូវបានបដិសេធ។', en: 'Your payment has been rejected.' }
+        msg: { km: 'ការទូទាត់មួយត្រូវបានបដិសេធ។', en: 'A payment was rejected.' },
+        icon: 'bi-x-circle-fill text-red-500'
       }
     };
   %>
@@ -87,16 +114,15 @@
           <i class="bi bi-bell-slash text-3xl text-gray-300 dark:text-gray-600"></i>
         </div>
         <p class="text-gray-500 dark:text-gray-400 font-medium"><%= currentLang === 'km' ? 'គ្មានសារជូនដំណឹង' : 'No notifications' %></p>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'សារជូនដំណឹងនឹងបង្ហាញនៅទីនេះនៅពេលមានព័ត៌មានថ្មី។' : 'Notifications will appear here when there are updates.' %></p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'សារជូនដំណឹងនឹងបង្ហាញនៅទីនេះពេលសិស្សដាក់ពាក្យសុំ។' : 'Notifications will appear here when a student submits an application, enrollment or payment.' %></p>
       </div>
     <% } else { %>
       <% notifications.forEach(function(n) { %>
         <% var t = notifTranslations[n.type] || null; %>
         <% var titleText = t ? (currentLang === 'km' ? t.title.km : t.title.en) : n.title; %>
         <%
-          // Language comes from the type template; the committee's own remark, reason or
-          // notes come from `detail`. Falling back to the stored English message keeps
-          // rows written before this split still readable.
+          // Language comes from the type template; `detail` supplies the id, remark or
+          // transaction reference. Rows written before this split keep the stored English.
           var storedMsg = (n.message || '').trim();
           var detailText = (n.detail || '').trim();
           var fallback = t ? (currentLang === 'km' ? t.msg.km : t.msg.en) : '';
@@ -106,7 +132,7 @@
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
-                <% var typeIcon = ['approval','enrollment_approval','payment_verified'].indexOf(n.type) !== -1 ? 'bi-check-circle-fill text-green-500' : ['rejection','enrollment_rejection','payment_rejected'].indexOf(n.type) !== -1 ? 'bi-x-circle-fill text-red-500' : n.type === 'correction' ? 'bi-pencil-fill text-orange-500' : n.type === 'exam_notification' ? 'bi-calendar-event-fill text-purple-500' : 'bi-info-circle-fill text-blue-500'; %>
+                <% var typeIcon = t ? t.icon : 'bi-info-circle-fill text-blue-500'; %>
                 <i class="bi <%= typeIcon %> text-sm"></i>
                 <span class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= titleText %></span>
                 <% if (!n.is_read) { %>
@@ -117,7 +143,7 @@
               <% if (detailText) { %>
                 <div class="ml-6 mt-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-3 py-2">
                   <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-                    <%= currentLang === 'km' ? 'ព័ត៌មានពីអ្នកគ្រប់គ្រងទី២' : 'From the committee' %>
+                    <%= currentLang === 'km' ? 'ព័ត៌មាន' : 'Details' %>
                   </p>
                   <p class="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap"><%= detailText %></p>
                 </div>
@@ -125,7 +151,7 @@
               <p class="text-xs text-gray-400 dark:text-gray-500 mt-2 ml-6"><i class="bi bi-clock mr-1"></i><%= formatDateTime(n.created_at) %></p>
             </div>
             <% if (!n.is_read) { %>
-              <form action="/student/notification/<%= n.id %>/read" method="POST">
+              <form action="/admin/notification/<%= n.id %>/read" method="POST" class="flex-shrink-0">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button type="submit" class="p-2 rounded-lg text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="<%= currentLang === 'km' ? 'អានរួច' : 'Mark read' %>"><i class="bi bi-check-circle"></i></button>
               </form>

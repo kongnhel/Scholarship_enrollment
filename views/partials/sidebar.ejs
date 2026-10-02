@@ -27,7 +27,10 @@
       </a>
       <a href="/student/notifications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Notifications' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-bell text-lg w-5 text-center"></i>
-        <span><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></span>
+        <span class="flex-1"><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></span>
+        <% if (unreadNotifications > 0) { %>
+          <span class="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center"><%= unreadNotifications > 99 ? '99+' : unreadNotifications %></span>
+        <% } %>
       </a>
 
       <% if (enrollmentEnabled) { %>
@@ -47,6 +50,16 @@
       <a href="/admin/applications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && (title === 'Applications' || title === 'Application Detail') ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-file-text text-lg w-5 text-center"></i>
         <span><%= currentLang === 'km' ? 'ពាក្យសុំ' : 'Applications' %></span>
+      </a>
+
+      <a href="/admin/notifications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Notifications' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-bell text-lg w-5 text-center"></i>
+        <span class="flex-1"><%= currentLang === 'km' ? 'សារជូនដំណឹង' : 'Notifications' %></span>
+        <%# unreadCount comes from the request-scoped query in server.js; a student action
+            that needs staff attention shows up here without opening the applications list. %>
+        <% if (unreadNotifications > 0) { %>
+          <span class="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center"><%= unreadNotifications > 99 ? '99+' : unreadNotifications %></span>
+        <% } %>
       </a>
 
       <div class="pt-3 pb-1 px-3">

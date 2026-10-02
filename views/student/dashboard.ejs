@@ -18,7 +18,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2 self-start sm:self-auto">
-        <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-xs font-medium text-gray-500 dark:text-gray-400"><i class="bi bi-calendar3"></i><%= new Date().toLocaleDateString() %></span>
+        <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-xs font-medium text-gray-500 dark:text-gray-400"><i class="bi bi-calendar3"></i><%= formatDateOnly(new Date()) %></span>
         <a href="/student/notifications" class="relative w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all" title="<%= currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' %>">
           <i class="bi bi-bell text-lg"></i>
           <% if (notificationsCount > 0) { %>
@@ -114,7 +114,7 @@
       : a.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECTION')
       : String(a.status || '').replace('_', ' ').toUpperCase();
     var s2done = (a.status === 'approved' || a.status === 'rejected');
-    var subDate = a.submitted_at ? new Date(a.submitted_at).toLocaleDateString() : '—';
+    var subDate = a.submitted_at ? formatDateOnly(a.submitted_at) : '—';
     var kmDigits = function (s) { return String(s).replace(/[0-9]/g, function (d) { return { '0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩' }[d]; }); };
     var optParts = String(a.scholarship_option || '').split('/');
     var optPct = optParts[0] || '';
@@ -230,7 +230,7 @@
           <p><strong><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %>:</strong> <%= enrollment.major_choice || 'N/A' %></p>
           <p><strong><%= currentLang === 'km' ? 'ឆ្នាំសិក្សា' : 'Academic Year' %>:</strong> <%= enrollment.academic_year %></p>
           <p><strong><%= currentLang === 'km' ? 'ឆ្នាំទី' : 'Year' %>:</strong> <%= currentLang === 'km' ? 'ឆ្នាំទី ' + enrollment.semester : 'Year ' + enrollment.semester %></p>
-          <p><strong><%= currentLang === 'km' ? 'ថ្ងៃចុះឈ្មោះ' : 'Enrolled' %>:</strong> <%= enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleDateString() : 'N/A' %></p>
+          <p><strong><%= currentLang === 'km' ? 'ថ្ងៃចុះឈ្មោះ' : 'Enrolled' %>:</strong> <%= enrollment.enrolled_at ? formatDateOnly(enrollment.enrolled_at) : 'N/A' %></p>
         </div>
       </div>
       <div class="flex gap-2">
@@ -270,7 +270,7 @@
             </div>
             <div>
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? p.fee_name_kh : p.fee_name_en %></p>
-              <p class="text-xs text-gray-400 dark:text-gray-500"><%= p.created_at ? new Date(p.created_at).toLocaleDateString() : '' %></p>
+              <p class="text-xs text-gray-400 dark:text-gray-500"><%= p.created_at ? formatDateOnly(p.created_at) : '' %></p>
             </div>
           </div>
           <div class="text-right">

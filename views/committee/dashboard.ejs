@@ -53,7 +53,7 @@
               <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= app.student_name || app.english_first_name + ' ' + app.english_last_name %></td>
               <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.major_name_kh : app.major_name_en %></td>
               <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? app.category_name_kh : app.category_name_en %></td>
-              <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : 'N/A' %></td>
+              <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= app.submitted_at ? formatDateOnly(app.submitted_at) : 'N/A' %></td>
             </tr>
           <% }); %>
         <% } else { %>

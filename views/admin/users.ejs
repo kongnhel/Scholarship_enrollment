@@ -113,7 +113,7 @@
                 <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
                   <div class="flex items-center gap-1.5">
                     <i class="bi bi-calendar3 text-xs"></i>
-                    <%= u.created_at ? new Date(u.created_at).toLocaleDateString() : '—' %>
+                    <%= u.created_at ? formatDateOnly(u.created_at) : '—' %>
                   </div>
                 </td>
                 <td class="px-5 py-4">

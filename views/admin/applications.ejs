@@ -202,7 +202,7 @@
               <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">
                 <div class="flex items-center gap-1.5">
                   <i class="bi bi-clock text-xs"></i>
-                  <%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString() : '—' %>
+                  <%= app.submitted_at ? formatDateOnly(app.submitted_at) : '—' %>
                 </div>
               </td>
               <td class="px-2 py-4 text-right">

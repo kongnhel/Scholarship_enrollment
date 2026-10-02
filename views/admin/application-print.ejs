@@ -22,18 +22,20 @@
 
   // submitted date parts (signature dates)
   var subDayKh = '', subMonthKh = '', subYearKh = '', subBuddPrefix = '', subBuddDigit = '', subDayNum = '', subYearSuffix = '';
+// submitted_at is a TIMESTAMP: MySQL hands back naive UTC, so the parts have to be read
+  // on a Cambodia clock or the signature date lands up to 7 hours early.
   if (a.submitted_at) {
-    var sd = new Date(a.submitted_at);
-    if (!isNaN(sd.getTime())) {
-      subDayKh = toKhmerDigits(sd.getDate());
-      subMonthKh = KHMER_MONTHS[sd.getMonth()] || '';
-      subYearKh = toKhmerDigits(sd.getFullYear());
-      var buddStr = String(sd.getFullYear() + 543);
-      subBuddPrefix = toKhmerDigits(buddStr.slice(0, -1));
-      subBuddDigit = toKhmerDigits(buddStr.slice(-1));
-      subDayNum = toKhmerDigits(sd.getDate());
-      subYearSuffix = toKhmerDigits(String(sd.getFullYear()).slice(-1));
-    }
+  var sdp = cambodiaDateParts(a.submitted_at);
+  if (sdp) {
+  subDayKh = toKhmerDigits(sdp.day);
+  subMonthKh = KHMER_MONTHS[sdp.month - 1] || '';
+  subYearKh = toKhmerDigits(sdp.year);
+  var buddStr = String(sdp.year + 543);
+  subBuddPrefix = toKhmerDigits(buddStr.slice(0, -1));
+  subBuddDigit = toKhmerDigits(buddStr.slice(-1));
+  subDayNum = toKhmerDigits(sdp.day);
+  subYearSuffix = toKhmerDigits(String(sdp.year).slice(-1));
+  }
   }
 
   var genderKh = a.gender === 'male' ? 'ប្រុស' : (a.gender === 'female' ? 'ស្រី' : '');
