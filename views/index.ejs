@@ -24,9 +24,9 @@
       <%= currentLang === 'km' ? 'ប្រព័ន្ធអនឡាញ ២០២៦' : 'Online System 2026' %>
     </div>
     <img src="/images/nmu-logo.jpg" alt="NMU" width="96" height="96" loading="eager" decoding="async" class="w-24 h-24 rounded-2xl mx-auto mb-6 ring-4 ring-white/30 shadow-lg object-cover">
-    <h1 class="text-3xl md:text-5xl font-extrabold mb-4 leading-tight tracking-tight"><%= currentLang === 'km' ? 'អាហារូបករណ៍តាមប្រព័ន្ធអនឡាញ' : 'Scholarship Online' %></h1>
+    <h1 class="text-3xl md:text-5xl font-extrabold mb-4 leading-tight tracking-tight"><%= currentLang === 'km' ? 'អាហារូបករណ៍ និងចុះឈ្មោះតាមប្រព័ន្ធអនឡាញ' : 'Scholarship & Enrollment Online' %></h1>
     <p class="text-white/90 text-lg md:text-xl font-semibold mb-2"><%= currentLang === 'km' ? 'សាកលវិទ្យាល័យជាតិមានជ័យ' : 'National Meanchey University' %></p>
-    <p class="text-green-100 text-sm md:text-base mb-9 max-w-xl mx-auto leading-relaxed"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍តាមអ៊ីនធឺណេតយ៉ាងងាយស្រួល។ ជ្រើសរើសកម្មវិធី កម្រិតអាហារូបករណ៍ និងបង្កើតពាក្យសុំតាមប្រព័ន្ធអនឡាញ។' : 'Apply for scholarships online easily. Choose your program and scholarship level, then submit your application from anywhere.' %></p>
+    <p class="text-green-100 text-sm md:text-base mb-9 max-w-xl mx-auto leading-relaxed"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍ ចុះឈ្មោះឆ្នាំសិក្សា និងបង់ថ្លៃសិក្សាតាមអ៊ីនធឺណេតយ៉ាងងាយស្រួល។ ជ្រើសរើសមុខជំនាញ កម្មវិធី និងឆ្នាំសិក្សា បន្ទាប់មកដាក់ពាក្យសុំ ចុះឈ្មោះ និងបង់ថ្លៃពីកន្លែងណាមួយ។' : 'Apply for a scholarship, enroll for the academic year and pay your tuition online. Choose your major, program and year, then apply, enroll and pay from anywhere.' %></p>
     <div class="flex flex-col sm:flex-row gap-3 justify-center">
       <a href="/auth/register" class="px-8 py-3.5 bg-white text-green-700 rounded-2xl font-bold hover:bg-green-50 transition-colors shadow-md inline-flex items-center justify-center gap-2"><i class="bi bi-pencil-square mr-1"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះឥឡូវនេះ' : 'Register Now' %></a>
       <a href="/auth/login" class="px-8 py-3.5 bg-white/15 text-white rounded-2xl font-bold hover:bg-white/25 transition-colors border border-white/30 inline-flex items-center justify-center gap-2"><i class="bi bi-box-arrow-in-right mr-1"></i><%= currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Login' %></a>
@@ -80,13 +80,13 @@
       <div class="absolute top-0 right-0 w-28 h-28 bg-green-50 dark:bg-green-900/20 rounded-bl-[4rem] -mr-8 -mt-8"></div>
       <div class="relative w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-2xl flex items-center justify-center mb-4"><i class="bi bi-file-earmark-check text-green-600 dark:text-green-400 text-xl"></i></div>
       <h3 class="relative font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ងាយស្រួលប្រើប្រាស់' : 'Easy to Use' %></h3>
-      <p class="relative text-gray-500 dark:text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍តាមអនឡាញពីកន្លែងណាមួយ។' : 'Apply for a scholarship online from anywhere.' %></p>
+      <p class="relative text-gray-500 dark:text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំ ចុះឈ្មោះ និងបង់ថ្លៃតាមអ៊ីនធឺណេតពីកន្លែងណាមួយ។' : 'Apply for a scholarship, enroll and pay online from anywhere.' %></p>
     </div>
     <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-3xl p-7 shadow-sm border border-gray-100 dark:border-gray-700">
       <div class="absolute top-0 right-0 w-28 h-28 bg-blue-50 dark:bg-blue-900/20 rounded-bl-[4rem] -mr-8 -mt-8"></div>
       <div class="relative w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-2xl flex items-center justify-center mb-4"><i class="bi bi-graph-up-arrow text-blue-600 dark:text-blue-400 text-xl"></i></div>
       <h3 class="relative font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'តាមដានពេលវេលាជាក់ស្តែង' : 'Real-time Tracking' %></h3>
-      <p class="relative text-gray-500 dark:text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'តាមដានស្ថានភាពពាក្យសុំរបស់អ្នក។' : 'Track your application status.' %></p>
+      <p class="relative text-gray-500 dark:text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'តាមដានស្ថានភាពពាក្យសុំ ការចុះឈ្មោះ និងការទូទាត់របស់អ្នក។' : 'Track your application, enrollment and payment status.' %></p>
     </div>
     <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-3xl p-7 shadow-sm border border-gray-100 dark:border-gray-700">
       <div class="absolute top-0 right-0 w-28 h-28 bg-purple-50 dark:bg-purple-900/20 rounded-bl-[4rem] -mr-8 -mt-8"></div>
@@ -124,9 +124,9 @@
   <div class="text-center mb-9">
     <span class="inline-block px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold uppercase tracking-wider mb-3"><%= currentLang === 'km' ? 'ជំហាន' : 'Steps' %></span>
     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'របៀបប្រើប្រាស់ប្រព័ន្ធ' : 'How It Works' %></h2>
-    <p class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ជំហានងាយៗដើម្បីដាក់ពាក្យសុំអាហារូបករណ៍' : 'Simple steps to apply for a scholarship' %></p>
+    <p class="text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ជំហានងាយៗដើម្បីដាក់ពាក្យសុំ ចុះឈ្មោះ និងបង់ថ្លៃ' : 'Simple steps to apply, enroll and pay' %></p>
   </div>
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
     <div class="text-center bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
       <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3 shadow-sm">1</div>
       <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Register' %></h4>
@@ -137,11 +137,16 @@
       <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យ' : 'Apply' %></h4>
       <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'ពាក្យសុំអាហារូបករណ៍' : 'Scholarship application' %></p>
     </div>
-    <div class="text-center bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
-      <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-3 shadow-sm">3</div>
-      <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'រង់ចាំលទ្ធផល' : 'Track' %></h4>
-      <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'តាមដានស្ថានភាពពាក្យសុំ' : 'Follow your status' %></p>
-    </div>
+  <div class="text-center bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
+   <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold mx-auto mb-3 relative">3<span class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 text-[10px] rounded-full flex items-center justify-center"><i class="bi bi-person-check"></i></span></div>
+   <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enroll & Pay' %></h4>
+   <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'ជ្រើសរើសមុខជំនាញ ឆ្នាំសិក្សា និងបង់ថ្លៃ' : 'Choose your major and year, then pay tuition' %></p>
+  </div>
+  <div class="text-center bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
+   <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold mx-auto mb-3 relative">4<span class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 text-[10px] rounded-full flex items-center justify-center"><i class="bi bi-hourglass-split"></i></span></div>
+   <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1"><%= currentLang === 'km' ? 'រង់ចាំលទ្ធផល' : 'Track' %></h4>
+   <p class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'តាមដានស្ថានភាពការចុះឈ្មោះ និងការទូទាត់' : 'Track your enrollment and payment' %></p>
+  </div>
   </div>
 </section>
 
@@ -207,7 +212,7 @@
       <div class="w-11 h-11 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"><i class="bi bi-award text-white"></i></div>
       <div>
         <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍' : 'Apply for Scholarship' %></h4>
-        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍តាមអនឡាញ' : 'Apply for scholarships online' %></p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំ ចុះឈ្មោះ និងបង់ថ្លៃតាមអ៊ីនធឺណេត' : 'Apply, enroll and pay online' %></p>
       </div>
     </div>
     <% if (enrollmentEnabled) { %>
@@ -230,7 +235,7 @@
       <div class="w-11 h-11 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"><i class="bi bi-bell text-white"></i></div>
       <div>
         <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ទទួលដំណឹង' : 'Get Notified' %></h4>
-        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទទួលដំណឹងពីស្ថានភាពពាក្យសុំ' : 'Updates on your application' %></p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទទួលដំណឹងពីស្ថានភាពពាក្យសុំ ការចុះឈ្មោះ និងការទូទាត់' : 'Updates on your application and enrollment' %></p>
       </div>
     </div>
   </div>
@@ -297,7 +302,7 @@
           <div class="w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</div>
           <div>
             <p class="font-medium text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ចុច "ចូល" ហើយចាប់ផ្តើមដាក់ពាក្យ' : 'Click "Login" and start' %></p>
-            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍' : 'Apply for a scholarship' %></p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំ ចុះឈ្មោះ និងបង់ថ្លៃ' : 'Apply, enroll and pay' %></p>
           </div>
         </div>
       </div>
