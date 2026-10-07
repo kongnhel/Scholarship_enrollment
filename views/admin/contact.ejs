@@ -12,7 +12,7 @@
             <%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Public details' %>
           </div>
           <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'បង្ហាញនៅបាតទំព័រគេចរបស់គេប' : 'Shown in the footer on every page' %></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'បង្ហាញនៅថ្នែកខាងក្រោមគេហទំព័' : 'Shown in the footer on every page' %></p>
         </div>
       </div>
       <a href="/" target="_blank" class="self-start sm:self-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-box-arrow-up-right"></i><%= currentLang === 'km' ? 'មើលផ្ទាល់' : 'Preview footer' %></a>
@@ -25,7 +25,7 @@
     <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
       <p class="text-sm text-gray-500 dark:text-gray-400">
         <%= currentLang === 'km'
-          ? 'ព័ត៌មានទាំងនេះបង្ហាញជាភាសាសាធារណៈសម្រាប់អ្នកទស្សនា ដោយមិនចាំបាច់ស្នើការសិទ្ធិពិសេតា។'
+          ? 'ព័ត៌មានទាំងនេះបង្ហាញនៅផ្នែកខាងក្រោមwebsite'
           : 'These are shown publicly to every visitor. No permission request is needed.' %>
       </p>
     </div>
@@ -36,9 +36,9 @@
         // hint cannot drift apart.
         var FIELDS = [
           { name: 'contact_website', icon: 'bi-globe', value: contact.website,
-            km: 'គេបភាព', en: 'Website',
+            km: 'គេហទំពរ', en: 'Website',
             kmPh: 'https://www.nmu.edu.kh/', enPh: 'https://www.nmu.edu.kh/',
-            kmHelp: 'បង្ហាញជាដូសគេបដោយរកបក។ ប្រើ https:// ដើម្បីសុវត្ថិភាព។', enHelp: 'Rendered as a link. Use https:// so visitors are not sent over plain HTTP.' },
+            kmHelp: 'បង្ហាញurlគេហទំពរ ប្រើ https:// ដើម្បីសុវត្ថិភាព។', enHelp: 'Rendered as a link. Use https:// so visitors are not sent over plain HTTP.' },
           { name: 'contact_email', icon: 'bi-envelope', value: contact.email,
             km: 'អ៊ីមែល', en: 'Email',
             kmPh: 'info@nmu.edu.kh', enPh: 'info@nmu.edu.kh',
@@ -50,7 +50,7 @@
           { name: 'contact_address', icon: 'bi-geo-alt', value: contact.address,
             km: 'អាសយដ្ឋាន', en: 'Address',
             kmPh: 'Meanchey, Cambodia', enPh: 'Meanchey, Cambodia',
-            kmHelp: 'បង្ហាញជាអាសយដ្ឋានប្រទេសស្រុក។', enHelp: 'Shown as plain postal text.' }
+            kmHelp: 'បង្ហាញជាអាសយដ្ឋាន', enHelp: 'Shown as plain postal text.' }
         ];
       %>
 
@@ -73,7 +73,7 @@
       <p class="text-xs text-gray-400 dark:text-500 bg-gray-50 dark:bg-gray-800/60 rounded-lg px-3 py-2">
         <i class="bi bi-info-circle mr-1"></i>
         <%= currentLang === 'km'
-          ? 'ទុកចង្សៀងទទេដើម្បីលាក់ព័ត៌មាននោះចេញពីបាតទំព័រ។'
+          ? 'ទុកឱ្យទទេដើម្បីលាក់ព័ត៌មាននោះចេញពីបាតទំព័រ។'
           : 'Leave a field blank to hide that line from the footer.' %>
       </p>
     </div>
