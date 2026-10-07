@@ -371,8 +371,8 @@ router.post('/applications/:id/under-review', async (req, res) => {
             );
             if (recipient) {
                 await conn.query(
-                    'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                    [recipient.id, 'Application Under Review', 'Your application is now under review.', 'status']
+                    'INSERT INTO notifications (user_id, title, message, type, link) VALUES (?, ?, ?, ?, ?)',
+                    [recipient.id, 'Application Under Review', 'Your application is now under review.', 'status', '/student/application/' + req.params.id]
                 );
             }
         });
@@ -435,8 +435,8 @@ router.post('/applications/:id/approve',
                     detailParts.push(examLines.join('\n'));
                 }
                 await conn.query(
-                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                    [recipient.id, 'Application Approved', 'Congratulations! Your application has been approved.', 'approval', detailParts.length ? detailParts.join('\n\n') : null]
+                    'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                    [recipient.id, 'Application Approved', 'Congratulations! Your application has been approved.', 'approval', detailParts.length ? detailParts.join('\n\n') : null, '/student/application/' + req.params.id]
                 );
             }
         });
@@ -496,8 +496,8 @@ router.post('/applications/:id/reject',
             );
             if (recipient) {
                 await conn.query(
-                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                    [recipient.id, 'Application Rejected', 'Your application has been rejected.', 'rejection', 'Reason: ' + reason]
+                    'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                    [recipient.id, 'Application Rejected', 'Your application has been rejected.', 'rejection', 'Reason: ' + reason, '/student/application/' + req.params.id]
                 );
             }
         });
@@ -547,8 +547,8 @@ router.post('/applications/:id/correction',
             );
             if (recipient) {
                 await conn.query(
-                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                    [recipient.id, 'Correction Requested', 'Your application requires corrections. Please review the notes and resubmit.', 'correction', 'Notes: ' + notes]
+                    'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                    [recipient.id, 'Correction Requested', 'Your application requires corrections. Please review the notes and resubmit.', 'correction', 'Notes: ' + notes, '/student/application/' + req.params.id]
                 );
             }
         });
@@ -570,11 +570,15 @@ router.post('/applications/:id/correction',
 });
 
 router.get('/majors', async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 10;
-        const offset = (page - 1) * limit;
-        const { search } = req.query;
+try {
+const page = parseInt(req.query.page) || 1;
+const limit = 10;
+const offset = (page - 1) * limit;
+const { search } = req.query;
+
+// Card is the default because the seven-column table squeezed Khmer names into a narrow
+// column on a laptop. `table` stays available for admins who prefer to scan a row at a time.
+const view = req.query.view === 'table' ? 'table' : 'card';
 
 let query = 'SELECT m.*, (SELECT COUNT(1) FROM major_tuition mt WHERE mt.major_id = m.id AND mt.is_active = 1) as tuition_rows FROM majors m WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) as count FROM majors WHERE 1=1';
@@ -597,7 +601,7 @@ let query = 'SELECT m.*, (SELECT COUNT(1) FROM major_tuition mt WHERE mt.major_i
         const totalRecords = countResult[0].count;
         const totalPages = Math.ceil(totalRecords / limit);
 
-        res.render('admin/majors', { title: 'Manage Majors', majors, currentPage: page, limit, totalPages, totalRecords, filters: req.query });
+        res.render('admin/majors', { title: 'Manage Majors', majors, currentPage: page, limit, totalPages, totalRecords, filters: req.query, view });
     } catch (err) {
         console.error(err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
@@ -1250,8 +1254,8 @@ router.post('/notifications/send',
         // others not, with no way to tell afterwards.
         await withTransaction(req.db, async (conn) => {
             for (const app of approved) {
-                await conn.query('INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                    [app.user_id, 'Exam Schedule Notification', 'New exam schedule information.', 'exam_notification', notificationMessage]);
+                await conn.query('INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                    [app.user_id, 'Exam Schedule Notification', 'New exam schedule information.', 'exam_notification', notificationMessage, '/student/status']);
             }
         });
         req.flash('success', t(req, `បានផ្ញើសារជូនដឆ្ភាក់ដល់ ${approved.length} អ្នកដាក់ពាក់សុំដែលបានអនុម័ត`, `Notification sent to ${approved.length} approved applicants`));
@@ -1260,6 +1264,318 @@ router.post('/notifications/send',
         console.error('broadcast notification error:', err);
         req.flash('error', t(req, 'មានកំហុសមូលដ្ឋានទិន្នន័យ', 'Database error'));
         res.redirect('/admin/dashboard');
+    }
+});
+
+// Public contact details shown in the footer, editable by an admin.
+//
+// Only these four keys can be written, and each value is validated before it is stored: the
+// website and the email end up inside href attributes on every page, so an unvalidated value
+// would let an admin inject a javascript: link sitewide. The phone becomes a tel: link and
+// the address is plain text.
+const CONTACT_FIELDS = [
+  { key: 'contact_website', max: 255 },
+  { key: 'contact_email', max: 255 },
+  { key: 'contact_phone', max: 60 },
+  { key: 'contact_address', max: 255 }
+];
+
+function sanitizeContactValues(raw) {
+  const out = {};
+  const errors = [];
+
+  const website = String(raw.contact_website || '').trim();
+  if (website) {
+    // Only http(s). Anything else (javascript:, data:, vbscript:) would render as a live
+    // link on every page of the site.
+    if (!/^https?:\/\/[^\s]+$/i.test(website)) {
+      errors.push('website must start with http:// or https://');
+    } else if (website.length > 255) {
+      errors.push('website is too long (max 255 characters)');
+    } else {
+      out.contact_website = website;
+    }
+  } else {
+    out.contact_website = '';
+  }
+
+  const email = String(raw.contact_email || '').trim();
+  if (email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push('email is not a valid address');
+    } else if (email.length > 255) {
+      errors.push('email is too long (max 255 characters)');
+    } else {
+      out.contact_email = email;
+    }
+  } else {
+    out.contact_email = '';
+  }
+
+  const phone = String(raw.contact_phone || '').trim();
+  if (phone) {
+    // Digits, spaces and the usual punctuation only. This is rendered into a tel: link.
+    if (!/^[+\d][\d\s().-]{0,58}[\d)]$/.test(phone)) {
+      errors.push('phone may only contain digits, spaces and + - ( ) .');
+    } else {
+      out.contact_phone = phone;
+    }
+  } else {
+    out.contact_phone = '';
+  }
+
+  const address = String(raw.contact_address || '').trim();
+  if (address) {
+    if (address.length > 255) {
+      errors.push('address is too long (max 255 characters)');
+    } else {
+      out.contact_address = address;
+    }
+  } else {
+    out.contact_address = '';
+  }
+
+  return { values: out, errors };
+}
+
+// Banks available for tuition payment.
+//
+// The site previously had one hard-coded QR. Each bank is now a row, and payments record
+// which one was used, so a student can pay through whichever bank suits them and the admin
+// can still reconcile against the right account.
+//
+// A bank is never hard-deleted if payments reference it: the column is ON DELETE SET NULL
+// in spirit, and DELETE here is implemented as a deactivation instead, so historical
+// payments keep pointing at something real and the student's payment history still renders.
+const BANK_UPLOAD = upload.single('qr_file');
+
+function readBankForm(body) {
+  const nameEn = String(body.name_en || '').trim();
+  const nameKh = String(body.name_kh || '').trim();
+  const errors = [];
+
+  // At least one name is required, otherwise the bank shows up on the student page as a
+  // nameless option.
+  if (!nameEn && !nameKh) errors.push('a bank name is required (English or Khmer)');
+  if (nameEn.length > 120 || nameKh.length > 120) errors.push('bank name is too long (max 120 characters)');
+
+  const accountName = String(body.account_name || '').trim();
+  if (accountName.length > 160) errors.push('account name is too long (max 160 characters)');
+
+  const accountNumber = String(body.account_number || '').trim();
+  // Rendered as text in the student page, but a pasted value could carry markup, so it is
+  // restricted rather than escaped and trusted.
+  if (accountNumber && !/^[\w\s.-]{1,80}$/.test(accountNumber)) {
+    errors.push('account number may only contain letters, digits, spaces and . _ -');
+  }
+
+  const instructions = String(body.instructions || '').trim();
+  if (instructions.length > 2000) errors.push('instructions are too long (max 2000 characters)');
+
+  const sortOrder = parseInt(body.sort_order, 10);
+  if (body.sort_order !== undefined && body.sort_order !== '' && !Number.isFinite(sortOrder)) {
+    errors.push('sort order must be a number');
+  }
+
+  return {
+    errors,
+    values: {
+      name_kh: nameKh || nameEn,
+      name_en: nameEn || nameKh,
+      account_name: accountName || null,
+      account_number: accountNumber || null,
+      instructions: instructions || null,
+      sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
+      is_active: body.is_active === '1' || body.is_active === 'on' || body.is_active === 'true' ? 1 : 0
+    }
+  };
+}
+
+router.get('/payment-banks', async (req, res) => {
+    try {
+        const [banks] = await req.db.query(
+            'SELECT * FROM payment_banks ORDER BY sort_order ASC, id ASC');
+        const [usage] = await req.db.query(
+            'SELECT bank_id, COUNT(*) n FROM payments WHERE bank_id IS NOT NULL GROUP BY bank_id');
+        const usedBy = {};
+        usage.forEach(u => { usedBy[u.bank_id] = u.n; });
+        res.render('admin/payment-banks', { title: 'Payment Banks', banks, usedBy });
+    } catch (err) {
+        console.error('Payment banks error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/dashboard');
+    }
+});
+
+router.post('/payment-banks', BANK_UPLOAD, verifyCsrf, async (req, res) => {
+    try {
+        const { values, errors } = readBankForm(req.body);
+        if (errors.length) {
+            req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ៖ ', 'Invalid input: ') + errors.join('. '));
+            return res.redirect('/admin/payment-banks');
+        }
+
+        let qrPath = null;
+        if (req.file) {
+            const uploaded = await uploadToImageKit(req.file, 'payment');
+            qrPath = uploaded.url;
+        }
+        // A bank with no QR cannot be paid into, so it is refused rather than added and
+        // then shown to students as an empty card.
+        if (!qrPath) {
+            req.flash('error', t(req, 'សូមបញ្ចូលរូបភាព QR។', 'Please upload a QR image for the bank.'));
+            return res.redirect('/admin/payment-banks');
+        }
+
+        await req.db.query(
+            `INSERT INTO payment_banks
+               (name_kh, name_en, account_name, account_number, qr_path, instructions, is_active, sort_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [values.name_kh, values.name_en, values.account_name, values.account_number,
+             qrPath, values.instructions, values.is_active, values.sort_order]);
+
+        req.flash('success', t(req, 'ធនាគារត្រូវបានបញ្ចូល។', 'Bank added.'));
+        res.redirect('/admin/payment-banks');
+    } catch (err) {
+        console.error('Payment bank create error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/payment-banks');
+    }
+});
+
+router.post('/payment-banks/:id', BANK_UPLOAD, verifyCsrf, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!Number.isInteger(id)) {
+            req.flash('error', t(req, 'មិនឃើញធនាគារ។', 'Bank not found.'));
+            return res.redirect('/admin/payment-banks');
+        }
+
+        const [existing] = await req.db.query('SELECT * FROM payment_banks WHERE id = ?', [id]);
+        if (!existing.length) {
+            req.flash('error', t(req, 'មិនឃើញធនាគារ។', 'Bank not found.'));
+            return res.redirect('/admin/payment-banks');
+        }
+        const current = existing[0];
+
+        const { values, errors } = readBankForm(req.body);
+        if (errors.length) {
+            req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ៖ ', 'Invalid input: ') + errors.join('. '));
+            return res.redirect('/admin/payment-banks');
+        }
+
+        let qrPath = current.qr_path;
+        if (req.file) {
+            const uploaded = await uploadToImageKit(req.file, 'payment');
+            qrPath = uploaded.url;
+        }
+
+        await req.db.query(
+            `UPDATE payment_banks
+             SET name_kh = ?, name_en = ?, account_name = ?, account_number = ?,
+                 qr_path = ?, instructions = ?, is_active = ?, sort_order = ?
+             WHERE id = ?`,
+            [values.name_kh, values.name_en, values.account_name, values.account_number,
+             qrPath, values.instructions, values.is_active, values.sort_order, id]);
+
+        req.flash('success', t(req, 'ព័ត៌មានធនាគារត្រូវបានរក្សាទុក។', 'Bank updated.'));
+        res.redirect('/admin/payment-banks');
+    } catch (err) {
+        console.error('Payment bank update error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/payment-banks');
+    }
+});
+
+router.post('/payment-banks/:id/toggle', verifyCsrf, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const [existing] = await req.db.query('SELECT is_active FROM payment_banks WHERE id = ?', [id]);
+        if (!existing.length) {
+            req.flash('error', t(req, 'មិនឃើញធនាគារ។', 'Bank not found.'));
+            return res.redirect('/admin/payment-banks');
+        }
+        await req.db.query('UPDATE payment_banks SET is_active = 1 - is_active WHERE id = ?', [id]);
+        req.flash('success', t(req, 'ស្ថានភាពធនាគារត្រូវបានប្តូរ។', 'Bank status updated.'));
+        res.redirect('/admin/payment-banks');
+    } catch (err) {
+        console.error('Payment bank toggle error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/payment-banks');
+    }
+});
+
+router.post('/payment-banks/:id/delete', verifyCsrf, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const [existing] = await req.db.query('SELECT id FROM payment_banks WHERE id = ?', [id]);
+        if (!existing.length) {
+            req.flash('error', t(req, 'មិនឃើញធនាគារ។', 'Bank not found.'));
+            return res.redirect('/admin/payment-banks');
+        }
+
+        const [used] = await req.db.query('SELECT COUNT(*) n FROM payments WHERE bank_id = ?', [id]);
+        if (Number(used[0].n) > 0) {
+            // Deleting would leave those payments pointing at a bank that no longer exists,
+            // and the student's payment history would render a blank. Deactivate instead,
+            // which hides it from new payments while keeping history intact.
+            await req.db.query('UPDATE payment_banks SET is_active = 0 WHERE id = ?', [id]);
+            req.flash('warning', t(req,
+                'ធនាគារនេះមានការទូទាត់ ' + used[0].n + ' ដង។ វាត្រូវបានបិទជំនួសការលុប។',
+                'This bank has ' + used[0].n + ' payment(s), so it was deactivated instead of deleted.'));
+            return res.redirect('/admin/payment-banks');
+        }
+
+        await req.db.query('DELETE FROM payment_banks WHERE id = ?', [id]);
+        req.flash('success', t(req, 'ធនាគារត្រូវបានលុប។', 'Bank deleted.'));
+        res.redirect('/admin/payment-banks');
+    } catch (err) {
+        console.error('Payment bank delete error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/payment-banks');
+    }
+});
+
+router.get('/contact', async (req, res) => {
+    try {
+        const [rows] = await req.db.query(
+            "SELECT setting_key, setting_value FROM settings WHERE setting_key LIKE 'contact\\_%'");
+        const contact = {};
+        rows.forEach(r => { contact[r.setting_key.replace(/^contact_/, '')] = r.setting_value; });
+        res.render('admin/contact', { title: 'Contact Information', contact });
+    } catch (err) {
+        console.error('Contact page error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/dashboard');
+    }
+});
+
+router.post('/contact', verifyCsrf, async (req, res) => {
+    try {
+        const { values, errors } = sanitizeContactValues(req.body);
+
+        if (errors.length) {
+            // Report every problem at once rather than saving the fields that happened to
+            // validate, which left the footer half-updated with no way to tell what stuck.
+            req.flash('error', t(req, 'ទិន្នន័យមិនត្រឹមត្រូវ៖ ', 'Invalid input: ') + errors.join('. '));
+            return res.redirect('/admin/contact');
+        }
+
+        // All-or-nothing: four fields that belong to one visible block.
+        await withTransaction(req.db, async (conn) => {
+            for (const field of CONTACT_FIELDS) {
+                await conn.query(
+                    'UPDATE settings SET setting_value = ? WHERE setting_key = ?',
+                    [values[field.key], field.key]);
+            }
+        });
+
+        req.flash('success', t(req, 'ព័ត៌មានទំនាក់ទំនងត្រូវបានរក្សាទុក។', 'Contact information updated.'));
+        res.redirect('/admin/contact');
+    } catch (err) {
+        console.error('Contact update error:', err);
+        req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+        res.redirect('/admin/contact');
     }
 });
 
@@ -1276,7 +1592,7 @@ router.get('/settings', async (req, res) => {
     }
 });
 
-router.post('/settings', upload.single('payment_qr_file'), verifyCsrf, async (req, res) => {
+router.post('/settings', verifyCsrf, async (req, res) => {
     try {
         const { registration_open, registration_start, registration_end, enrollment_open, enrollment_start, enrollment_end, scholarship_open, scholarship_start, scholarship_end, form_type } = req.body;
 
@@ -1284,15 +1600,9 @@ router.post('/settings', upload.single('payment_qr_file'), verifyCsrf, async (re
         const current = {};
         rows.forEach(row => { current[row.setting_key] = row.setting_value; });
 
-        if (req.file) {
-            const uploaded = await uploadToImageKit(req.file, 'payment');
-            await req.db.query('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [uploaded.url, 'payment_qr_path']);
-        }
-
-        if (form_type === 'qr_upload') {
-            req.flash('success', t(req, 'បានកែសម្រួលការកំណត់ដោយជោគជ័យ', 'Settings updated successfully'));
-            return res.redirect('/admin/settings');
-        }
+// The QR upload that used to live here was removed: students now read
+    // payment_banks.qr_path, so writing `payment_qr_path` here saved a value nothing read.
+    // QRs are managed per bank at /admin/payment-banks instead.
 
         const regOpen = registration_open !== undefined
             ? (Array.isArray(registration_open) ? registration_open[registration_open.length - 1] : registration_open)
@@ -1881,8 +2191,8 @@ router.post('/enrollments/:id/approve',
             );
             if (recipient) {
                 await conn.query(
-                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                    [recipient.id, 'Enrollment Approved', 'Your enrollment has been approved.', 'enrollment_approval', req.body.notes ? 'Notes: ' + req.body.notes : null]
+                    'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                    [recipient.id, 'Enrollment Approved', 'Your enrollment has been approved.', 'enrollment_approval', req.body.notes ? 'Notes: ' + req.body.notes : null, '/student/enroll']
                 );
             }
         });
@@ -1931,8 +2241,8 @@ router.post('/enrollments/:id/reject',
             );
             if (recipient) {
                 await conn.query(
-                    'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                    [recipient.id, 'Enrollment Rejected', 'Your enrollment has been rejected.', 'enrollment_rejection', 'Reason: ' + reason]
+                    'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                    [recipient.id, 'Enrollment Rejected', 'Your enrollment has been rejected.', 'enrollment_rejection', 'Reason: ' + reason, '/student/enroll']
                 );
             }
         });
@@ -1963,11 +2273,13 @@ router.get('/payments', async (req, res) => {
         const { search, status } = req.query;
 
         let query = `SELECT p.*, u.username, u.khmer_name, u.english_name, u.profile_pic, u.email, ft.name_kh as fee_name_kh, ft.name_en as fee_name_en,
-            e.academic_year, e.semester
+            e.academic_year, e.semester,
+            bk.name_kh as bank_name_kh, bk.name_en as bank_name_en, bk.account_number as bank_account_number
             FROM payments p
             JOIN users u ON p.user_id = u.id
             JOIN fee_types ft ON p.fee_type_id = ft.id
             JOIN enrollments e ON p.enrollment_id = e.id
+            LEFT JOIN payment_banks bk ON bk.id = p.bank_id
             WHERE 1=1`;
         let countQuery = `SELECT COUNT(*) as count FROM payments p
             JOIN users u ON p.user_id = u.id
@@ -2050,8 +2362,8 @@ router.post('/payments/:id/verify',
                 [req.session.user.id, req.body.notes || '', req.params.id]
             );
             await conn.query(
-                'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                [row.user_id, 'Payment Verified', 'Your payment has been verified.', 'payment_verified', req.body.notes ? 'Notes: ' + req.body.notes : null]
+                'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                [row.user_id, 'Payment Verified', 'Your payment has been verified.', 'payment_verified', req.body.notes ? 'Notes: ' + req.body.notes : null, '/student/payments']
             );
         });
         await sendEmail(
@@ -2093,8 +2405,8 @@ router.post('/payments/:id/reject',
                 [req.session.user.id, req.body.notes || '', req.params.id]
             );
             await conn.query(
-                'INSERT INTO notifications (user_id, title, message, type, detail) VALUES (?, ?, ?, ?, ?)',
-                [row.user_id, 'Payment Rejected', 'Your payment has been rejected.', 'payment_rejected', 'Reason: ' + paymentReason]
+                'INSERT INTO notifications (user_id, title, message, type, detail, link) VALUES (?, ?, ?, ?, ?, ?)',
+                [row.user_id, 'Payment Rejected', 'Your payment has been rejected.', 'payment_rejected', 'Reason: ' + paymentReason, '/student/payments']
             );
         });
         await sendEmail(

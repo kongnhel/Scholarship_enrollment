@@ -110,6 +110,14 @@
         <i class="bi bi-graph-up text-lg w-5 text-center"></i>
         <span><%= currentLang === 'km' ? 'របាយការណ៍' : 'Reports' %></span>
       </a>
+      <a href="/admin/payment-banks" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Payment Banks' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-bank text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ធនាគារទូទាត់' : 'Payment Banks' %></span>
+      </a>
+      <a href="/admin/contact" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'Contact Information' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
+        <i class="bi bi-telephone-inbound text-lg w-5 text-center"></i>
+        <span><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Info' %></span>
+      </a>
       <a href="/admin/settings" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all <%= typeof title !== 'undefined' && title === 'System Settings' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white' %>">
         <i class="bi bi-gear text-lg w-5 text-center"></i>
         <span><%= currentLang === 'km' ? 'ការកំណត់' : 'Settings' %></span>

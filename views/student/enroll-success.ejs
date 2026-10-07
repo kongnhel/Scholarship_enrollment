@@ -16,22 +16,25 @@
       <% } %>
     </div>
 
-    <div class="p-6 text-center">
-      <% if (!isScholarship) { %>
-      <div class="bg-gray-50 dark:bg-gray-700/30 rounded-3xl p-6 mb-6 border border-gray-100 dark:border-gray-700">
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3"><%= currentLang === 'km' ? 'ស្គែន QR Code ដើម្បីបង់ប្រាក់' : 'Scan QR Code to Pay' %></p>
-        <img src="<%= qrPath %>" alt="KHQR Payment" width="256" height="256" loading="lazy" decoding="async" class="mx-auto rounded-xl shadow-md max-w-[280px]">
-        <p class="text-sm font-bold text-gray-900 dark:text-gray-100 mt-4">NHEL KONG</p>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">ACLEDA Bank</p>
-      </div>
+<div class="p-6 text-center">
+<% if (!isScholarship) { %>
+<%# The bank is chosen on the payments page, so this confirmation links there instead of
+    showing one bank's QR. Showing a single QR here would either contradict the student's
+    choice later or duplicate the bank picker in a second place. %>
+<div class="bg-gray-50 dark:bg-gray-700/30 rounded-3xl p-6 mb-6 border border-gray-100 dark:border-gray-700">
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-4"><%= currentLang === 'km' ? 'ជ្រើសធនាគារដែលត្រូវបង់ប្រាក់ និងស្កេង QR នៅទំព័រទូទាត់' : 'Choose your bank and scan its QR code on the payments page' %></p>
+<a href="/student/payments" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all shadow-sm">
+<i class="bi bi-qr-code"></i><%= currentLang === 'km' ? 'ទៅទំព័រការទូទាត់' : 'Go to payments' %>
+</a>
+</div>
 
-      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800 mb-6">
-        <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">
-          <i class="bi bi-info-circle mr-1"></i>
-          <%= currentLang === 'km' ? 'សូមផ្ញើរូបភាពបង្កាក់ការបង់ប្រាក់មក admin ដើម្បីផ្ទៀងផ្ទាត់' : 'Please send your payment confirmation screenshot to admin for verification' %>
-        </p>
-      </div>
-      <% } %>
+<div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800 mb-6">
+<p class="text-sm text-blue-800 dark:text-blue-300 font-medium">
+<i class="bi bi-info-circle mr-1"></i>
+<%= currentLang === 'km' ? 'សូមផ្ញើរូបភាពបង្កាក់ការបង់ប្រាក់មក admin ដើម្បីផ្ទៀងផ្ទាត់' : 'Please send your payment confirmation to admin for verification' %>
+</p>
+</div>
+<% } %>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="/student/enroll/print" target="_blank" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-semibold shadow-sm text-sm flex items-center justify-center gap-2">

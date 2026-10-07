@@ -6,7 +6,7 @@
           <img src="/images/nmu-logo.jpg" alt="NMU" class="h-10 w-10 rounded-full">
           <span class="font-bold text-lg">NMU <span class="text-green-400">Scholarship & Enroll Online</span></span>
         </div>
-        <p class="text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'ប្រព័ន្ធអាហារូបករណ៍តាមអនឡាញ សាកលវិទ្យាល័យជាតិមានជ័យ' : 'Scholarship Online System - National Meanchey University' %></p>
+        <p class="text-gray-400 text-sm leading-relaxed"><%= currentLang === 'km' ? 'ប្រព័ន្ធស្នើរសុំអាហារូបករណ៍ និងចុះឈ្មោះតាមonlineរបស់សាកលវិទ្យាល័យជាតិមានជ័យ' : 'Scholarship Online System - National Meanchey University' %></p>
       </div>
       <div>
         <h4 class="font-semibold mb-4"><%= currentLang === 'km' ? 'តំណភ្ជាប់' : 'Quick Links' %></h4>
@@ -20,11 +20,31 @@
       </div>
       <div>
         <h4 class="font-semibold mb-4"><%= currentLang === 'km' ? 'ទំនាក់ទំនង' : 'Contact' %></h4>
+        <%
+          // Public contact details, editable by an admin at /admin/contact. Injected into
+          // res.locals by server.js. The literal defaults below are the safety net: if the
+          // settings query ever fails the footer must still render something sensible
+          // rather than an empty block.
+          var cWebsite = (typeof contactInfo !== 'undefined' && contactInfo.website) || 'https://nmu.edu.kh/';
+          var cEmail = (typeof contactInfo !== 'undefined' && contactInfo.email) || 'info@nmu.edu.kh';
+          var cPhone = (typeof contactInfo !== 'undefined' && contactInfo.phone) || '+855 12 345 678';
+          var cAddress = (typeof contactInfo !== 'undefined' && contactInfo.address) || 'Meanchey, Cambodia';
+          // Show the host without the scheme so it reads as a domain, not a URL.
+          var cHost = String(cWebsite).replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+        %>
         <ul class="space-y-2 text-gray-400 text-sm">
-          <li class="flex items-center gap-2"><i class="bi bi-globe"></i> <a href="https://nmu.edu.kh/" target="_blank" class="hover:text-white transition-colors">nmu.edu.kh</a></li>
-          <li class="flex items-center gap-2"><i class="bi bi-envelope"></i> info@nmu.edu.kh</li>
-          <li class="flex items-center gap-2"><i class="bi bi-phone"></i> +855 12 345 678</li>
-          <li class="flex items-center gap-2"><i class="bi bi-geo-alt"></i> Meanchey, Cambodia</li>
+          <% if (cWebsite) { %>
+            <li class="flex items-center gap-2"><i class="bi bi-globe"></i> <a href="<%= cWebsite %>" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors"><%= cHost %></a></li>
+          <% } %>
+          <% if (cEmail) { %>
+            <li class="flex items-center gap-2"><i class="bi bi-envelope"></i> <a href="mailto:<%= cEmail %>" class="hover:text-white transition-colors"><%= cEmail %></a></li>
+          <% } %>
+          <% if (cPhone) { %>
+            <li class="flex items-center gap-2"><i class="bi bi-phone"></i> <a href="tel:<%= String(cPhone).replace(/[^+\d]/g, '') %>" class="hover:text-white transition-colors"><%= cPhone %></a></li>
+          <% } %>
+          <% if (cAddress) { %>
+            <li class="flex items-center gap-2"><i class="bi bi-geo-alt"></i> <%= cAddress %></li>
+          <% } %>
         </ul>
       </div>
     </div>

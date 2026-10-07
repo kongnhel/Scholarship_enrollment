@@ -1,0 +1,88 @@
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
+    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-telephone-inbound text-white text-xl"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
+            <i class="bi bi-collection"></i>
+            <%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Public details' %>
+          </div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'បង្ហាញនៅបាតទំព័រគេចរបស់គេប' : 'Shown in the footer on every page' %></p>
+        </div>
+      </div>
+      <a href="/" target="_blank" class="self-start sm:self-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-box-arrow-up-right"></i><%= currentLang === 'km' ? 'មើលផ្ទាល់' : 'Preview footer' %></a>
+    </div>
+  </div>
+
+  <form action="/admin/contact" method="POST" class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <%= currentLang === 'km'
+          ? 'ព័ត៌មានទាំងនេះបង្ហាញជាភាសាសាធារណៈសម្រាប់អ្នកទស្សនា ដោយមិនចាំបាច់ស្នើការសិទ្ធិពិសេតា។'
+          : 'These are shown publicly to every visitor. No permission request is needed.' %>
+      </p>
+    </div>
+
+    <div class="p-6 space-y-5">
+      <%
+        // One definition per field, so the label, placeholder, help text and validation
+        // hint cannot drift apart.
+        var FIELDS = [
+          { name: 'contact_website', icon: 'bi-globe', value: contact.website,
+            km: 'គេបភាព', en: 'Website',
+            kmPh: 'https://www.nmu.edu.kh/', enPh: 'https://www.nmu.edu.kh/',
+            kmHelp: 'បង្ហាញជាដូសគេបដោយរកបក។ ប្រើ https:// ដើម្បីសុវត្ថិភាព។', enHelp: 'Rendered as a link. Use https:// so visitors are not sent over plain HTTP.' },
+          { name: 'contact_email', icon: 'bi-envelope', value: contact.email,
+            km: 'អ៊ីមែល', en: 'Email',
+            kmPh: 'info@nmu.edu.kh', enPh: 'info@nmu.edu.kh',
+            kmHelp: 'បង្ហាញជាទំនាក់ទំនងដោយអ៊ីមែល។', enHelp: 'Shown as a mailto link so visitors can compose an email.' },
+          { name: 'contact_phone', icon: 'bi-phone', value: contact.phone,
+            km: 'លេខទូរស័ព្ទ', en: 'Phone',
+            kmPh: '+855 12 345 678', enPh: '+855 12 345 678',
+            kmHelp: 'បង្ហាញជាលេខទូរស័ព្ទ និងអាចចុចបាន។', enHelp: 'Shown as a tel: link, so it works on a phone.' },
+          { name: 'contact_address', icon: 'bi-geo-alt', value: contact.address,
+            km: 'អាសយដ្ឋាន', en: 'Address',
+            kmPh: 'Meanchey, Cambodia', enPh: 'Meanchey, Cambodia',
+            kmHelp: 'បង្ហាញជាអាសយដ្ឋានប្រទេសស្រុក។', enHelp: 'Shown as plain postal text.' }
+        ];
+      %>
+
+      <% FIELDS.forEach(function (f) { %>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+            <i class="bi <%= f.icon %> mr-1.5 text-gray-400"></i><%= currentLang === 'km' ? f.km : f.en %>
+          </label>
+          <input
+            type="text"
+            name="<%= f.name %>"
+            value="<%= f.value || '' %>"
+            placeholder="<%= currentLang === 'km' ? f.kmPh : f.enPh %>"
+            maxlength="255"
+            class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? f.kmHelp : f.enHelp %></p>
+        </div>
+      <% }); %>
+
+      <p class="text-xs text-gray-400 dark:text-500 bg-gray-50 dark:bg-gray-800/60 rounded-lg px-3 py-2">
+        <i class="bi bi-info-circle mr-1"></i>
+        <%= currentLang === 'km'
+          ? 'ទុកចង្សៀងទទេដើម្បីលាក់ព័ត៌មាននោះចេញពីបាតទំព័រ។'
+          : 'Leave a field blank to hide that line from the footer.' %>
+      </p>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-2 bg-gray-50/50 dark:bg-gray-800/40 rounded-b-3xl">
+      <a href="/admin/dashboard" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
+      <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5">
+        <i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save changes' %>
+      </button>
+    </div>
+  </form>
+</div>

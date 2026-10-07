@@ -34,7 +34,7 @@
     <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 mt-9 text-sm text-green-100/90">
       <span class="inline-flex items-center gap-1.5"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'មិនគិតថ្លៃពាក្យ' : 'No application fee' %></span>
       <span class="inline-flex items-center gap-1.5"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'ឆាប់រហ័ស' : 'Fast processing' %></span>
-      <span class="inline-flex items-center gap-1.5"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'មានកម្មវិធីអាហារូបករណ៍ច្រុប' : 'Multiple programs' %></span>
+      <span class="inline-flex items-center gap-1.5"><i class="bi bi-check-circle-fill text-emerald-300"></i><%= currentLang === 'km' ? 'មានកម្មវិធីអាហារូបករណ៍ច្រើន' : 'Multiple programs' %></span>
     </div>
   </div>
 </section>
@@ -49,7 +49,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-3xl p-7 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
       <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-5 shadow-sm"><i class="bi bi-award text-white text-2xl"></i></div>
       <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'អាហារូបករណ៍' : 'Scholarships' %></h3>
-      <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍រួមមានអាហារូបករណ៍របស់ក្រសួង ១០០% អាហារូបករណ៍របស់សកលវិទ្យាល័យជាតិមានជ័យ និង Mekong Scholarship(អង្កការកុមារមេគង្ក)។' : 'Apply for scholarships including 100% Ministry, NMU, and Mekong scholarships.' %></p>
+      <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ដាក់ពាក្យសុំអាហារូបករណ៍រួមមានអាហារូបករណ៍របស់ក្រសួង ១០០% អាហារូបករណ៍របស់សកលវិទ្យាល័យជាតិមានជ័យ និង ថ្នាក់ដឺកនាំផ្សេងៗ។' : 'Apply for scholarships including 100% Ministry, NMU, and Mekong scholarships.' %></p>
       <a href="/auth/register" class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-semibold hover:text-green-700 dark:hover:text-green-300"><%= currentLang === 'km' ? 'បង្កើតគណនី ដើម្បីសុំឥឡូវនេះ' : 'Create account to apply' %><i class="bi bi-arrow-right"></i></a>
     </div>
     <% if (enrollmentEnabled) { %>
@@ -62,7 +62,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-3xl p-7 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
       <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-2xl flex items-center justify-center mb-5 shadow-sm"><i class="bi bi-credit-card text-white text-2xl"></i></div>
       <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h3>
-      <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សាតាម ACLEDA Bank KHQR យ៉ាងងាយស្រួលនិងសុវត្ថិភាព។' : 'Pay tuition via ACLEDA Bank KHQR easily and securely.' %></p>
+      <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed flex-1"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សាតាម KHQR យ៉ាងងាយស្រួលនិងសុវត្ថិភាព។' : 'Pay tuition via ACLEDA Bank KHQR easily and securely.' %></p>
       <a href="/auth/register" class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm font-semibold hover:text-purple-700 dark:hover:text-purple-300"><%= currentLang === 'km' ? 'បង្កើតគណនី ដើម្បីទូទាត់' : 'Create account to pay' %><i class="bi bi-arrow-right"></i></a>
     </div>
     <% } %>
@@ -227,7 +227,7 @@
       <div class="w-11 h-11 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"><i class="bi bi-credit-card text-white"></i></div>
       <div>
         <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ទូទាត់ថ្លៃសិក្សា' : 'Pay Tuition' %></h4>
-        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទូទាត់តាម ACLEDA Bank KHQR' : 'Pay via ACLEDA Bank KHQR' %></p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs mt-1"><%= currentLang === 'km' ? 'ទូទាត់តាម KHQR' : 'Pay via ACLEDA Bank KHQR' %></p>
       </div>
     </div>
     <% } %>

@@ -12,7 +12,7 @@
             <%= payments.length %> <%= currentLang === 'km' ? 'ប្រតិបត្តិការ' : 'transactions' %>
           </div>
           <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ទូទាត់តាមរយៈ ACLEDA Bank KHQR' : 'Pay via ACLEDA Bank KHQR' %></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'បង់ប្រាក់តាមរយៈធនាគារដែលបានបង្ហាញក្នុងប្រព័ន្ធ' : 'Pay through any bank listed below' %></p>
         </div>
       </div>
     </div>
@@ -53,7 +53,7 @@
       <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-qr-code text-emerald-600 dark:text-emerald-400 text-sm"></i>
       </div>
-      <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'បង់ប្រាក់តាម ACLEDA Bank KHQR' : 'Pay with ACLEDA Bank KHQR' %></span>
+      <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ជ្រើសធនាគារដែលត្រូវបង់ប្រាក់' : 'Choose a bank to pay through' %></span>
     </div>
     <div class="p-6">
       <% if (enrollments.length === 0) { %>
@@ -62,23 +62,87 @@
           <p class="text-gray-600 dark:text-gray-300 mb-3"><%= currentLang === 'km' ? 'សូមចុះឈ្មោះជាមុនសិន' : 'Please enroll first before making a payment' %></p>
           <a href="/student/enroll" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all font-medium text-sm"><i class="bi bi-person-check"></i><%= currentLang === 'km' ? 'ចុះឈ្មោះ' : 'Enroll' %></a>
         </div>
+      <% } else if (banks.length === 0) { %>
+        <div class="text-center py-8">
+          <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4"><i class="bi bi-qr-code text-amber-500 text-3xl"></i></div>
+          <p class="text-gray-600 dark:text-gray-300 font-medium"><%= currentLang === 'km' ? 'មិនទាន់មានធនាគារសម្រាប់បង់ប្រាក់' : 'No payment bank is available yet' %></p>
+          <p class="text-sm text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'សូមទាក់ទងមកវិញនៅពេលក្រោយ។' : 'Please check back later.' %></p>
+        </div>
       <% } else { %>
-        <div class="text-center">
-          <div class="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-6 mb-4 inline-block">
-            <img src="<%= qrPath %>" alt="KHQR Payment" class="mx-auto rounded-xl shadow-md max-w-[260px]">
+        <%#
+          The radios live in this display card but submit with the payment form below, via
+          HTML5 form="paymentForm". So there is still only one form on the page, and the
+          chosen bank travels with enrollment_id / fee_type_id / pay_period and the receipt
+          in a single POST. POST /student/payments re-validates bank_id against the ACTIVE
+          list, so a tampered or since-deactivated bank cannot be attached to a payment.
+        %>
+        <fieldset>
+          <legend class="sr-only"><%= currentLang === 'km' ? 'ជ្រើសធនាគារ' : 'Select a bank' %></legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
+            <% banks.forEach(function (bank, i) { %>
+              <label class="cursor-pointer block">
+                <input type="radio" name="bank_id" form="paymentForm" value="<%= bank.id %>" class="peer sr-only" <%= i === 0 ? 'checked' : '' %> data-bank-panel="<%= bank.id %>">
+                <span class="flex items-center gap-3 p-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 peer-checked:border-emerald-500 peer-focus:ring-2 peer-focus:ring-emerald-500 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all bg-white dark:bg-gray-800">
+                  <span class="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0"><i class="bi bi-bank text-emerald-600 dark:text-emerald-400"></i></span>
+                  <span class="min-w-0">
+                    <span class="block text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? bank.name_kh : bank.name_en %></span>
+                    <% if (bank.account_name) { %>
+                      <span class="block text-xs text-gray-400 dark:text-gray-500 truncate"><%= bank.account_name %></span>
+                    <% } %>
+                  </span>
+                </span>
+              </label>
+            <% }); %>
           </div>
-          <p class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">NHEL KONG</p>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">ACLEDA Bank</p>
-          <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800 max-w-md mx-auto">
-            <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">
-              <i class="bi bi-info-circle mr-1"></i>
-              <%= currentLang === 'km' ? 'សូមផ្ញើរូបភាពបង្កាក់ការបង់ប្រាក់មក admin ដើម្បីផ្ទៀងផ្ទាត់' : 'Please send your payment confirmation screenshot to admin for verification' %>
-            </p>
+        </fieldset>
+
+        <% banks.forEach(function (bank, i) { %>
+          <div data-bank-panel="<%= bank.id %>" class="<%= i === 0 ? '' : 'hidden' %> text-center">
+            <div class="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-6 mb-4 inline-block">
+              <img src="<%= bank.qr_path %>" alt="<%= currentLang === 'km' ? bank.name_kh : bank.name_en %> QR" class="mx-auto rounded-xl shadow-md max-w-[260px]">
+            </div>
+            <p class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1"><%= currentLang === 'km' ? bank.name_kh : bank.name_en %></p>
+            <% if (bank.account_name) { %>
+              <p class="text-xs text-gray-500 dark:text-gray-400"><i class="bi bi-person-badge mr-1"></i><%= bank.account_name %></p>
+            <% } %>
+            <% if (bank.account_number) { %>
+              <p class="text-xs text-gray-400 dark:text-gray-500"><i class="bi bi-credit-card mr-1"></i><%= bank.account_number %></p>
+            <% } %>
+            <% if (bank.instructions) { %>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto leading-relaxed"><%= bank.instructions %></p>
+            <% } %>
           </div>
+        <% }); %>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800 max-w-md mx-auto">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">
+            <i class="bi bi-info-circle mr-1"></i>
+            <%= currentLang === 'km' ? 'សូមផ្ញើរូបភាពបង្កាក់ការបង់ប្រាក់មក admin ដើម្បីផ្ទៀងផ្ទាត់' : 'Please send your payment confirmation screenshot to admin for verification' %>
+          </p>
         </div>
       <% } %>
     </div>
   </div>
+
+  <%# Progressive enhancement only: reveal the chosen bank's QR. Without this the page still
+      works -- the first bank is checked server-side and its panel is the visible one. %>
+  <script>
+    (function () {
+      var panels = document.querySelectorAll('[data-bank-panel]');
+      var radios = document.querySelectorAll('input[type=radio][data-bank-panel]');
+      function show(id) {
+        panels.forEach(function (p) {
+          if (!p.matches('[data-bank-panel]')) return;
+          p.classList.toggle('hidden', p.getAttribute('data-bank-panel') !== id);
+        });
+      }
+      radios.forEach(function (r) {
+        r.addEventListener('change', function () { if (r.checked) show(r.getAttribute('data-bank-panel')); });
+      });
+      var checked = document.querySelector('input[type=radio][data-bank-panel]:checked');
+      if (checked) show(checked.getAttribute('data-bank-panel'));
+    })();
+  </script>
 
   <% if (enrollments.length > 0) { %>
     <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -89,7 +153,7 @@
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ដាក់ស្នើភស្តុតាងការទូទាត់' : 'Submit Payment Proof' %></span>
       </div>
       <div class="p-6">
-        <form action="/student/payments" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <form id="paymentForm" action="/student/payments" method="POST" enctype="multipart/form-data" class="space-y-4">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

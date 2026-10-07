@@ -137,16 +137,16 @@
                 </td>
                 <td class="px-5 py-4">
                   <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                    <%# The 'bakong_khqr' branch was removed with QR generation. Students
-                        now pay by scanning a QR the admin uploaded, so every payment is a
-                        manual bank transfer. %>
-                    <% if (p.payment_method === 'aba') { %>
-                      <i class="bi bi-bank"></i>ABA
-                    <% } else if (p.payment_method === 'wing') { %>
-                      <i class="bi bi-phone"></i>Wing
-                    <% } else { %>
-                      <i class="bi bi-bank"></i><%= p.payment_method %>
-                    <% } %>
+<%# The 'bakong_khqr' branch was removed with QR generation. Students
+    now pick one of the admin-managed banks, and the payment records which one, so the
+    account to reconcile against is named on the row instead of just "bank_transfer".
+    bk is a LEFT JOIN: payments made before multi-bank support have no bank_id, and must
+    still render rather than disappearing. %>
+<% if (p.bank_name_kh || p.bank_name_en) { %>
+<i class="bi bi-bank"></i><%= currentLang === 'km' ? p.bank_name_kh : p.bank_name_en %>
+<% } else { %>
+<i class="bi bi-bank"></i><%= p.payment_method %>
+<% } %>
                   </span>
                 </td>
                 <td class="px-5 py-4">

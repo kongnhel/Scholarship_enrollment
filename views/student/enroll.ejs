@@ -34,6 +34,44 @@
   // never widen what is offered.
   var allowedFunding = (typeof allowedFunding !== 'undefined' && allowedFunding && allowedFunding.length)
     ? allowedFunding : ['self_pay'];
+
+  // Payment state for THIS enrollment.
+  //
+  // The status card used to show only the enrollment's own status, so a student whose
+  // payment had been verified still saw a pending badge and a "please pay" banner. The
+  // route already loads every payment for the student (newest first), so the newest row
+  // for this enrollment is the one to trust.
+  var enrollPayments = (typeof payments !== 'undefined' && payments && enrollment)
+    ? payments.filter(function (p) { return String(p.enrollment_id) === String(enrollment.id); })
+    : [];
+  var latestPayment = enrollPayments.length ? enrollPayments[0] : null;
+  var payState = latestPayment ? latestPayment.status : 'none';
+  var payBadge = {
+    none: {
+      cls: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
+      dot: 'bg-gray-400',
+      km: 'មិនទាន់បង់', en: 'Not paid'
+    },
+    pending: {
+      cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+      dot: 'bg-amber-500',
+      km: 'រង់ចាំផ្ទៀងផ្ទាត់', en: 'Awaiting verification'
+    },
+    verified: {
+      cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+      dot: 'bg-emerald-500',
+      km: 'ផ្ទៀងផ្ទាត់', en: 'Verified'
+    },
+    rejected: {
+      cls: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+      dot: 'bg-red-500',
+      km: 'បរាឆេទ', en: 'Rejected'
+    }
+  }[payState];
+  var payLabel = payBadge ? (currentLang === 'km' ? payBadge.km : payBadge.en) : '';
+  // A rejected payment carries the admin's reason, so surface it rather than showing a
+  // bare red badge the student cannot act on.
+  var payNote = (latestPayment && latestPayment.admin_notes) ? String(latestPayment.admin_notes).trim() : '';
 %>
 <div class="max-w-4xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
@@ -70,6 +108,18 @@
             <span class="w-1.5 h-1.5 rounded-full <%= enrollment.status === 'approved' ? 'bg-green-500' : enrollment.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500' %>"></span>
             <%= enrollment.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'Approved') : enrollment.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'Rejected') : (currentLang === 'km' ? 'រង់ចាំ' : 'Pending') %>
           </span>
+          <%# Payment state, which moves independently of the enrollment status: the admin
+              verifies the PAYMENT, not the enrollment, and until this showed the payment the
+              student kept seeing "Pending" plus a "please pay" banner after paying. %>
+          <% if (payBadge) { %>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= payBadge.cls %>">
+              <span class="w-1.5 h-1.5 rounded-full <%= payBadge.dot %>"></span>
+              <%= currentLang === 'km' ? 'ការទូទាត់' : 'Payment' %>: <%= payLabel %>
+              <% if (latestPayment && latestPayment.amount) { %>
+                · <%= Math.round(Number(latestPayment.amount)).toLocaleString('en-US') %>៛
+              <% } %>
+            </span>
+          <% } %>
           <a href="/student/enroll/print" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'បោះពុម្ពពាក្យសុំ' : 'Print Form' %>
           </a>
@@ -86,11 +136,54 @@
           <% } %>
         </div>
         <% if (enrollment.status === 'approved' || enrollment.status === 'pending') { %>
-          <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-            <p class="text-sm text-blue-800 dark:text-blue-300"><i class="bi bi-info-circle mr-1"></i>
-              <%= currentLang === 'km' ? 'អ្នកបានចុះឈ្មោះរួចហើយ។ សូមបង់ថ្លៃតាមការណែនាំខាងក្រោម។' : 'You have already enrolled. Please pay the fees as instructed below.' %>
-            </p>
-          </div>
+          <%#
+            The banner follows the PAYMENT, not the enrollment. It used to be one fixed
+            "please pay" message for both a fresh enrollment and one already paid and
+            verified, so a student who had paid was still being asked to pay.
+          %>
+          <% if (payState === 'verified') { %>
+            <div class="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
+              <p class="text-sm text-emerald-800 dark:text-emerald-300"><i class="bi bi-check-circle-fill mr-1"></i>
+                <%= currentLang === 'km'
+                  ? 'ការទូទាត់របស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់រួចរាល់។'
+                  : 'Your payment has been verified.' %>
+                <% if (latestPayment && latestPayment.amount) { %>
+                  <span class="font-bold"><%= Math.round(Number(latestPayment.amount)).toLocaleString('en-US') %>៛</span>
+                <% } %>
+                <% if (latestPayment && latestPayment.verified_at) { %>
+                  <%= currentLang === 'km' ? ' ថ្ងៃទី' : ' on ' %><%= formatDateOnly(latestPayment.verified_at) %>
+                <% } %>
+              </p>
+            </div>
+          <% } else if (payState === 'pending') { %>
+            <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
+              <p class="text-sm text-amber-800 dark:text-amber-300"><i class="bi bi-hourglass-split mr-1"></i>
+                <%= currentLang === 'km'
+                  ? 'អ្នកបានដាក់ស្នើការទូទាត់រួចរាល់ ហើយ។ រង់ចាំការផ្ទៀងផ្ទាត់ពីក្របន្តិបត្រ។'
+                  : 'You have submitted your payment. Waiting for admin verification.' %>
+                <% if (latestPayment && latestPayment.amount) { %>
+                  <span class="font-bold"><%= Math.round(Number(latestPayment.amount)).toLocaleString('en-US') %>៛</span>
+                <% } %>
+              </p>
+            </div>
+          <% } else if (payState === 'rejected') { %>
+            <div class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800">
+              <p class="text-sm text-red-800 dark:text-red-300"><i class="bi bi-x-circle-fill mr-1"></i>
+                <%= currentLang === 'km' ? 'ការទូទាត់ត្រូវបានបដិសេធ។ សូមបង់ប្រាក់ម្តងទៀត។' : 'Your payment was rejected. Please pay again.' %>
+              </p>
+              <% if (payNote) { %>
+                <p class="text-sm text-red-700 dark:text-red-300 mt-2 pt-2 border-t border-red-100 dark:border-red-800">
+                  <span class="font-semibold"><%= currentLang === 'km' ? 'មូលហេតុ៖ ' : 'Reason: ' %></span><%= payNote %>
+                </p>
+              <% } %>
+            </div>
+          <% } else { %>
+            <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+              <p class="text-sm text-blue-800 dark:text-blue-300"><i class="bi bi-info-circle mr-1"></i>
+                <%= currentLang === 'km' ? 'អ្នកបានចុះឈ្មោះរួចហើយ។ សូមបង់ថ្លៃតាមការណែនាំខាងក្រោម។' : 'You have already enrolled. Please pay the fees as instructed below.' %>
+              </p>
+            </div>
+          <% } %>
         <% } %>
       </div>
     </div>

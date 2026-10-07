@@ -155,8 +155,40 @@ async function autoSetup() {
       INDEX idx_telegram_pending_phone (phone)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
+    // Banks a student can pay a tuition QR through.
+    //
+    // The site previously had exactly one QR, stored as the `payment_qr_path` setting, so
+    // the student page had no way to offer a second bank. Each bank is a row here, and the
+    // student picks one; which bank was used is recorded on the payment so the admin can
+    // reconcile against the right account. ON DELETE SET NULL keeps historical payments
+    // readable if a bank is later removed.
+    await safeQuery(conn, `CREATE TABLE IF NOT EXISTS payment_banks (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name_kh VARCHAR(120) NOT NULL,
+      name_en VARCHAR(120) NOT NULL,
+      account_name VARCHAR(160) NULL,
+      account_number VARCHAR(80) NULL,
+      qr_path VARCHAR(500) NULL,
+      instructions TEXT NULL,
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_payment_banks_active (is_active, sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
     // Run ALTER TABLE migrations for existing databases
     const existingDbMigrations = [
+      // Which bank a payment was made through. NULL means "not recorded", which is the
+      // case for every row that predates multi-bank support, so the column must be
+      // nullable and must default to NULL rather than backfilling a guess.
+      "ALTER TABLE payments ADD COLUMN bank_id INT NULL AFTER payment_method",
+      "ALTER TABLE payments ADD INDEX idx_payments_bank (bank_id)",
+      // Where a notification came from, so a click takes the reader straight to the
+      // record the notification is about. NULL for notifications written before this
+      // existed, and for types that have no single target (a broadcast exam notice goes
+      // to the status page rather than to one application).
+      "ALTER TABLE notifications ADD COLUMN link VARCHAR(500) NULL AFTER type",
       // Notification detail: the committee's remark / rejection reason / correction
       // notes, kept separate from `message` so the UI can show a localized template and
       // still surface what the admin actually wrote.
@@ -323,6 +355,45 @@ async function autoSetup() {
         await safeQuery(conn, 'INSERT IGNORE INTO fee_types (name_kh, name_en, amount, description, is_active) VALUES (?, ?, ?, ?, ?)', [nkh, nen, amt, desc, active]);
       }
       console.log('    Seeded ' + feeTypes.length + ' fee types');
+    }
+
+    // Public contact details shown in the site footer, previously hard-coded in
+    // views/partials/footer.ejs.
+    //
+    // This belongs in the ALREADY-CONFIGURED path, not the fresh-install one below: an
+    // existing database never reaches that path, so a setting added there would never
+    // appear on a deployed site. INSERT IGNORE keeps it idempotent across restarts and
+    // never overwrites a value an admin has already edited.
+    const CONTACT_SETTINGS = [
+      ['contact_website', 'https://nmu.edu.kh/', 'Public website URL shown in the footer'],
+      ['contact_email', 'info@nmu.edu.kh', 'Public contact email shown in the footer'],
+      ['contact_phone', '+855 12 345 678', 'Public phone number shown in the footer'],
+      ['contact_address', 'Meanchey, Cambodia', 'Public postal address shown in the footer']
+    ];
+    for (const [key, value, description] of CONTACT_SETTINGS) {
+      await safeQuery(conn,
+        'INSERT IGNORE INTO settings (setting_key, setting_value, description) VALUES (?, ?, ?)',
+        [key, value, description]);
+    }
+    console.log('    Contact settings ensured (public contact details)');
+
+    // Move the single ACLEDA QR into payment_banks so the existing bank keeps working.
+    // Guarded on the table being empty so an admin's edits are never overwritten, and the
+    // QR value is carried over from `payment_qr_path` so nobody has to re-upload it.
+    const [bankRows] = await conn.query('SELECT COUNT(*) c FROM payment_banks');
+    if (bankRows[0].c === 0) {
+      const [qrSetting] = await conn.query(
+        "SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
+      await conn.query(
+        `INSERT INTO payment_banks
+           (name_kh, name_en, account_name, account_number, qr_path, instructions, is_active, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, 1, 0)`,
+        [
+          'ធនាគារអេក្លេដា (ACLEDA)', 'ACLEDA Bank', 'NHEL KONG', null,
+          qrSetting.length ? qrSetting[0].setting_value : '/images/qr_acleda_nhelkong.jpg',
+          'Scan the QR code with any Cambodia QR banking app, then upload your payment slip.'
+        ]);
+      console.log('    Seeded bank: ACLEDA (carried over from payment_qr_path)');
     }
 
     await conn.end();
@@ -574,8 +645,8 @@ async function autoSetup() {
     await conn.query("INSERT INTO settings (setting_key, setting_value, description) VALUES ('registration_end', '2026-08-31 23:59:59', 'Registration end date and time')");
     await conn.query("INSERT INTO settings (setting_key, setting_value, description) VALUES ('enrollment_open', '1', 'Enable or disable student enrollment')");
     await conn.query("INSERT INTO settings (setting_key, setting_value, description) VALUES ('scholarship_open', '1', 'Enable or disable scholarship applications')");
-    console.log('    Default settings');
-  }
+console.log('    Default settings');
+    }
 
   await conn.end();
   console.log('\n=== SETUP COMPLETE ===');

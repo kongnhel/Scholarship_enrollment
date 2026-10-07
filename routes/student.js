@@ -480,6 +480,7 @@ await req.db.query(
     message: (khmer_last_name ? khmer_last_name + ' ' : '') + (khmer_first_name || '') +
       ' submitted a new scholarship application.',
     type: 'new_application',
+    link: '/admin/applications/' + result.insertId,
     detail: 'Application #' + result.insertId + ' is waiting for review.'
   });
 
@@ -659,6 +660,7 @@ await req.db.query(
     title: 'Application corrected and resubmitted',
     message: 'A student corrected and resubmitted application #' + req.params.id + '.',
     type: 'application_corrected',
+    link: '/admin/applications/' + req.params.id,
     detail: (correction_notes || '').trim() || null
   });
 
@@ -1005,13 +1007,12 @@ async function computeTuitionDue(db, enrollment) {
 
 router.get('/enroll-success', enrollmentPaused, async (req, res) => {
   try {
-    const [rows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
-    const qrPath = rows.length > 0 ? rows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
-    const [enrollments] = await req.db.query(
-      'SELECT * FROM enrollments WHERE user_id = ? ORDER BY id DESC LIMIT 1',
-      [req.session.user.id]
-    );
-    res.render('student/enroll-success', { title: 'Enrollment Success', qrPath, enrollment: enrollments[0] || null });
+const [enrollments] = await req.db.query(
+        'SELECT * FROM enrollments WHERE user_id = ? ORDER BY id DESC LIMIT 1',
+        [req.session.user.id]
+      );
+      // The bank is chosen on /student/payments, so this page no longer carries a QR.
+      res.render('student/enroll-success', { title: 'Enrollment Success', enrollment: enrollments[0] || null });
   } catch (error) {
     console.error('Enroll success error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
@@ -1431,6 +1432,7 @@ router.post('/enroll', enrollmentPausedUpload, uploadEnrollmentDocs, verifyCsrf,
     message: (khmerNameParts.last ? khmerNameParts.last + ' ' : '') + (khmerNameParts.first || '') +
       ' submitted an enrollment for ' + (majorName || 'an undeclared major') + '.',
     type: 'new_enrollment',
+    link: '/admin/enrollments/' + enrollmentInsert.insertId,
     detail: 'Enrollment #' + enrollmentInsert.insertId + ' is waiting for approval.'
   });
       res.redirect('/student/enroll-success');
@@ -1501,23 +1503,26 @@ router.get('/payments', enrollmentPaused, async (req, res) => {
         }
       }
     }
-    const totalDue = tuition;
-    const yearlyOnly = coveragePct === 100;
-    const [qrRows] = await req.db.query("SELECT setting_value FROM settings WHERE setting_key = 'payment_qr_path'");
-    const qrPath = qrRows.length > 0 ? qrRows[0].setting_value : '/images/qr_acleda_nhelkong.jpg';
-    res.render('student/payments', {
-      title: 'My Payments',
-      enrollments,
-      payments,
-      feeTypes,
-      totalPaid: totalPaid[0].total || 0,
-      totalDue,
-      yearlyTuition: tuition,
-      majorName,
-      scholarshipName,
-      yearlyOnly,
-      qrPath
-    });
+const totalDue = tuition;
+const yearlyOnly = coveragePct === 100;
+// Active banks the student can pay through. Sorted by sort_order so the admin controls the
+// order they appear in. A bank is only offered while it is active, so deactivating one
+// removes it from the picker without touching historical payments.
+const [banks] = await req.db.query(
+  'SELECT id, name_kh, name_en, account_name, account_number, qr_path, instructions FROM payment_banks WHERE is_active = 1 ORDER BY sort_order ASC, id ASC');
+res.render('student/payments', {
+ title: 'My Payments',
+ enrollments,
+ payments,
+ feeTypes,
+ totalPaid: totalPaid[0].total || 0,
+ totalDue,
+ yearlyTuition: tuition,
+ majorName,
+ scholarshipName,
+ yearlyOnly,
+ banks
+});
   } catch (error) {
     console.error('Payments page error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
@@ -1608,16 +1613,35 @@ router.post('/payments', enrollmentPaused, (req, res) => {
                 proofPath = r.url;
             }
 
-            await req.db.query(
-                'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [enrollment_id, userId, feeTypeId, amount, 'bank_transfer', transaction_ref || payPeriod, proofPath]
-            );
+// Which bank the student paid through. Validated against the ACTIVE list rather than
+// trusted: a forged id, or a bank the admin deactivated after the page was rendered, must
+// not end up recorded on the payment. There is no default -- a student has to actually pick.
+const requestedBankId = parseInt(req.body.bank_id, 10);
+if (!Number.isInteger(requestedBankId)) {
+  return await flashAndRedirect(req, res, 'error', t(req,
+    'សូមជ្រើសធនាគារដែលត្រូវបង់ប្រាក់។',
+    'Please choose a bank to pay through.'), '/student/payments');
+}
+const [chosenBank] = await req.db.query(
+  'SELECT id, name_en, name_kh FROM payment_banks WHERE id = ? AND is_active = 1', [requestedBankId]);
+if (chosenBank.length === 0) {
+  return await flashAndRedirect(req, res, 'error', t(req,
+    'ធនាគារនេះមិនទាន់អាចប្រើបាន។ សូមជ្រើសធនាគារផ្សេង។',
+    'That bank is no longer available. Please choose another.'), '/student/payments');
+}
+
+await req.db.query(
+    'INSERT INTO payments (enrollment_id, user_id, fee_type_id, amount, payment_method, bank_id, transaction_ref, proof_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [enrollment_id, userId, feeTypeId, amount, 'bank_transfer', requestedBankId, transaction_ref || payPeriod, proofPath]
+  );
 // A pending payment has to be matched against the QR slip by hand, so staff need it.
   await notifyAdmins(req.db, {
     title: 'New payment submitted',
     message: 'A student submitted a payment of ' + Math.round(amount).toLocaleString('en-US') +
       '៛ against enrollment #' + enrollment_id + '.',
     type: 'new_payment',
+    // There is no per-payment admin page; the payments list IS the verification queue.
+    link: '/admin/payments',
     detail: (transaction_ref || '').trim() || null
   });
 

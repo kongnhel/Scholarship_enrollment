@@ -9,7 +9,21 @@ const APP_TIMEZONE = 'Asia/Phnom_Penh';
 // behind Cambodia. Mark the naive value as UTC first, then format it for Cambodia.
 const parseDbDate = (value) => {
   if (value === null || value === undefined || value === '') return null;
-  if (value instanceof Date) return isNaN(value) ? null : value;
+  if (value instanceof Date) {
+    if (isNaN(value)) return null;
+    // mysql2 hands back DATETIME columns as a Date built by parsing the naive wall-clock
+    // string in the PROCESS timezone. This server runs +07:00 while MySQL's system
+    // timezone is UTC, so the Date's local components are really UTC -- the Date is
+    // therefore already 7 hours early. Rebuild the instant from those components as UTC,
+    // otherwise every timestamp renders at UTC instead of Cambodia time.
+    //
+    // DATE columns arrive the same way (local midnight) and stay correct after this,
+    // because 00:00 UTC is still the same calendar day at +07:00.
+    return new Date(Date.UTC(
+      value.getFullYear(), value.getMonth(), value.getDate(),
+      value.getHours(), value.getMinutes(), value.getSeconds(), value.getMilliseconds()
+    ));
+  }
   if (typeof value === 'number') {
     const d = new Date(value);
     return isNaN(d) ? null : d;

@@ -30,6 +30,8 @@ process.on('uncaughtException', (err) => {
 });
 
 const app = express();
+// Held so shutdown() can stop accepting connections before the pools close.
+let server = null;
 
 app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
@@ -61,9 +63,23 @@ sessionStore.onReady()
   .then(() => console.log('Session store ready (MySQL)'))
   .catch((err) => console.error('Session store FAILED to initialise:', err.message));
 
+// A missing SESSION_SECRET used to fall through to a value that is published in this
+// repository. On a production host that silently means every session cookie is signed with
+// a key an attacker already has, so anyone can forge a cookie for any account. Refuse to
+// start in production instead; development keeps the fallback so a fresh clone still runs.
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET || SESSION_SECRET === 'fallback-secret-key-change-me') {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: SESSION_SECRET is not set (or is the repository default).');
+    console.error('Set a long random value in .env before starting in production.');
+    process.exit(1);
+  }
+  console.warn('WARNING: SESSION_SECRET is unset - using the development fallback. Never do this in production.');
+}
+
 app.use(session({
   store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'fallback-secret-key-change-me',
+  secret: SESSION_SECRET || 'fallback-secret-key-change-me',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -157,6 +173,21 @@ app.use(async (req, res, next) => {
   // commented out, so nothing was reachable. Driving the UI from the same flag keeps the
   // two from drifting apart again.
   res.locals.enrollmentEnabled = ENROLLMENT_ENABLED;
+  // Public contact details for the footer, editable at /admin/contact. Fetched for every
+  // request because the footer appears on every page, but kept to one indexed lookup and
+  // allowed to fail silently: a footer is not worth failing a page over, and the view
+  // carries literal defaults for exactly that case.
+  res.locals.contactInfo = {};
+  try {
+    const [contactRows] = await db.query(
+      "SELECT setting_key, setting_value FROM settings WHERE setting_key LIKE 'contact\\_%'");
+    const info = {};
+    contactRows.forEach(r => { info[r.setting_key.replace(/^contact_/, '')] = r.setting_value; });
+    res.locals.contactInfo = info;
+  } catch (err) {
+    console.error('Contact settings lookup failed:', err.message);
+  }
+
   // Unread count for the sidebar bell. A failure here must not take the page down, and an
   // anonymous visitor has no inbox, so both cases fall through to 0.
   res.locals.unreadNotifications = 0;
@@ -226,6 +257,28 @@ app.get('/terms', (req, res) => {
   res.render('terms', { title: 'Terms & Conditions' });
 });
 
+// Readiness probe for IIS/ARR and any external monitor. It answers "can this process
+// actually serve?", so it checks the database rather than just returning 200 -- a process
+// that booted but lost its pool is not healthy, and reporting otherwise causes ARR to
+// keep a broken site in rotation.
+//
+// Registered BEFORE the 404 catch-all below: Express stops at the first matching handler,
+// so a route added after `app.use((req, res) => ... 404)` is unreachable.
+app.get('/health', async (req, res) => {
+  const started = Date.now();
+  try {
+    await db.query('SELECT 1');
+    res.json({
+      status: 'ok',
+      uptimeSeconds: Math.round(process.uptime()),
+      dbLatencyMs: Date.now() - started,
+      env: process.env.NODE_ENV || 'development'
+    });
+  } catch (err) {
+    res.status(503).json({ status: 'degraded', error: 'database unavailable' });
+  }
+});
+
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Page Not Found' });
 });
@@ -274,6 +327,21 @@ app.use((err, req, res, next) => {
     return res.redirect(safeBackPath(req));
   }
 
+  // A template that fails to compile throws here, and the generic branch below redirected
+  // the visitor with no explanation. That is how /terms served a 302 to the home page for
+  // as long as the bug existed: the page looked "redirected" rather than broken, so nothing
+  // in the logs said a template could not be parsed. A render failure is a server fault and
+  // must say so with a 500.
+  const isRenderFailure = err && /while compiling ejs|Failed to lookup view|is not defined|unexpected token/i.test(String(err.message || ''));
+  if (isRenderFailure) {
+    console.error('TEMPLATE RENDER FAILURE on ' + req.method + ' ' + req.originalUrl + ':', err);
+    return res.status(500).send(
+      '<!doctype html><meta charset="utf-8"><title>Server error</title>' +
+      '<h1>Something went wrong on our side</h1>' +
+      '<p>This page could not be displayed. The problem has been logged.</p>'
+    );
+  }
+
   console.error('Server error:', err);
   req.flash('error', 'An internal server error occurred');
   res.redirect(safeBackPath(req));
@@ -288,14 +356,71 @@ autoSetup()
   .then(() => db.query('SELECT 1'))
   .then(() => {
     console.log('Database connected successfully');
-    app.listen(PORT, HOST, () => {
+    server = app.listen(PORT, HOST, () => {
       console.log(`Server running on http://${HOST}:${PORT} [${process.env.NODE_ENV || 'development'}]`);
+    });
+    server.on('error', (err) => {
+      // Without this, a port clash produced an unhandled 'error' event and a bare crash
+      // with no indication of which port failed.
+      if (err.code === 'EADDRINUSE') {
+        console.error(`FATAL: ${HOST}:${PORT} is already in use. Stop the other process (or the stale IIS node worker) and restart.`);
+      } else {
+        console.error('HTTP server error:', err);
+      }
+      process.exit(1);
     });
   })
   .catch((err) => {
     console.error('Startup failed:', err.message);
     process.exit(1);
   });
+
+// Graceful shutdown. IIS recycles the application pool and nodemon restarts on save by
+// sending SIGTERM/SIGINT; without a handler the process died mid-request and the MySQL
+// pool plus the session store were torn down with open sockets, which shows up later as
+// "connection lost" errors and stale sessions.
+let shuttingDown = false;
+function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`\n${signal} received - shutting down gracefully...`);
+
+  const force = setTimeout(() => {
+    console.error('Shutdown timed out after 10s - forcing exit.');
+    process.exit(1);
+  }, 10000);
+  force.unref();
+
+  const finish = async () => {
+    try {
+      if (server) await new Promise(resolve => server.close(resolve));
+      console.log('HTTP server closed.');
+    } catch (err) {
+      console.error('Error closing HTTP server:', err.message);
+    }
+    try {
+      if (sessionStore && typeof sessionStore.close === 'function') {
+        await new Promise(resolve => sessionStore.close(resolve));
+        console.log('Session store closed.');
+      }
+    } catch (err) {
+      console.error('Error closing session store:', err.message);
+    }
+    try {
+      await db.end();
+      console.log('Database pool closed.');
+    } catch (err) {
+      console.error('Error closing database pool:', err.message);
+    }
+    clearTimeout(force);
+    console.log('Shutdown complete.');
+    process.exit(0);
+  };
+
+  finish();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);

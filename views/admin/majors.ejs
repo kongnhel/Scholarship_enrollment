@@ -15,9 +15,31 @@
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងជំនាញសិក្សាទាំងអស់' : 'Manage all academic majors' %></p>
         </div>
       </div>
-      <button onclick="document.getElementById('addMajorModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-colors shadow-sm flex items-center gap-2 self-start sm:self-auto">
-        <i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមជំនាញថ្មី' : 'Add New Major' %>
-      </button>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+        <%
+          // Two ways to read the same list. Card is the default because the seven-column
+          // table squeezed Khmer names into a narrow column on a laptop; the table stays
+          // for scanning a row at a time. The choice rides in the URL rather than
+          // localStorage so it survives a reload, a filter and a page of pagination, and so
+          // a link can be shared exactly as it was seen.
+          var isCard = view !== 'table';
+          var toggleBtn = 'px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 border ';
+          var onBtn = 'bg-gradient-to-r from-green-600 to-emerald-500 text-white border-transparent shadow-md';
+          var offBtn = 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700';
+          var searchQ = filters.search ? '&search=' + encodeURIComponent(filters.search) : '';
+        %>
+        <div class="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-1 w-fit">
+          <a href="/admin/majors?view=card<%= searchQ %>" class="<%= toggleBtn %><%= isCard ? onBtn : offBtn %>">
+            <i class="bi bi-grid-3x3-gap"></i><%= currentLang === 'km' ? 'កាត' : 'Cards' %>
+          </a>
+          <a href="/admin/majors?view=table<%= searchQ %>" class="<%= toggleBtn %><%= isCard ? offBtn : onBtn %>">
+            <i class="bi bi-list-ul"></i><%= currentLang === 'km' ? 'តារាង' : 'Table' %>
+          </a>
+        </div>
+        <button onclick="document.getElementById('addMajorModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-colors shadow-sm flex items-center gap-2">
+          <i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមជំនាញថ្មី' : 'Add New Major' %>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -29,6 +51,8 @@
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
     </div>
     <form action="/admin/majors" method="GET" class="p-5">
+      <%# Without this the search would silently snap the list back to the card view. %>
+      <input type="hidden" name="view" value="<%= isCard ? 'card' : 'table' %>">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="relative sm:col-span-2 lg:col-span-3">
           <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
@@ -47,6 +71,87 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <% if (isCard) { %>
+    <%# Card view (default). Same data and same actions as the table, laid out so the Khmer
+        name gets a full line instead of a narrow column. %>
+    <div class="p-5">
+      <% if (majors.length === 0) { %>
+        <div class="py-12 text-center">
+          <div class="flex flex-col items-center gap-2">
+            <i class="bi bi-book text-4xl text-gray-300 dark:text-gray-600"></i>
+            <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានជំនាញទេ' : 'No majors found' %></p>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <% majors.forEach(function(major, index) { %>
+            <%
+              var unpriced = Number(major.tuition_rows || 0) === 0;
+              var displayName = currentLang === 'km' ? major.name_kh : (major.name_en || major.name_kh);
+              var secondary = currentLang === 'km' ? major.name_en : major.name_kh;
+              var faculty = currentLang === 'km' ? (major.faculty_kh || '') : (major.faculty_en || '');
+            %>
+            <div class="flex flex-col rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 hover:border-green-200 dark:hover:border-green-800 hover:shadow-md transition-all">
+              <div class="flex items-start gap-3 p-4 pb-3">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 flex-shrink-0 mt-0.5"><%= (currentPage - 1) * limit + index + 1 %></span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-2 mb-1.5">
+                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug"><%= displayName %></p>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full flex-shrink-0 <%= major.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400' %>">
+                      <span class="w-1.5 h-1.5 rounded-full <%= major.is_active ? 'bg-green-500' : 'bg-gray-400' %>"></span>
+                      <%= major.is_active ? (currentLang === 'km' ? 'សកម្ម' : 'Active') : (currentLang === 'km' ? 'មិនសកម្ម' : 'Inactive') %>
+                    </span>
+                  </div>
+                  <% if (secondary) { %>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 leading-snug"><%= secondary %></p>
+                  <% } %>
+                </div>
+              </div>
+
+              <div class="px-4 pb-3 space-y-2.5">
+                <div class="flex items-start gap-2.5">
+                  <i class="bi bi-building text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0"></i>
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty' %></p>
+                    <p class="text-sm text-gray-700 dark:text-gray-200 leading-snug"><%= faculty || (currentLang === 'km' ? '—' : 'Not set') %></p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <i class="bi bi-cash-coin text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0"></i>
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ថ្លៃសិក្សា' : 'Tuition' %></p>
+                    <% if (unpriced) { %>
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-0.5 text-xs font-bold rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300" title="<%= currentLang === 'km' ? 'ត្រូវកំណត់ថ្លៃសិក្សាសម្រាប់មុខជំនាញនេះ' : 'Set tuition for this major' %>">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <%= currentLang === 'km' ? 'មិនទាន់កំណត់ថ្លៃ' : 'Not set' %>
+                      </span>
+                    <% } else { %>
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-0.5 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                        <i class="bi bi-check-circle"></i>
+                        <%= currentLang === 'km' ? 'បានកំណត់ថ្លៃ' : 'Priced' %>
+                      </span>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-1.5 px-4 pb-4 pt-1 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" data-action="editMajor" data-payload="<%= JSON.stringify(major) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
+                <form action="/admin/majors/<%= major.id %>/toggle" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 <%= major.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20' : 'border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' %>">
+                    <i class="bi <%= major.is_active ? 'bi-pause-circle' : 'bi-play-circle' %>"></i>
+                    <%= major.is_active ? (currentLang === 'km' ? 'បិទ' : 'Off') : (currentLang === 'km' ? 'បើក' : 'On') %>
+                  </button>
+                </form>
+                <button type="button" data-action="confirmDeleteMajor" data-id="<%= major.id %>" data-name="<%= currentLang === 'km' ? major.name_kh : major.name_en %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 hover:bg-red-50 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Del' %></button>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  <% } else { %>
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
@@ -124,6 +229,7 @@
         </tbody>
       </table>
     </div>
+  <% } %>
 
     <% if (totalPages > 1) { %>
       <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -131,7 +237,8 @@
           <%= currentLang === 'km' ? 'ទំព័រ' : 'Page' %> <%= currentPage %> <%= currentLang === 'km' ? 'នៃ' : 'of' %> <%= totalPages %>
         </p>
         <div class="flex gap-1">
-          <% const majorQs = 'search=' + encodeURIComponent(filters.search || ''); %>
+          <%# view is carried through so paging never silently flips the list back. %>
+          <% const majorQs = 'search=' + encodeURIComponent(filters.search || '') + '&view=' + (isCard ? 'card' : 'table'); %>
           <a href="?page=<%= currentPage - 1 %>&<%= majorQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
             <i class="bi bi-chevron-left"></i>
             <span class="hidden sm:inline ml-1"><%= currentLang === 'km' ? 'មុន' : 'Previous' %></span>
