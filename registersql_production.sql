@@ -448,21 +448,14 @@ CREATE TABLE `telegram_pending` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===========================================================
--- DEFAULT ADMIN ACCOUNT
--- Password: admin123 (CHANGE THIS IMMEDIATELY after first login)
+-- DEFAULT ADMIN ACCOUNT -- INTENTIONALLY NOT INCLUDED
 -- ===========================================================
-INSERT INTO `users` (`email`, `password`, `role`, `khmer_name`, `english_name`, `phone`, `is_verified`, `username`, `verify_method`)
-VALUES (
-  'admin@nmu.edu.kh',
-  '$2a$12$xo9xBQcdMIxAnLHDYSHneeGmejRDwUtJ1QGHLxPAp4op8DbxRtF/G',
-  'admin',
-  'អ្នកគ្រប់គ្រង',
-  'Administrator',
-  '+855',
-  1,
-  'admin',
-  'email'
-);
+-- This file used to insert an administrator with a bcrypt hash and a comment naming the
+-- password next to it. A password hash committed next to its own plaintext is not a
+-- secret, and this file is in version control.
+--
+-- Provision the first administrator separately, with a generated password. See the note at
+-- the end of database/seed.sql for the command.
 
 SET FOREIGN_KEY_CHECKS = 1;
 

@@ -11,8 +11,17 @@ const telegramOtp = require('../services/otpSender');
 const { uploadToImageKit } = require('../utils/imagekit');
 const appConfig = require('../config/app');
 
+// A real bcrypt hash at the same cost factor as a stored one, of a 32-byte random string
+// nobody can supply. It exists purely to be compared against.
+//
+// Without it the unknown-user branch returned immediately while the wrong-password branch
+// spent ~250ms inside bcrypt, so the two responses differed by enough to identify which
+// email addresses, usernames and phone numbers are registered -- undoing the careful
+// identical-message work in the two branches below. The comparison result is discarded.
+const DUMMY_PASSWORD_HASH = '$2a$12$ouvzz3V6sXp1l/082AlqSuaL3oO6lQJXgm5P9Ew.xAmJL.U8VqwkW';
+
 function t(req, km, en) {
-  return req.session.lang === 'km' ? km : en;
+    return req.session.lang === 'km' ? km : en;
 }
 
 function redirectBackToLogin(res, identifier) {
@@ -45,6 +54,9 @@ router.post('/login', [
       [login_identifier, login_identifier, login_identifier]
     );
     if (users.length === 0) {
+      // Burn the same time a real comparison would, so "no such account" and "wrong
+      // password" are indistinguishable by response time as well as by message.
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
       req.flash('error', t(req, 'ព័ត៌មានចូលមិនត្រឹមត្រូវ', 'Invalid credentials'));
       return redirectBackToLogin(res, login_identifier);
     }
@@ -520,21 +532,30 @@ router.post('/verify-account', [
       req.flash('error', t(req, 'សូមបំពេញអ៊ីមែលឬលេខទូរស័ព្ទ', 'Email or phone number is required'));
       return res.redirect('/auth/verify-account');
     }
-    const { identifier } = req.body;
-    const [users] = await req.db.query(
-      'SELECT id, email, phone, is_verified, verify_method FROM users WHERE email = ? OR phone = ?',
-      [identifier, identifier]
-    );
-    if (users.length === 0) {
-      req.flash('error', t(req, 'រកមិនឃើញគណនីដែលមានអ៊ីមែលឬលេខទូរស័ព្ទនេះទេ', 'No account found with that email or phone number'));
-      return res.redirect('/auth/verify-account');
-    }
-    const user = users[0];
-    if (user.is_verified) {
-      req.flash('success', t(req, 'គណនីត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។ អ្នកអាចចូលបាន។', 'Account is already verified. You can login.'));
-      return res.redirect('/auth/login');
-    }
-    return res.redirect('/auth/verify-otp?userId=' + user.id);
+const { identifier } = req.body;
+      const [users] = await req.db.query(
+        'SELECT id, email, phone, is_verified, verify_method FROM users WHERE email = ? OR phone = ?',
+        [identifier, identifier]
+      );
+      // One response for "no such account" and "already verified". These used to be two
+      // distinct messages, which turned this form -- linked straight from the login page --
+      // into a two-bit oracle for who has an account and whether they have verified it.
+      // Neither answer helps the person in front of the form, so neither is given.
+      if (users.length === 0 || users[0].is_verified) {
+        req.flash('error', t(req,
+          'រកមិនឃើញគណនីដែលត្រូវបានផ្ទៀងផ្ទាត់នៅលើអ៊ីមែលឬលេខទូរស័ព្ទនេះ ឬគណនីត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។',
+          'No account needing verification was found for that email or phone number'));
+        return res.redirect('/auth/verify-account');
+      }
+      // The id goes in the session, not the URL. /auth/verify-otp reads it from
+      // req.session.pendingVerificationUserId and treats a missing value as "redirect
+      // without confirming anything", which is the whole point of that page -- so passing
+      // ?userId= in the query string both leaked the internal id and, because this route
+      // never set the session key, dead-ended on /auth/login every single time. Setting it
+      // here repairs the flow and removes the leak at the same time.
+      req.session.pendingVerificationUserId = Number(users[0].id);
+      await saveSession(req);
+      return res.redirect('/auth/verify-otp');
   } catch (error) {
     console.error('Verify account lookup error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
@@ -548,28 +569,11 @@ router.get('/forgot-password', (req, res) => {
   res.render('auth/forgot-password', { title: 'Forgot Password' });
 });
 
-// Two limits, because either one alone is the wrong shape:
-//  - per recipient: stops one address being flooded with reset mails from any source.
-//    Keyed only on the address, so a shared campus IP does not block everyone at once.
-//  - per IP: stops spraying many different addresses from one machine.
-const forgotPasswordByAddressLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3,
-  keyGenerator: (req) => String((req.body && req.body.email) || '').trim().toLowerCase(),
-  message: 'Too many password reset requests for this address. Please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
+// Rate limiting for /forgot-password lives in config/rateLimits.js and is mounted in
+// server.js, ahead of the CSRF guard, so that a token-less POST is still counted. See the
+// comment there.
 
-const forgotPasswordByIpLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: 'Too many password reset requests. Please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-router.post('/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddressLimiter, [
+router.post('/forgot-password', [
   body('email').trim().isEmail().normalizeEmail().withMessage('Please enter a valid email address'),
 ], async (req, res) => {
   const done = async () => {
@@ -797,10 +801,18 @@ router.post('/profile/password', async (req, res) => {
     // flash would let express-session re-save the row on response end and quietly undo
     // the revocation. Regenerate first (new id, so the old cookie dies), then drop every
     // stored row for this account, then re-apply the flash to the fresh session.
+    //
+    // The id has to be read BEFORE regenerate(), not after. regenerate() replaces
+    // req.session with a brand-new empty Session, so `req.session.user` is undefined
+    // afterwards and `.id` throws -- which sent this straight into the catch below. The
+    // password had already been written at that point, so the user was told the change
+    // failed when it had succeeded, while every other session stayed valid for the full
+    // 24h TTL: exactly the outcome this block exists to prevent.
+    const userId = req.session.user.id;
     await new Promise((resolve, reject) => {
       req.session.regenerate((err) => (err ? reject(err) : resolve()));
     });
-    const revoked = await revokeSessionsForUser(req.db, req.session.user.id);
+    const revoked = await revokeSessionsForUser(req.db, userId);
     req.flash('success', t(req,
         revoked > 0
             ? 'ប្តូរពាក្យសម្ងាត់ជោគជ័យ។ សូមចូលម្ដងទៀត។'

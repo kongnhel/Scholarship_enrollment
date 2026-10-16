@@ -608,11 +608,27 @@ async function autoSetup() {
     console.log('    ' + feeTypes.length + ' fee types');
   }
 
-  // Seed users (admin + committee + students)
-  if (await isTableEmpty(conn, 'users')) {
-    const adminHash = await bcrypt.hash('admin123', 12);
-    const committeeHash = await bcrypt.hash('committee123', 12);
-    const studentHash = await bcrypt.hash('123456', 12);
+// Demo accounts are opt-in, and deliberately NOT keyed off NODE_ENV.
+//
+// autoSetup() runs on every boot, so if the users table is ever empty -- a restore from
+// schema, a fresh volume, a misconfigured DB_NAME -- this created an admin that was
+// already verified, whose password is a dictionary word, and printed the credentials to
+// stdout where they land in the IIS logs. Those same credentials are published in
+// database/seed.sql, which is committed to this repository.
+//
+// Gating on NODE_ENV === 'production' would not have helped: NODE_ENV is not set in .env,
+// so it is undefined on the very host this matters. Opt-in only.
+const seedDemoData = process.env.SEED_DEMO_DATA === 'true';
+
+if (!seedDemoData && await isTableEmpty(conn, 'users')) {
+  console.log('    users table is empty - skipping demo accounts (set SEED_DEMO_DATA=true to create them)');
+  console.log('    create the first admin by hand, then restart');
+}
+
+if (seedDemoData && await isTableEmpty(conn, 'users')) {
+  const adminHash = await bcrypt.hash('admin123', 12);
+  const committeeHash = await bcrypt.hash('committee123', 12);
+  const studentHash = await bcrypt.hash('123456', 12);
 
     await conn.query('INSERT INTO users (email, password, role, khmer_name, english_name, username, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
       ['admin@nmu.edu.kh', adminHash, 'admin', 'អ្នកគ្រប់គ្រង', 'Administrator', 'admin', 1]);
@@ -648,11 +664,13 @@ async function autoSetup() {
 console.log('    Default settings');
     }
 
-  await conn.end();
-  console.log('\n=== SETUP COMPLETE ===');
-  console.log('Admin login:     admin@nmu.edu.kh / admin123');
-  console.log('Student login:   sok_vannak@test.com / 123456');
-  console.log('');
-}
+await conn.end();
+    console.log('\n=== SETUP COMPLETE ===');
+    if (seedDemoData) {
+      console.log('Admin login:     admin@nmu.edu.kh / admin123');
+      console.log('Student login:   sok_vannak@test.com / 123456');
+    }
+    console.log('');
+  }
 
 module.exports = autoSetup;

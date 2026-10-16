@@ -901,10 +901,17 @@ router.post('/users', createUserRules, async (req, res) => {
         // No audit table exists for user changes, so at minimum record who did what.
         console.log(`[user-created] by=${req.session.user.id} email=${email} role=${wantedRole}`);
 
-        // The password is rendered, never flashed: flash data is written into the
-        // session store, which would leave the plaintext sitting in the database.
-        res.render('admin/reset-password-result', {
-            title: 'User Created',
+// The password is rendered, never flashed: flash data is written into the
+      // session store, which would leave the plaintext sitting in the database.
+      //
+      // no-store matters here specifically. This is the one page in the app that renders a
+      // live password, and without it the response can be written to the HTTP cache, kept
+      // alive by the back/forward cache, and left sitting on a shared or kiosk browser for
+      // whoever opens that machine next. Referrer-Policy already covers the outbound leak;
+      // this covers the at-rest one.
+      res.set('Cache-Control', 'no-store');
+      res.render('admin/reset-password-result', {
+          title: 'User Created',
             mode: 'created',
             email,
             role: wantedRole,
@@ -941,8 +948,9 @@ router.post('/users/:id/reset-password', async (req, res) => {
         // The generated password is returned once on the redirect target instead of being
         // flashed: flash data is written into the session store, so flashing it would
         // persist the plaintext password in the database.
-        res.render('admin/reset-password-result', {
-            title: 'Password Reset',
+res.set('Cache-Control', 'no-store');
+          res.render('admin/reset-password-result', {
+              title: 'Password Reset',
             mode: 'reset',
             email: target.email,
             role: target.role,

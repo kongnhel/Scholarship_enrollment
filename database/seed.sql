@@ -47,9 +47,25 @@ INSERT INTO scholarship_categories (name_kh, name_en, description_kh, descriptio
 ('អាហារូបករណ៍សិស្សពិការ', 'Scholarship for Students with Disabilities', 'សម្រាប់សិស្សដែលមានពិការភាព', 'For students with disabilities'),
 ('អាហារូបករណ៍ផ្សេងៗ', 'Other Categories', 'ប្រភេទអាហារូបករណ៍ផ្សេងៗដែលកំណត់ដោយសាកលវិទ្យាល័យ', 'Other scholarship categories as defined by the university');
 
-INSERT INTO users (email, password, role, khmer_name, english_name, is_verified) VALUES
-('admin@nmu.edu.kh', '$2a$12$.HCooHb.C/alwwreP4CAh.kCIFCAH/FJ0hW1RLjhyxT5jo0A3Ee76', 'admin', 'អ្នកគ្រប់គ្រង', 'Administrator', 1),
-('committee@nmu.edu.kh', '$2a$12$c8yzzQgVxceYswLHQtF9OO/qbn2kF.tOyOIUkFyJZ.pU3hBg2l7hO', 'committee', 'អ្នកគ្រប់គ្រងទី២', 'Committee Member', 1);
+-- Demo accounts were removed from this file.
+--
+-- It used to insert an admin and a committee account with bcrypt hashes of "admin123" and
+-- "committee123". Those hashes were committed to this repository, so anyone who could read
+-- the repo could log in as an administrator without cracking anything -- the password was a
+-- dictionary word. Both accounts were also created with is_verified = 1, so there was no
+-- email or OTP gate in front of them.
+--
+-- Create the first administrator deliberately instead, with a password that exists nowhere
+-- else:
+--
+--   node -e "const b=require('bcryptjs'),m=require('mysql2/promise');
+--     m.createConnection({host:process.env.DB_HOST,port:+process.env.DB_PORT,user:process.env.DB_USER,
+--     password:process.env.DB_PASSWORD,database:process.env.DB_NAME}).then(async c=>{
+--     await c.query('INSERT INTO users (email,username,password,role,khmer_name,english_name,is_verified) VALUES (?,?,?,?,?,?,1)',
+--       ['you@nmu.edu.kh','admin',await b.hash(process.argv[1],12),'admin','x','x']);c.end();})" 'your-password'
+--
+-- database/auto_setup.js has the same demo data and will create it only when
+-- SEED_DEMO_DATA=true is set explicitly.
 
 INSERT INTO settings (setting_key, setting_value, description) VALUES
 ('registration_open', '1', 'Enable or disable student registration'),

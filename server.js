@@ -15,7 +15,9 @@ const {
   registerByAddressLimiter,
   registerByIpLimiter,
   resendVerificationByAddressLimiter,
-  resendVerificationByIpLimiter
+  resendVerificationByIpLimiter,
+  forgotPasswordByAddressLimiter,
+  forgotPasswordByIpLimiter
 } = require('./config/rateLimits');
 const { safeBackPath, dashboardPathFor, formatDateTime, formatDateOnly, cambodiaDateParts } = require('./utils/helpers');
 
@@ -188,20 +190,23 @@ app.use('/uploads', express.static(uploadsDir));
 // next(), so if it ran first, a request that simply omits `_csrf` would skip the limiter
 // entirely -- which is exactly what an attacker brute-forcing /auth/login would do.
 // Mounting here means every state-changing request is counted, valid token or not.
-// register and resend-email are deliberately NOT counted here. Each already owns a limiter
-// built for it (see routes/auth.js): per-IP plus per-ADDRESS, where the per-address bucket
-// is 3/hour. That pair is stricter than this coarse one for exactly the thing that matters
-// there -- stopping one address being mailed repeatedly -- and stacking two limiters over
-// the same endpoint only makes it ambiguous which one fired when a request is refused.
-// Excluding them here also keeps their traffic off this shared bucket, which is the same 50
-// window that every other /auth route shares.
+// register, resend-email and forgot-password are deliberately NOT counted here. Each already
+// owns a limiter built for it (see config/rateLimits.js): per-IP plus per-ADDRESS, where the
+// per-address bucket is 3/hour. That pair is stricter than this coarse one for exactly the
+// thing that matters there -- stopping one address being mailed repeatedly -- and stacking two
+// limiters over the same endpoint only makes it ambiguous which one fired when a request is
+// refused. Excluding them here also keeps their traffic off this shared bucket, which is the
+// same 50 window that every other /auth route shares.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'GET' || req.path === '/register' || req.path === '/resend-email'
+  skip: (req) => req.method === 'GET'
+    || req.path === '/register'
+    || req.path === '/resend-email'
+    || req.path === '/forgot-password'
 });
 
 const generalLimiter = rateLimit({
@@ -217,14 +222,20 @@ app.use('/student', generalLimiter);
 app.use('/admin', generalLimiter);
 app.use('/committee', generalLimiter);
 
-// The two endpoints that send mail have their own per-address and per-IP limiters, defined
+// The three endpoints that send mail have their own per-address and per-IP limiters, defined
 // in config/rateLimits.js. They are mounted here, on the same side of the CSRF guard as the
 // limiters above and for the same reason: the guard answers a token-less POST with a redirect
-// and never calls next(), so a limiter sitting inside routes/auth.js would never see the
-// traffic it exists to stop. authLimiter skips these two paths (see below) so that they are
+// and never calls next(), so a limiter attached inside routes/auth.js would never see the
+// traffic it exists to stop. authLimiter skips these three paths (see below) so that each is
 // limited once, by these, rather than twice.
+//
+// /auth/forgot-password used to be the odd one out, with its limiters still declared inside
+// routes/auth.js. That put them behind the guard, where the only thing standing between a
+// spammer and someone's inbox was authLimiter's coarse 50-per-15min bucket -- the same 50
+// that every login in the app shares.
 app.use('/auth/register', registerByIpLimiter, registerByAddressLimiter);
 app.use('/auth/resend-email', resendVerificationByIpLimiter, resendVerificationByAddressLimiter);
+app.use('/auth/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddressLimiter);
 
 app.use(async (req, res, next) => {
   req.db = db;
@@ -238,13 +249,27 @@ app.use(async (req, res, next) => {
     error: req.flash('error'),
     warning: req.flash('warning')
   };
-  res.locals.currentLang = req.query.lang || req.session.lang || 'km';
-  // Only write when the language actually changes. Assigning unconditionally marks the
-  // session dirty on every request, which with a database-backed store means a write
-  // per page view - including for anonymous visitors who never log in.
-  if (req.session.lang !== res.locals.currentLang) {
-    req.session.lang = res.locals.currentLang;
-  }
+// ?lang= arrives from the URL, so it is attacker-controlled. Taking it verbatim meant any
+// string could be written into req.session, which both dirties the session (forcing a row
+// write on a MySQL-backed store) and interpolated into an inline <script> in the layout.
+// Two supported languages, so it is matched against exactly those and anything else is
+// ignored rather than stored.
+//
+// The write-back matters more than it looks. `GET /` sits outside /auth, /student, /admin
+// and /committee, so none of the four limiters apply, and both authLimiter and
+// generalLimiter skip GET. Any unauthenticated request carrying ?lang= therefore created a
+// brand-new session row of attacker-chosen length with a 24h TTL, with nothing to rate it.
+// Now an unrecognised value falls through without touching the session, so the only
+// remaining way to grow the table is the CSRF token below, which is a fixed 64 characters.
+const SUPPORTED_LANGS = ['km', 'en'];
+const requestedLang = SUPPORTED_LANGS.indexOf(req.query.lang) !== -1 ? req.query.lang : null;
+res.locals.currentLang = requestedLang || req.session.lang || 'km';
+// Only write when the language actually changes. Assigning unconditionally marks the
+// session dirty on every request, which with a database-backed store means a write
+// per page view - including for anonymous visitors who never log in.
+if (requestedLang && req.session.lang !== requestedLang) {
+  req.session.lang = requestedLang;
+}
   if (!req.session.csrfToken) {
     req.session.csrfToken = crypto.randomBytes(32).toString('hex');
   }
