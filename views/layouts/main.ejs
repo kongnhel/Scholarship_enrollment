@@ -153,29 +153,39 @@
   <script src="/js/main.js"></script>
   <script>
   (function() {
-    var lang = '<%= typeof currentLang !== "undefined" ? currentLang : "en" %>';
-    var titles = { success: { km: 'ជោគជ័យ', en: 'Success' }, error: { km: 'កំហុស', en: 'Error' }, warning: { km: 'ការព្រមាន', en: 'Warning' } };
-    document.addEventListener('DOMContentLoaded', function() {
-      if (typeof Swal === 'undefined') return;
-      var flashEl = document.getElementById('flash-data');
-      if (!flashEl) return;
-      try {
-        var data = JSON.parse(flashEl.textContent);
-        ['success', 'error', 'warning'].forEach(function(type) {
-          if (data[type]) {
+var lang = '<%= typeof currentLang !== "undefined" ? currentLang : "en" %>';
+      var titles = { success: { km: 'ជោគជ័យ', en: 'Success' }, error: { km: 'កំហុស', en: 'Error' }, warning: { km: 'ការព្រមាន', en: 'Warning' } };
+      // Every type needs its own timer. Previously only success got one:
+      //
+      //   timer: type === 'success' ? 5000 : undefined
+      //
+      // and public/js/swal.js reads `var timer = opts.timer || 0` then auto-closes only
+      // `if (timer > 0)`. So an error or warning passed undefined -> 0 -> never closed, and
+      // the toast sat on screen trapping the page until it was dismissed by hand or the
+      // browser was reloaded. That is why success behaved and errors did not.
+      //
+      // Errors get the longest window because they are the ones a user has to act on.
+      var timers = { success: 4000, warning: 6000, error: 9000 };
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Swal === 'undefined') return;
+        var flashEl = document.getElementById('flash-data');
+        if (!flashEl) return;
+        try {
+          var data = JSON.parse(flashEl.textContent);
+          ['success', 'error', 'warning'].forEach(function(type) {
+            if (!data[type]) return;
             Swal.fire({
               title: titles[type][lang] || titles[type]['en'],
               text: data[type],
               icon: type,
               confirmButtonText: lang === 'km' ? 'យល់ព្រម' : 'OK',
               showCloseButton: true,
-              timer: type === 'success' ? 5000 : undefined,
-              timerProgressBar: type === 'success'
+              // A positive number is required: the stub treats anything falsy as "never close".
+              timer: timers[type]
             });
-          }
-        });
-      } catch(e) {}
-    });
+          });
+        } catch(e) {}
+      });
   })();
   </script>
   <script>

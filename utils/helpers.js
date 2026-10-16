@@ -42,6 +42,22 @@ const parseDbDate = (value) => {
   return isNaN(d) ? null : d;
 };
 
+// A naive UTC timestamp string for a DATETIME column, as 'YYYY-MM-DD HH:mm:ss'.
+//
+// Needed because mysql2 serialises a JS Date using the PROCESS timezone. This box runs
+// +07:00 while MySQL's system timezone is UTC, so passing `new Date(Date.now() + 3600000)`
+// as a query parameter stores a wall-clock reading that is 7 hours AHEAD of the instant it
+// represents. Any expiry compared against NOW() is therefore granted 7 extra hours: the
+// "expires in 1 hour" verification and password-reset links actually stayed usable for 8.
+// Formatting the stamp as UTC here keeps the write side consistent with the UTC that NOW(),
+// CURRENT_TIMESTAMP and parseDbDate all already assume.
+//
+// Deliberately a string rather than a connection-wide `timezone: 'Z'`: that option also
+// changes how DATETIME columns come back, and parseDbDate compensates for the current
+// local-time parsing. Flipping the pool would silently shift every displayed timestamp.
+const utcStamp = (date = new Date()) =>
+  date.toISOString().slice(0, 19).replace('T', ' ');
+
 // "02/10/2026 10:02"
 const formatDateTime = (value) => {
   const d = parseDbDate(value);
@@ -74,38 +90,6 @@ const cambodiaDateParts = (value) => {
   }).formatToParts(d);
   const get = (t) => (p.find(x => x.type === t) || {}).value;
   return { day: Number(get('day')), month: Number(get('month')), year: Number(get('year')) };
-};
-
-const formatDate = (value) => formatDateTime(value);
-
-const formatDateShort = (value) => formatDateOnly(value);
-
-const getStatusColor = (status) => {
-  const colors = {
-    pending: 'badge-warning',
-    approved: 'badge-success',
-    rejected: 'badge-danger',
-    under_review: 'badge-info',
-    submitted: 'badge-primary'
-  };
-  return colors[status] || 'badge-secondary';
-};
-
-const getStatusText = (status, lang = 'en') => {
-  const statuses = {
-    pending: { en: 'Pending', km: 'កំពុងរង់ចាំ' },
-    approved: { en: 'Approved', km: 'បានយល់ព្រម' },
-    rejected: { en: 'Rejected', km: 'បានបដិសេធ' },
-    under_review: { en: 'Under Review', km: 'កំពុងពិនិត្យ' },
-    submitted: { en: 'Submitted', km: 'បានដាក់ស្នើ' }
-  };
-  return statuses[status]?.[lang] || statuses[status]?.['en'] || status;
-};
-
-const truncate = (str, len = 50) => {
-  if (!str) return '';
-  if (str.length <= len) return str;
-  return str.substring(0, len) + '...';
 };
 
 const escapeHtml = (str) => {
@@ -239,14 +223,10 @@ const flashAndRedirect = async (req, res, type, message, location) => {
 module.exports = {
   APP_TIMEZONE,
   parseDbDate,
+  utcStamp,
   cambodiaDateParts,
   formatDateTime,
   formatDateOnly,
-  formatDate,
-  formatDateShort,
-  getStatusColor,
-  getStatusText,
-  truncate,
   escapeHtml,
   generateToken,
   saveSession,

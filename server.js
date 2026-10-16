@@ -11,6 +11,12 @@ const rateLimit = require('express-rate-limit');
 const MySQLStoreFactory = require('express-mysql-session');
 const db = require('./config/database');
 const { ENROLLMENT_ENABLED } = require('./config/features');
+const {
+  registerByAddressLimiter,
+  registerByIpLimiter,
+  resendVerificationByAddressLimiter,
+  resendVerificationByIpLimiter
+} = require('./config/rateLimits');
 const { safeBackPath, dashboardPathFor, formatDateTime, formatDateOnly, cambodiaDateParts } = require('./utils/helpers');
 
 // A single listener for the whole process. There used to be two identical
@@ -92,6 +98,67 @@ app.use(session({
 }));
 
 app.use(flash());
+
+// ==================== DURABLE FLASH ====================
+//
+// connect-flash keeps messages in req.session, and express-session persists that session
+// ASYNCHRONOUSLY when the response ends. res.redirect() does not wait for the write, so the
+// sequence was a genuine race:
+//
+//   1. route calls req.flash('error', ...) then res.redirect(...)
+//   2. Express emits the 302 immediately; the `UPDATE sessions ...` is still in flight
+//   3. the browser follows the redirect and reads the session
+//   4. if the write has not landed yet -> empty flash -> the page renders no message
+//   5. the write completes a moment later, so a reload finally shows it
+//
+// That is why the alert appeared only after a manual refresh, and only sometimes: it is a
+// race, won more often on a local store and lost more often against a remote database, where
+// persisting a session is an internet round trip. The config here makes it unavoidable:
+// `resave: false` and `saveUninitialized: false` (server.js) over an express-mysql-session
+// store pointed at Aiven.
+//
+// Wrapping res.redirect is deliberate rather than adding `await saveSession(req)` to each
+// call site: there are roughly 240 flash-then-redirect sites across routes/auth.js,
+// routes/student.js, routes/admin.js and routes/committee.js, and a fix that has to be
+// remembered at every new call site is one that will be forgotten. Mounted after session()
+// and flash() so req.session.flash exists, and well before the routers (mounted later in
+// this file), so it covers every page.
+//
+// Three properties keep this safe:
+//  - it only intervenes when a flash is genuinely pending, so ordinary redirects keep their
+//    current behaviour and add no latency;
+//  - `go` makes the redirect fire exactly once, whichever of callback/timeout arrives first;
+//  - the 2s timeout guarantees a stalled or unreachable session store degrades to today's
+//    behaviour (redirect anyway) instead of leaving the user on a blank response.
+app.use((req, res, next) => {
+  const originalRedirect = res.redirect.bind(res);
+  res.redirect = function(...args) {
+    const flash = req.session && req.session.flash;
+    const pending = flash && Object.keys(flash).some(
+      (k) => Array.isArray(flash[k]) && flash[k].length > 0
+    );
+    if (!pending || typeof req.session.save !== 'function') {
+      return originalRedirect(...args);
+    }
+    let sent = false;
+    const go = () => {
+      if (sent) return;
+      sent = true;
+      originalRedirect(...args);
+    };
+    try {
+      req.session.save(go);
+    } catch (err) {
+      console.error('Session save before redirect failed:', err.message);
+      return go();
+    }
+    // A store that never calls back must not strand the response.
+    setTimeout(go, 2000).unref();
+    return undefined;
+  };
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
@@ -121,13 +188,20 @@ app.use('/uploads', express.static(uploadsDir));
 // next(), so if it ran first, a request that simply omits `_csrf` would skip the limiter
 // entirely -- which is exactly what an attacker brute-forcing /auth/login would do.
 // Mounting here means every state-changing request is counted, valid token or not.
+// register and resend-email are deliberately NOT counted here. Each already owns a limiter
+// built for it (see routes/auth.js): per-IP plus per-ADDRESS, where the per-address bucket
+// is 3/hour. That pair is stricter than this coarse one for exactly the thing that matters
+// there -- stopping one address being mailed repeatedly -- and stacking two limiters over
+// the same endpoint only makes it ambiguous which one fired when a request is refused.
+// Excluding them here also keeps their traffic off this shared bucket, which is the same 50
+// window that every other /auth route shares.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'GET'
+  skip: (req) => req.method === 'GET' || req.path === '/register' || req.path === '/resend-email'
 });
 
 const generalLimiter = rateLimit({
@@ -142,6 +216,15 @@ app.use('/auth', authLimiter);
 app.use('/student', generalLimiter);
 app.use('/admin', generalLimiter);
 app.use('/committee', generalLimiter);
+
+// The two endpoints that send mail have their own per-address and per-IP limiters, defined
+// in config/rateLimits.js. They are mounted here, on the same side of the CSRF guard as the
+// limiters above and for the same reason: the guard answers a token-less POST with a redirect
+// and never calls next(), so a limiter sitting inside routes/auth.js would never see the
+// traffic it exists to stop. authLimiter skips these two paths (see below) so that they are
+// limited once, by these, rather than twice.
+app.use('/auth/register', registerByIpLimiter, registerByAddressLimiter);
+app.use('/auth/resend-email', resendVerificationByIpLimiter, resendVerificationByAddressLimiter);
 
 app.use(async (req, res, next) => {
   req.db = db;

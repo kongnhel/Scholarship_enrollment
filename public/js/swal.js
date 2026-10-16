@@ -13,7 +13,24 @@ Swal.fire = function(opts) {
     var showCloseButton = opts.showCloseButton || false;
     var allowOutsideClick = opts.allowOutsideClick !== false;
     var allowEscapeKey = opts.allowEscapeKey !== false;
-    var timer = opts.timer || 0;
+
+    // How long an informational toast dismisses itself, by icon. Errors get the longest
+    // window because they are the ones a user has to act on.
+    //
+    // The previous default was 0, i.e. "never close". Anything that fired a toast without
+    // passing its own timer -- every client-side validation message in auth/profile.ejs,
+    // auth/register.ejs, auth/reset-password.ejs and public/js/main.js -- therefore sat on
+    // screen trapping the page until the user clicked OK or reloaded. Fixing that at six
+    // call sites would just relocate the trap to the next call site, so the default lives
+    // here instead.
+    //
+    // A Cancel button is what separates a toast from a decision, and it is the discriminator
+    // rather than the icon: showConfirmModal deliberately reuses the 'warning' icon for
+    // destructive confirmations, so keying on icon would auto-dismiss a dialog the user is
+    // still reading and could dismiss it straight into a delete.
+    var DEFAULT_TOAST_TIMER = { success: 4000, warning: 6000, error: 9000, info: 5000, question: 5000 };
+    var timer = opts.timer || (showCancelButton ? 0 : (DEFAULT_TOAST_TIMER[icon] || 5000));
+
     var customClass = opts.customClass || {};
     var reverseButtons = opts.reverseButtons || false;
     var backdrop = opts.backdrop !== false;

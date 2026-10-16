@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const { sendEmail } = require('../config/mailer');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
-const { generateToken, escapeHtml, saveSession, revokeSessionsForUser } = require('../utils/helpers');
+const { generateToken, escapeHtml, saveSession, revokeSessionsForUser, utcStamp } = require('../utils/helpers');
 const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend } = require('../utils/otp');
 const telegramOtp = require('../services/otpSender');
 const { uploadToImageKit } = require('../utils/imagekit');
@@ -104,6 +104,9 @@ router.get('/register', (req, res) => {
   res.render('auth/register', { title: 'Register' });
 });
 
+// Rate limiting for /register lives in config/rateLimits.js and is mounted in server.js,
+// ahead of the CSRF guard, so that a token-less POST is still counted. See the comment there.
+
 router.post('/register', [
   body('khmer_name').trim().notEmpty().withMessage('Khmer name is required'),
   body('english_name').trim().notEmpty().withMessage('English name is required'),
@@ -158,7 +161,7 @@ router.post('/register', [
 
     if (verify_method === 'email') {
       const token = generateToken();
-      const expires = new Date(Date.now() + 3600000);
+      const expires = utcStamp(new Date(Date.now() + 3600000));
       const [result] = await req.db.query(
         'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
@@ -177,7 +180,10 @@ router.post('/register', [
       } else {
         req.flash('error', t(req, 'ការចុះឈ្មោះជោគជ័យ ប៉ុន្តែមិនអាចផ្ញើអ៊ីមែលផ្ទៀងផ្ទាត់បានទេ។', 'Registration successful but failed to send verification email.'));
       }
-      return res.redirect('/auth/login');
+      // unverified=1 opens the resend panel on the login page, so a student whose
+      // verification mail is delayed, filtered or bounced has an immediate way to get
+      // another link instead of having to register all over again.
+      return res.redirect('/auth/login?unverified=1');
     } else {
       const [result] = await req.db.query(
         'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -221,50 +227,75 @@ router.get('/verify-email/:token', async (req, res) => {
       'SELECT * FROM users WHERE verification_token = ? AND token_expires_at > NOW()',
       [token]
     );
-    if (users.length === 0) {
-      req.flash('error', t(req, 'តំណផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired verification token'));
+      if (users.length === 0) {
+        req.flash('error', t(req, 'តំណផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired verification token'));
+        await saveSession(req);
+        return res.redirect('/auth/login');
+      }
+      const user = users[0];
+      await req.db.query(
+        'UPDATE users SET is_verified = 1, verification_token = NULL, token_expires_at = NULL WHERE id = ?',
+        [user.id]
+      );
+      req.flash('success', t(req, 'ផ្ទៀងផ្ទាត់អ៊ីមែលជោគជ័យ! អ្នកអាចចូលបានឥឡូវនេះ។', 'Email verified successfully! You can now login.'));
+      await saveSession(req);
+      return res.redirect('/auth/login');
+    } catch (error) {
+      console.error('Email verification error:', error);
+      req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់', 'An error occurred during verification'));
+      await saveSession(req);
       return res.redirect('/auth/login');
     }
-    const user = users[0];
-    await req.db.query(
-      'UPDATE users SET is_verified = 1, verification_token = NULL, token_expires_at = NULL WHERE id = ?',
-      [user.id]
-    );
-    req.flash('success', t(req, 'ផ្ទៀងផ្ទាត់អ៊ីមែលជោគជ័យ! អ្នកអាចចូលបានឥឡូវនេះ។', 'Email verified successfully! You can now login.'));
-    return res.redirect('/auth/login');
-  } catch (error) {
-    console.error('Email verification error:', error);
-    req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់', 'An error occurred during verification'));
-    return res.redirect('/auth/login');
-  }
 });
+
+// Rate limiting for /resend-email lives in config/rateLimits.js and is mounted in server.js,
+// ahead of the CSRF guard, so that a token-less POST is still counted. See the comment there.
 
 router.post('/resend-email', [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
 ], async (req, res) => {
+  // Same response whether or not an unverified account exists. Previously the "no pending
+  // registration" branch flashed a distinct error, which turned this endpoint into an
+  // oracle: anyone could POST an address and learn whether it was registered and still
+  // unverified. Same reasoning, and the same wording convention, as /auth/forgot-password.
+  const done = async () => {
+    req.flash('success', t(req, 'បានផ្ញើអ៊ីមែលផ្ទៀងផ្ទាត់ហើយ។ សូមពិនិត្យមើលប្រអប់សំបុត្ររបស់អ្នក។', 'Verification email sent. Please check your inbox.'));
+    await saveSession(req);
+    return res.redirect('/auth/login?unverified=1');
+  };
   try {
-    const { email } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      req.flash('error', t(req, 'សូមបំពេញអ៊ីមែលឲ្យបានត្រឹមត្រូវ', 'Please enter a valid email address'));
+      return res.redirect('/auth/login');
+    }
+    const email = String(req.body.email || '').trim().toLowerCase();
     const [users] = await req.db.query('SELECT * FROM users WHERE email = ? AND is_verified = 0', [email]);
     if (users.length === 0) {
-      req.flash('error', t(req, 'រកមិនឃើញការចុះឈ្មោះដែលរង់ចាំសម្រាប់អ៊ីមែលនេះទេ', 'No pending registration found for this email'));
-      return res.redirect('/auth/login');
+      return done();
     }
     const user = users[0];
     const token = generateToken();
-    const expires = new Date(Date.now() + 3600000);
+    const expires = utcStamp(new Date(Date.now() + 3600000));
     await req.db.query(
       'UPDATE users SET verification_token = ?, token_expires_at = ? WHERE id = ?',
       [token, expires, user.id]
     );
     const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
-    await sendEmail(email, 'Resend Verification Link', `
+    const sent = await sendEmail(email, 'Resend Verification Link', `
       <p>Hello ${escapeHtml(user.khmer_name || user.english_name)},</p>
       <p>Here is your verification link:</p>
       <a href="${verificationUrl}">${verificationUrl}</a>
       <p>This link will expire in 1 hour.</p>
     `);
-    req.flash('success', t(req, 'បានផ្ញើអ៊ីមែលផ្ទៀងផ្ទាត់ហើយ។ សូមពិនិត្យមើលប្រអប់សំបុត្ររបស់អ្នក។', 'Verification email sent. Please check your inbox.'));
-    return res.redirect('/auth/login?unverified=1&email=' + encodeURIComponent(email));
+    // The result is deliberately NOT surfaced to the visitor. Reporting "could not send"
+    // only ever happens for an address that really does have a pending account, so
+    // flashing it here would reopen the enumeration hole this route just closed. Log it
+    // instead so a broken sender is still diagnosable from the server console.
+    if (!sent) {
+      console.error('Resend verification email FAILED to deliver for user #' + user.id);
+    }
+    return done();
   } catch (error) {
     console.error('Resend email error:', error);
     req.flash('error', t(req, 'មានកំហុស។ សូមព្យាយាមម្តងទៀត។', 'An error occurred. Please try again.'));
@@ -541,8 +572,9 @@ const forgotPasswordByIpLimiter = rateLimit({
 router.post('/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddressLimiter, [
   body('email').trim().isEmail().normalizeEmail().withMessage('Please enter a valid email address'),
 ], async (req, res) => {
-  const done = () => {
+  const done = async () => {
     req.flash('success', t(req, 'ប្រសិនបើអ៊ីមែលមាន តំណកំណត់ឡើងវិញត្រូវបានផ្ញើហើយ', 'If the email exists, a reset link has been sent'));
+    await saveSession(req);
     return res.redirect('/auth/forgot-password');
   };
   try {
@@ -560,7 +592,7 @@ router.post('/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddre
     if (users.length > 0) {
       const user = users[0];
       const token = generateToken();
-      const expires = new Date(Date.now() + 3600000);
+      const expires = utcStamp(new Date(Date.now() + 3600000));
       await req.db.query(
         'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
         [token, expires, user.id]
@@ -582,6 +614,7 @@ router.post('/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddre
   } catch (error) {
     console.error('Forgot password error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+    await saveSession(req);
     return res.redirect('/auth/forgot-password');
   }
 });
@@ -593,16 +626,18 @@ router.get('/reset-password/:token', async (req, res) => {
       'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > NOW()',
       [token]
     );
-    if (users.length === 0) {
-      req.flash('error', t(req, 'តំណកំណត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired reset token'));
+      if (users.length === 0) {
+        req.flash('error', t(req, 'តំណកំណត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired reset token'));
+        await saveSession(req);
+        return res.redirect('/auth/login');
+      }
+      res.render('auth/reset-password', { title: 'Reset Password', token });
+    } catch (error) {
+      console.error('Reset password page error:', error);
+      req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
+      await saveSession(req);
       return res.redirect('/auth/login');
     }
-    res.render('auth/reset-password', { title: 'Reset Password', token });
-  } catch (error) {
-    console.error('Reset password page error:', error);
-    req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));
-    return res.redirect('/auth/login');
-  }
 });
 
 router.post('/reset-password/:token', async (req, res) => {

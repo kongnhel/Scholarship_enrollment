@@ -1178,7 +1178,6 @@ router.get('/reports/print', async (req, res) => {
 // the other.
 router.get('/notifications', async (req, res) => {
     try {
-        if (flashValidationErrors(req, res, '/admin/dashboard')) return;
         const [notifications] = await req.db.query(
             'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC',
             [req.session.user.id]
@@ -2086,14 +2085,6 @@ router.get('/enrollments/:id', async (req, res) => {
 
 router.get('/enrollments/:id/print', async (req, res) => {
     try {
-        if (flashValidationErrors(req, res, '/admin/dashboard')) return;
-        if (flashValidationErrors(req, res, '/admin/provinces')) return;
-        if (flashValidationErrors(req, res, '/admin/provinces')) return;
-        if (flashValidationErrors(req, res, '/admin/majors')) return;
-        if (flashValidationErrors(req, res, '/admin/majors')) return;
-        if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
-        if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
-        if (flashValidationErrors(req, res, '/admin/applications/' + req.params.id)) return;
         // The reference print carries fields the enrollment row does not own (national ID,
         // nationality, exam date, study level/period/shift). Those live on the linked
         // scholarship application, which is the source of truth for them, so join it in

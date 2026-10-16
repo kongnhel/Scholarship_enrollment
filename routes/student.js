@@ -784,16 +784,6 @@ router.post('/notification/:id/read', async (req, res) => {
 
 // ==================== ENROLLMENT ====================
 
-function getCurrentAcademicYear() {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-  if (month >= 10) {
-    return `${year}-${year + 1}`;
-  }
-  return `${year - 1}-${year}`;
-}
-
 function getEnrollmentYear() {
   return '2026-2027';
 }

@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isCommittee } = require('../middleware/auth');
-const XLSX = require('xlsx');
-const PDFDocument = require('pdfkit');
 
 function t(req, km, en) {
   return req.session.lang === 'km' ? km : en;
