@@ -26,6 +26,58 @@
     </div>
   </div>
 
+  <%#
+    Window status sits above the counts on purpose. Every number below is ambiguous without
+    it: 200 pending applications means "waiting for you" if registration is open, and
+    "left over from last year" if it closed in June. Three states rather than two, because a
+    window that is enabled but not yet started is the one an admin most often gets wrong.
+  %>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+    <%
+      const windowMeta = [
+        { key: 'registration', icon: 'bi-person-plus', km: 'ការចុះឈ្មោះ', en: 'Registration', href: '/admin/settings' },
+        { key: 'scholarship', icon: 'bi-mortarboard', km: 'ពាក្យសុំ', en: 'Scholarship', href: '/admin/settings' },
+        { key: 'enrollment', icon: 'bi-mortarboard-fill', km: 'ការចុះឈ្មោះចូលរៀន', en: 'Enrollment', href: '/admin/settings' }
+      ];
+      const windowStyle = {
+        open:            { dot: 'bg-emerald-500', chip: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300', km: 'បើក', en: 'Open' },
+        not_started:     { dot: 'bg-yellow-500',  chip: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300',        km: 'មិនទាន់ចាប់ផ្ដើម', en: 'Not started' },
+        ended:           { dot: 'bg-gray-400',    chip: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',              km: 'បានបិទ', en: 'Ended' },
+        disabled:        { dot: 'bg-red-500',     chip: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300',              km: 'បិទ', en: 'Disabled' }
+      };
+    %>
+    <% windowMeta.forEach(function(w) {
+         const win = windows[w.key];
+         const st = windowStyle[win.state] || windowStyle.disabled;
+    %>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center flex-shrink-0"><i class="bi <%= w.icon %> text-green-600 dark:text-green-400"></i></div>
+          <div class="min-w-0">
+            <div class="font-bold text-gray-900 dark:text-gray-100 text-sm truncate"><%= currentLang === 'km' ? w.km : w.en %></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <% if (win.state === 'open' && win.end) { %>
+                <%= currentLang === 'km'
+                    ? ('បិទត្រឹង ' + formatDateOnly(win.end) + (win.daysLeft !== null ? ' • នៅសល់ ' + win.daysLeft + ' ថ្ងៃ' : ''))
+                    : ('Closes ' + formatDateOnly(win.end) + (win.daysLeft !== null ? ' • ' + win.daysLeft + ' days left' : '')) %>
+              <% } else if (win.state === 'not_started' && win.start) { %>
+                <%= currentLang === 'km' ? ('ចាប់ផ្ដើម ' + formatDateOnly(win.start)) : ('Opens ' + formatDateOnly(win.start)) %>
+              <% } else if (win.state === 'ended' && win.end) { %>
+                <%= currentLang === 'km' ? ('បានបិទនៅ ' + formatDateOnly(win.end)) : ('Closed on ' + formatDateOnly(win.end)) %>
+              <% } else { %>
+                <%= currentLang === 'km' ? 'មិនកំណត់' : 'No schedule set' %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider <%= st.chip %> flex-shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full <%= st.dot %>"></span>
+          <%= currentLang === 'km' ? st.km : st.en %>
+        </span>
+      </div>
+    <% }); %>
+  </div>
+
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 border-l-4 border-l-green-500">
       <div class="flex items-center justify-between mb-3">
@@ -74,6 +126,170 @@
       </div>
       <div class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 leading-none mb-1"><%= correction %></div>
       <div class="text-gray-500 dark:text-gray-400 text-xs"><%= currentLang === 'km' ? 'កែប្រែ' : 'Correction' %></div>
+    </div>
+  </div>
+
+  <%#
+    Money and enrollment. The applications cards above answer "how many people applied";
+    these answer "how many of them actually got in and actually paid", which is the
+    question an admin is asked by a finance officer.
+  %>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-person-check text-blue-600 dark:text-blue-400"></i></div>
+          <div>
+            <h2 class="font-bold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ការចុះឈ្មោះ' : 'Enrollments' %></h2>
+            <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សរុប ' + enrollTotal + ' នាក់' : enrollTotal + ' total' %></p>
+          </div>
+        </div>
+        <a href="/admin/enrollments" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <%
+          const enrollStat = [
+            { k: 'pending',  km: 'រង់ចាំ',   en: 'Pending',  cls: 'text-yellow-600 dark:text-yellow-400' },
+            { k: 'approved', km: 'អនុម័ត',   en: 'Approved', cls: 'text-emerald-600 dark:text-emerald-400' },
+            { k: 'rejected', km: 'បដិសេធ',   en: 'Rejected', cls: 'text-red-600 dark:text-red-400' }
+          ];
+        %>
+        <% enrollStat.forEach(function(s) { %>
+          <div class="rounded-xl bg-gray-50 dark:bg-gray-700/40 px-3 py-3 text-center">
+            <div class="text-2xl font-extrabold <%= s.cls %> leading-none mb-1"><%= enrollCounts[s.k] || 0 %></div>
+            <div class="text-[11px] text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? s.km : s.en %></div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-cash-coin text-emerald-600 dark:text-emerald-400"></i></div>
+          <div>
+            <h2 class="font-bold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></h2>
+            <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សរុប ' + payTotal + ' ប្រតិបត្តម្ត' : payTotal + ' total' %></p>
+          </div>
+        </div>
+        <a href="/admin/payments" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <%
+          const payStat = [
+            { k: 'pending',  km: 'រង់ចាំ',  en: 'Pending',  cls: 'text-yellow-600 dark:text-yellow-400' },
+            { k: 'verified', km: 'បានបញ្ជាក់', en: 'Verified', cls: 'text-emerald-600 dark:text-emerald-400' },
+            { k: 'rejected', km: 'បដិសេធ',  en: 'Rejected', cls: 'text-red-600 dark:text-red-400' }
+          ];
+        %>
+        <% payStat.forEach(function(s) { %>
+          <div class="rounded-xl bg-gray-50 dark:bg-gray-700/40 px-3 py-3 text-center">
+            <div class="text-2xl font-extrabold <%= s.cls %> leading-none mb-1"><%= payCounts[s.k] || 0 %></div>
+            <div class="text-[11px] text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? s.km : s.en %></div>
+          </div>
+        <% }); %>
+      </div>
+      <% if (verifiedRevenue > 0) { %>
+        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ប្រាក់ដែលបានបញ្ជាក់សរុប' : 'Total verified revenue' %></span>
+          <span class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400"><%= verifiedRevenue.toLocaleString() %>៛</span>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+<%#
+    Accounts and configuration. unverifiedUsers is the actionable number here: an account
+    that never verified cannot log in, so a large count is a cohort that is locked out and
+    needs a resend, not something an admin can fix by approving applications.
+
+    The ref counts are a configuration sanity check. Zero active fee types or zero active
+    payment banks means the site cannot take money, and that is not visible anywhere else.
+  %>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-people text-purple-600 dark:text-purple-400"></i></div>
+          <div>
+            <h2 class="font-bold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'គណនីអ្នកប្រើប្រាស់' : 'Accounts' %></h2>
+            <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'តាមតួអទី' : 'By role' %></p>
+          </div>
+        </div>
+        <a href="/admin/users" class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <%
+          const roleStat = [
+            { k: 'student',   km: 'សិស្ស',   en: 'Students',  cls: 'text-blue-600 dark:text-blue-400' },
+            { k: 'committee', km: 'គណ្តាប', en: 'Committee', cls: 'text-purple-600 dark:text-purple-400' },
+            { k: 'admin',     km: 'គ្រប់គ្រង', en: 'Admins',   cls: 'text-green-600 dark:text-green-400' }
+          ];
+        %>
+        <% roleStat.forEach(function(s) { %>
+          <div class="rounded-xl bg-gray-50 dark:bg-gray-700/40 px-3 py-3 text-center">
+            <div class="text-2xl font-extrabold <%= s.cls %> leading-none mb-1"><%= userCounts[s.k] || 0 %></div>
+            <div class="text-[11px] text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? s.km : s.en %></div>
+          </div>
+        <% }); %>
+      </div>
+      <% if (unverifiedUsers > 0) { %>
+        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between gap-3">
+          <span class="text-xs text-gray-500 dark:text-gray-400 inline-flex items-center gap-1.5">
+            <i class="bi bi-exclamation-circle text-amber-500"></i>
+            <%= currentLang === 'km' ? 'មិនទាន់ផ្ទៀងផ្ទាត់ (មិនអាចចូលបាន)' : 'Unverified (cannot log in)' %>
+          </span>
+          <span class="text-lg font-extrabold text-amber-600 dark:text-amber-400"><%= unverifiedUsers %></span>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center"><i class="bi bi-sliders text-gray-600 dark:text-gray-300"></i></div>
+          <div>
+            <h2 class="font-bold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'ទិន្នន័យប្រព័ន្ធ' : 'Reference Data' %></h2>
+            <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'តែ active' : 'Active only' %></p>
+          </div>
+        </div>
+        <a href="/admin/settings" class="text-xs font-semibold text-gray-600 dark:text-gray-300 hover:underline"><%= currentLang === 'km' ? 'កំណត់' : 'Settings' %></a>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <%
+          const refStat = [
+            { k: 'majors',            km: 'ជំនាញ',          en: 'Majors',           href: '/admin/majors' },
+            { k: 'provinces',         km: 'ខេត្ត',            en: 'Provinces',        href: '/admin/provinces' },
+            { k: 'scholarship_types', km: 'ប្រភេទអាហារូប',     en: 'Scholarship types', href: '/admin/scholarship-types' },
+            { k: 'categories',        km: 'ប្រភេទ',           en: 'Categories',       href: '/admin/scholarship-types' },
+            { k: 'fee_types',         km: 'ប្រភេទថ្លៃ',       en: 'Fee types',        href: '/admin/fee-types' },
+            { k: 'payment_banks',     km: 'ធនាគារ',          en: 'Payment banks',    href: '/admin/payment-banks' }
+          ];
+        %>
+        <% refStat.forEach(function(s) { %>
+          <%
+            // Zero here is not merely a small number: no fee types or no banks means the
+            // site cannot accept payment at all, so the card is called out rather than
+            // sitting quietly at zero among the others.
+            const isCritical = (s.k === 'fee_types' || s.k === 'payment_banks');
+            const n = Number(ref[s.k] || 0);
+          %>
+          <a href="<%= s.href %>" class="rounded-xl px-3 py-3 text-center transition-colors <%= isCritical && n === 0 ? 'bg-red-50 dark:bg-red-900/30 ring-1 ring-red-200 dark:ring-red-800' : 'bg-gray-50 dark:bg-gray-700/40 hover:bg-gray-100 dark:hover:bg-gray-700' %>">
+            <div class="text-2xl font-extrabold leading-none mb-1 <%= isCritical && n === 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-200' %>"><%= n %></div>
+            <div class="text-[11px] text-gray-500 dark:text-gray-400 leading-tight"><%= currentLang === 'km' ? s.km : s.en %></div>
+          </a>
+        <% }); %>
+      </div>
+      <% if (Number(ref.fee_types || 0) === 0 || Number(ref.payment_banks || 0) === 0) { %>
+        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <span class="text-xs text-red-600 dark:text-red-400 inline-flex items-center gap-1.5">
+            <i class="bi bi-exclamation-triangle"></i>
+            <%= currentLang === 'km'
+                ? 'មិនអាចទទួលប្រាក់បានទេ — សូមបញ្ចូលប្រភេទថ្លៃ និង QR ធនាគារ'
+                : 'Cannot accept payment yet — add at least one fee type and one payment bank' %>
+          </span>
+        </div>
+      <% } %>
     </div>
   </div>
 
@@ -147,3 +363,69 @@
     </div>
   </div>
 </div>
+
+<%#
+    Recent payments. An unverified payment sitting for days is a support ticket waiting to
+    happen, and the pending count above does not say how old any of them are. Kept to 8 so
+    the board stays scannable -- /admin/payments is the full list.
+  %>
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-receipt text-emerald-600 dark:text-emerald-400"></i></div>
+        <div>
+          <h2 class="font-bold text-gray-900 dark:text-gray-100 text-sm md:text-base"><%= currentLang === 'km' ? 'ការទូទាត់ថ្មីៗ' : 'Recent Payments' %></h2>
+          <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ប្រតិបត្តម្តដែលបានដាក់ថ្មីៗបំផុត' : 'Latest submitted payments' %></p>
+        </div>
+      </div>
+      <a href="/admin/payments" class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors inline-flex items-center gap-1"><%= currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' %><i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សិស្ស' : 'Student' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ប្រភេទថ្លៃ' : 'Fee' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ធនាគារ' : 'Bank' %></th>
+            <th class="px-5 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួន' : 'Amount' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថាន្ធ' : 'Status' %></th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <% if (recentPayments && recentPayments.length > 0) { %>
+            <% recentPayments.forEach(function(p) {
+                 const st = p.status === 'verified'
+                   ? { cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300', km: 'បានបញ្ជាក់', en: 'Verified' }
+                   : p.status === 'rejected'
+                     ? { cls: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', km: 'បដិសេធ', en: 'Rejected' }
+                     : { cls: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300', km: 'រង់ចាំ', en: 'Pending' };
+                 const name = (currentLang === 'km' ? p.student_name_kh : p.student_name)
+                   || [p.english_first_name, p.english_last_name].filter(Boolean).join(' ')
+                   || '-';
+            %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="px-5 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"><%= name %></td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= (currentLang === 'km' ? p.fee_name_kh : p.fee_name_en) || '-' %></td>
+                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell"><%= (currentLang === 'km' ? p.bank_name_kh : p.bank_name_en) || p.payment_method || '-' %></td>
+                <td class="px-5 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100 text-right whitespace-nowrap"><%= Number(p.amount).toLocaleString() %>៛</td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg <%= st.cls %>"><%= currentLang === 'km' ? st.km : st.en %></span>
+                </td>
+                <td class="px-5 py-4 text-xs text-gray-500 dark:text-gray-400 hidden lg:table-cell whitespace-nowrap"><%= formatDateTime(p.created_at) %></td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" class="px-5 py-10 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center"><i class="bi bi-receipt text-2xl text-gray-400 dark:text-gray-500"></i></div>
+                  <p class="text-gray-500 dark:text-gray-400 font-medium text-sm"><%= currentLang === 'km' ? 'មិនទាន់មានការទូទាត់' : 'No payments yet' %></p>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>

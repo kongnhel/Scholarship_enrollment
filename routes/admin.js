@@ -134,33 +134,163 @@ async function withTransaction(db, fn) {
     }
 }
 
+// ==================== DASHBOARD ====================
+//
+// One page answering "what does the scholarship office need to know right now". The three
+// windows come first because they gate everything else: if registration is shut, the
+// pending count is a backlog from last year rather than work waiting for attention, and an
+// admin reading only the counts would misread the whole board.
+//
+// Each status breakdown is a single GROUP BY rather than one COUNT per status. Six separate
+// COUNT queries for applications, plus three each for enrollments and payments, is fifteen
+// round trips to a remote Aiven instance to render one page.
 router.get('/dashboard', async (req, res) => {
     try {
-        const [total] = await req.db.query('SELECT COUNT(*) as count FROM applications');
-        const [pending] = await req.db.query("SELECT COUNT(*) as count FROM applications WHERE status = 'pending'");
-        const [approved] = await req.db.query("SELECT COUNT(*) as count FROM applications WHERE status = 'approved'");
-        const [rejected] = await req.db.query("SELECT COUNT(*) as count FROM applications WHERE status = 'rejected'");
-        const [underReview] = await req.db.query("SELECT COUNT(*) as count FROM applications WHERE status = 'under_review'");
-        const [correction] = await req.db.query("SELECT COUNT(*) as count FROM applications WHERE status = 'correction_requested'");
-        const [recent] = await req.db.query(
-            `SELECT a.*, m.name_kh as major_name_kh, m.name_en as major_name_en,
-             c.name_kh as category_name_kh, c.name_en as category_name_en,
-             u.english_name as student_name
-             FROM applications a
-             LEFT JOIN majors m ON a.major_first_choice_id = m.id
-             LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
-             LEFT JOIN users u ON a.user_id = u.id
-             ORDER BY a.submitted_at DESC LIMIT 10`
-        );
+        // Issued concurrently rather than one after another. Every one of these is an
+        // independent read, and the cost is dominated by the round trip to Aiven -- roughly
+        // 150ms each against this database -- so awaiting them in sequence made the page
+        // take the SUM of the latencies. The old version needed seven queries for six
+        // application counts; GROUP BY collapses that to one, and running them together
+        // brings the whole page down to roughly one round trip.
+        const [
+            [appRows],
+            [enrollRows],
+            [payRows],
+            [userRows],
+            [refRows],
+            [settingsRows],
+            [recent],
+            [recentPayments]
+        ] = await Promise.all([
+            req.db.query('SELECT status, COUNT(*) AS n FROM applications GROUP BY status'),
+            req.db.query('SELECT status, COUNT(*) AS n FROM enrollments GROUP BY status'),
+            req.db.query('SELECT status, COUNT(*) AS n, COALESCE(SUM(amount), 0) AS sum FROM payments GROUP BY status'),
+            req.db.query('SELECT role, COUNT(*) AS n, SUM(CASE WHEN is_verified = 0 THEN 1 ELSE 0 END) AS unverified FROM users GROUP BY role'),
+            // Reference data, in one round trip. These are the counts that tell an admin
+            // whether the site is actually configured -- a scholarship portal with zero
+            // active fee types or no payment banks cannot accept money, and that is
+            // invisible from the pipeline numbers.
+            req.db.query(`
+                SELECT
+                  (SELECT COUNT(*) FROM majors WHERE is_active = 1) AS majors,
+                  (SELECT COUNT(*) FROM provinces) AS provinces,
+                  (SELECT COUNT(*) FROM scholarship_types WHERE is_active = 1) AS scholarship_types,
+                  (SELECT COUNT(*) FROM scholarship_categories WHERE is_active = 1) AS categories,
+                  (SELECT COUNT(*) FROM fee_types WHERE is_active = 1) AS fee_types,
+                  (SELECT COUNT(*) FROM payment_banks WHERE is_active = 1) AS payment_banks,
+                  (SELECT COUNT(*) FROM major_tuition WHERE is_active = 1) AS tuition_rows
+            `),
+            req.db.query('SELECT setting_key, setting_value FROM settings'),
+            req.db.query(
+                `SELECT a.*, m.name_kh as major_name_kh, m.name_en as major_name_en,
+                 c.name_kh as category_name_kh, c.name_en as category_name_en,
+                 u.english_name as student_name
+                 FROM applications a
+                 LEFT JOIN majors m ON a.major_first_choice_id = m.id
+                 LEFT JOIN scholarship_categories c ON a.scholarship_category_id = c.id
+                 LEFT JOIN users u ON a.user_id = u.id
+                 ORDER BY a.submitted_at DESC LIMIT 10`
+            ),
+            // Admin reconciliation lives on /admin/payments, but a payment sitting unverified
+            // for three days is a support ticket waiting to happen, and it should not need a
+            // second page to discover.
+            req.db.query(`
+                SELECT p.id, p.amount, p.status, p.payment_method, p.created_at, p.transaction_ref,
+                       u.english_name AS student_name, u.khmer_name AS student_name_kh,
+                       ft.name_en AS fee_name_en, ft.name_kh AS fee_name_kh,
+                       bk.name_en AS bank_name_en, bk.name_kh AS bank_name_kh
+                FROM payments p
+                LEFT JOIN users u ON p.user_id = u.id
+                LEFT JOIN fee_types ft ON p.fee_type_id = ft.id
+                LEFT JOIN payment_banks bk ON bk.id = p.bank_id
+                ORDER BY p.created_at DESC LIMIT 8`)
+        ]);
+
+        const appCounts = {};
+        let total = 0;
+        appRows.forEach(r => { appCounts[r.status] = Number(r.n); total += Number(r.n); });
+
+        const enrollCounts = {};
+        let enrollTotal = 0;
+        enrollRows.forEach(r => { enrollCounts[r.status] = Number(r.n); enrollTotal += Number(r.n); });
+
+        const payCounts = {};
+        const paySums = {};
+        let payTotal = 0;
+        let verifiedRevenue = 0;
+        payRows.forEach(r => {
+            payCounts[r.status] = Number(r.n);
+            paySums[r.status] = Number(r.sum);
+            payTotal += Number(r.n);
+            if (r.status === 'verified') verifiedRevenue = Number(r.sum);
+        });
+
+        const userCounts = { student: 0, admin: 0, committee: 0 };
+        let unverifiedUsers = 0;
+        userRows.forEach(r => {
+            userCounts[r.role] = Number(r.n);
+            unverifiedUsers += Number(r.unverified) || 0;
+        });
+
+        const ref = refRows[0];
+
+        const settings = {};
+        settingsRows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+
+        // Mirrors routes/student.js so the board can never disagree with what a student
+        // actually sees at the door. Registration compares full timestamps; enrollment
+        // compares whole days, because that is how an admin types the dates into /admin/settings.
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOf = d => (d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : null);
+        const windowState = (prefix) => {
+            const open = settings[prefix + '_open'];
+            const startRaw = settings[prefix + '_start'] || null;
+            const endRaw = settings[prefix + '_end'] || null;
+            let state = 'open';
+            if (open === '0') state = 'disabled';
+            else if (startRaw && new Date(startRaw) > now) state = 'not_started';
+            else if (endRaw && new Date(endRaw) < now) state = 'ended';
+            return {
+                state,
+                start: startRaw,
+                end: endRaw,
+                daysLeft: (() => {
+                    if (state !== 'open' || !endRaw) return null;
+                    const end = startOf(new Date(endRaw));
+                    if (!end) return null;
+                    return Math.ceil((end - today) / 86400000);
+                })()
+            };
+        };
+
         res.render('admin/dashboard', {
             title: 'Admin Dashboard',
-            total: total[0].count,
-            pending: pending[0].count,
-            approved: approved[0].count,
-            rejected: rejected[0].count,
-            underReview: underReview[0].count,
-            correction: correction[0].count,
-            recent
+            // Kept as individual scalars: the existing cards and anything else reading this
+            // template still expect these names.
+            total,
+            pending: appCounts.pending || 0,
+            approved: appCounts.approved || 0,
+            rejected: appCounts.rejected || 0,
+            underReview: appCounts.under_review || 0,
+            correction: appCounts.correction_requested || 0,
+            recent,
+            // New sections.
+            enrollCounts,
+            enrollTotal,
+            payCounts,
+            paySums,
+            payTotal,
+            verifiedRevenue,
+            userCounts,
+            unverifiedUsers,
+            ref,
+            windows: {
+                registration: windowState('registration'),
+                scholarship: windowState('scholarship'),
+                enrollment: windowState('enrollment')
+            },
+            recentPayments
         });
     } catch (err) {
         console.error(err);
