@@ -178,7 +178,7 @@ router.post('/register', [
         'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
       );
-      const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
+      const verificationUrl = `${appConfig.linkBase(req)}/auth/verify-email/${token}`;
       const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
         <p>Hello ${escapeHtml(khmer_name || english_name)},</p>
         <p>Thank you for registering with our scholarship system.</p>
@@ -293,7 +293,7 @@ router.post('/resend-email', [
       'UPDATE users SET verification_token = ?, token_expires_at = ? WHERE id = ?',
       [token, expires, user.id]
     );
-    const verificationUrl = `${appConfig.baseUrl}/auth/verify-email/${token}`;
+    const verificationUrl = `${appConfig.linkBase(req)}/auth/verify-email/${token}`;
     const sent = await sendEmail(email, 'Resend Verification Link', `
       <p>Hello ${escapeHtml(user.khmer_name || user.english_name)},</p>
       <p>Here is your verification link:</p>
@@ -601,7 +601,7 @@ router.post('/forgot-password', [
         'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
         [token, expires, user.id]
       );
-      const resetUrl = `${appConfig.baseUrl}/auth/reset-password/${token}`;
+      const resetUrl = `${appConfig.linkBase(req)}/auth/reset-password/${token}`;
       try {
         await sendEmail(user.email, 'Password Reset Request', `
           <p>Click the link below to reset your password:</p>
