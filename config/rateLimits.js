@@ -1,33 +1,79 @@
-// Rate limiters for the two auth endpoints that send mail.
+// Rate limiters for the auth endpoints that send mail.
 //
-// These live in their own module, and in their own right, rather than as route middleware,
-// for two reasons.
+// Two reasons these live in their own module rather than as route middleware:
 //
 // 1. They must run BEFORE the CSRF guard. In server.js the guard is global middleware and the
-//    routers are mounted after it, so a request that does not present a valid token is
-//    rejected before the router is reached at all. A limiter attached inside routes/auth.js
-//    therefore never sees the very traffic it exists to stop -- a brute-forcer never brings a
-//    token. Mounted here instead, they count every request.
+//    routers are mounted after it, so a request without a valid token is rejected before the
+//    router is reached at all. A limiter attached inside routes/auth.js therefore never sees
+//    the very traffic it exists to stop -- a brute-forcer never brings a token. Mounted here,
+//    they count every request.
 //
-// 2. They must not share /auth/register and /auth/resend-email with the coarse authLimiter.
-//    That limiter is a single 50-per-15min bucket for the whole /auth prefix, and every other
-//    auth route draws on it. Stacking a second, more specific limiter on top of it would add
-//    no protection (the per-address bucket below is stricter for the thing that matters) while
-//    stealing budget from login.
+// 2. They must not share those routes with the coarse authLimiter. That is one 50-per-15min
+//    bucket shared by every other /auth route, so stacking a second limiter on the same
+//    endpoint would add no protection while stealing budget from login.
 //
-// Both endpoints get a per-address bucket and a per-IP bucket. The per-address bucket is the
-// one that protects the mail quota and a single inbox; the per-IP bucket only stops one
-// machine spraying many different addresses. The per-IP ceilings are deliberately loose for
-// register, because scholarship season puts a whole campus behind one NAT address and a tight
-// cap there would lock real applicants out on the day the portal opens.
+// ---------------------------------------------------------------------------
+// TESTING: every cap below can be overridden from .env, and set to 0 to switch that
+// limiter off entirely. The defaults are the production values, so a missing or misspelled
+// variable can only ever fall back to something safe -- never to "unlimited".
+//
+//   RATE_LIMIT_REGISTER_ADDRESS=0     no per-address cap on registration
+//   RATE_LIMIT_REGISTER_IP=0          no per-IP cap on registration
+//   RATE_LIMIT_RESEND_ADDRESS=0       ditto resend-email
+//   RATE_LIMIT_RESEND_IP=0
+//   RATE_LIMIT_FORGOT_ADDRESS=0       ditto forgot-password
+//   RATE_LIMIT_FORGOT_IP=0
+//   AUTH_RATE_LIMIT=0                 the shared /auth bucket
+//   GENERAL_RATE_LIMIT=0              the shared /student, /admin, /committee bucket
+//
+// Set them to 0 to register a lot of accounts at once, then put the real numbers back.
+// A live portal should not leave these disabled: they are what stops one inbox being
+// flooded and what keeps a bored attacker from spending your Resend quota.
+// ---------------------------------------------------------------------------
 const rateLimit = require('express-rate-limit');
+
+/**
+ * Read a cap from the environment.
+ * @returns {{max:number, enabled:boolean}} `enabled:false` means "apply no limit".
+ */
+const cap = (name, fallback) => {
+  const raw = process.env[name];
+  if (raw === undefined || String(raw).trim() === '') return { max: fallback, enabled: true };
+  const s = String(raw).trim();
+  // Only a plain non-negative integer. parseInt would happily read "1e999" as 1, which turns
+  // a typo into a limit of one request an hour instead of the intended default -- still safe,
+  // but in the direction that silently breaks registration.
+  if (!/^\d+$/.test(s)) return { max: fallback, enabled: true };
+  const n = parseInt(s, 10);
+  if (!Number.isSafeInteger(n)) return { max: fallback, enabled: true };
+  return { max: n, enabled: n > 0 };
+};
+
+// The empty body on a GET makes addressKey resolve to '', so every anonymous page view would
+// otherwise collapse into one shared bucket. Mounted with app.use(), these match every
+// method, and at max 3/hour that meant a student who opened /auth/register a few times to
+// read the form got 429 on the next visit and could not register at all, without ever
+// submitting anything. Mail is only ever sent from a POST, so that is all these count.
+const onlyPost = (req) => req.method !== 'POST';
 
 const addressKey = (req) => String((req.body && req.body.email) || '').trim().toLowerCase();
 
+// The per-address bucket is the one that protects the mail quota and a single inbox. The
+// per-IP bucket only stops one machine spraying many different addresses, and is deliberately
+// loose because scholarship season puts a whole campus behind one NAT address -- a tight cap
+// there locks real applicants out on the day the portal opens.
+const registerAddress = cap('RATE_LIMIT_REGISTER_ADDRESS', 3);
+const registerIp = cap('RATE_LIMIT_REGISTER_IP', 30);
+const resendAddress = cap('RATE_LIMIT_RESEND_ADDRESS', 3);
+const resendIp = cap('RATE_LIMIT_RESEND_IP', 20);
+const forgotAddress = cap('RATE_LIMIT_FORGOT_ADDRESS', 3);
+const forgotIp = cap('RATE_LIMIT_FORGOT_IP', 5);
+
 const registerByAddressLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: registerAddress.max,
   keyGenerator: addressKey,
+  skip: (req) => onlyPost(req) || !registerAddress.enabled,
   message: 'Too many registration attempts for this email. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false
@@ -35,7 +81,8 @@ const registerByAddressLimiter = rateLimit({
 
 const registerByIpLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 30,
+  max: registerIp.max,
+  skip: (req) => onlyPost(req) || !registerIp.enabled,
   message: 'Too many registration attempts. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false
@@ -43,8 +90,9 @@ const registerByIpLimiter = rateLimit({
 
 const resendVerificationByAddressLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: resendAddress.max,
   keyGenerator: addressKey,
+  skip: (req) => onlyPost(req) || !resendAddress.enabled,
   message: 'Too many verification emails requested for this address. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false
@@ -52,11 +100,8 @@ const resendVerificationByAddressLimiter = rateLimit({
 
 const resendVerificationByIpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  // Much looser than the per-address cap above. Every student behind one campus NAT shares
-  // this bucket, so a tight limit here would have students blocking each other's resends.
-  // The per-address cap is what protects a single inbox and the mail quota; this ceiling
-  // exists only to stop one machine spraying many addresses.
-  max: 20,
+  max: resendIp.max,
+  skip: (req) => onlyPost(req) || !resendIp.enabled,
   message: 'Too many verification email requests. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false
@@ -64,8 +109,9 @@ const resendVerificationByIpLimiter = rateLimit({
 
 const forgotPasswordByAddressLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: forgotAddress.max,
   keyGenerator: addressKey,
+  skip: (req) => onlyPost(req) || !forgotAddress.enabled,
   message: 'Too many password reset requests for this address. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false
@@ -73,7 +119,8 @@ const forgotPasswordByAddressLimiter = rateLimit({
 
 const forgotPasswordByIpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: forgotIp.max,
+  skip: (req) => onlyPost(req) || !forgotIp.enabled,
   message: 'Too many password reset requests. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false
@@ -85,5 +132,7 @@ module.exports = {
   resendVerificationByAddressLimiter,
   resendVerificationByIpLimiter,
   forgotPasswordByAddressLimiter,
-  forgotPasswordByIpLimiter
+  forgotPasswordByIpLimiter,
+  // Exported so server.js can give authLimiter and generalLimiter the same treatment.
+  cap
 };

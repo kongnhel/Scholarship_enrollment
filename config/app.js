@@ -1,37 +1,48 @@
 // Where the links inside outgoing emails should point.
 //
-// This has to be the server that actually holds the token, not simply whatever APP_URL
-// happens to say. Those are the same thing in production and very much NOT the same thing
-// during testing: registering on localhost writes the token to the development database,
-// but an APP_URL of https://register.nmu.edu.kh mails a link to production, which looks in
-// its own database, does not find the token, and answers "Invalid or expired verification
-// token" -- for a link that was minted a minute earlier.
+// Default is APP_URL, and that default must hold on every deployed environment including
+// ones that do not set NODE_ENV. An earlier version of this file branched on
+// NODE_ENV === 'production' instead, which was wrong: this deployment never sets NODE_ENV,
+// so production was treated as development and started deriving links from the request Host.
+// Behind IIS/ARR that Host is the rewritten internal address, so verification emails went out
+// pointing at http://127.0.0.1:5000 -- a link that works for nobody who receives it.
 //
-// The confusing part is that the token is not actually expired. It is sitting in the
-// development database, valid, with most of its hour left. The message is just the only
-// thing a nonexistent token can produce.
+// Deriving from the Host header is therefore opt-in rather than the fallback, so the unsafe
+// behaviour cannot come back by accident. To mail links that point at the machine you are
+// testing on, set in your local .env only:
 //
-// So: production trusts APP_URL, and anything else trusts the host the request actually
-// arrived on. The request host is client-supplied, which would normally be a
-// header-injection concern, but here it only ever goes into a link mailed back to the same
-// requester, and only when NODE_ENV is not production. Production never reads it.
-const isProduction = process.env.NODE_ENV === 'production';
+//   LINK_BASE_FROM_REQUEST=true
+//
+// Leave it unset in production and you get APP_URL, exactly as before this file existed.
+const baseUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+const port = process.env.PORT || 3000;
+
+// Belt and braces: even with the flag set, a NODE_ENV of production keeps APP_URL. That way a
+// copied .env cannot silently redirect live verification mail at a developer's laptop.
+const useRequestHost = process.env.LINK_BASE_FROM_REQUEST === 'true'
+  && process.env.NODE_ENV !== 'production';
 
 module.exports = {
-  // Kept for anything that needs the configured canonical URL regardless of environment.
-  baseUrl: process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`,
-  port: process.env.PORT || 3000,
+  // The configured canonical URL. Anything that must use it regardless of environment.
+  baseUrl,
+  port,
 
   /**
    * Base URL for links in mail sent to THIS request.
-   * @param {import('express').Request} req
+   * Falls back to `baseUrl` in every case except the explicit opt-in above.
+   *
+   * @param {import('express').Request} [req]
    */
   linkBase(req) {
-    if (isProduction) return module.exports.baseUrl;
-    // req.get('host') rather than req.hostname: it keeps the port, which matters because
-    // the dev server is not listening on 80.
+    if (!useRequestHost) return baseUrl;
+
+    // req.get('host') rather than req.hostname: it keeps the port, which matters because the
+    // dev server is not listening on 80.
     const authority = req && req.get ? req.get('host') : null;
-    if (!authority) return `http://localhost:${module.exports.port}`;
+    if (!authority) return baseUrl;
+
+    // Behind a TLS-terminating proxy req.protocol can read as http. Only used in the explicit
+    // opt-in case, where there is no proxy in front of a developer machine.
     const proto = req && req.protocol ? req.protocol : 'http';
     return `${proto}://${authority}`;
   }

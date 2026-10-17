@@ -17,7 +17,8 @@ const {
   resendVerificationByAddressLimiter,
   resendVerificationByIpLimiter,
   forgotPasswordByAddressLimiter,
-  forgotPasswordByIpLimiter
+  forgotPasswordByIpLimiter,
+  cap
 } = require('./config/rateLimits');
 const { safeBackPath, dashboardPathFor, formatDateTime, formatDateOnly, cambodiaDateParts } = require('./utils/helpers');
 
@@ -197,13 +198,20 @@ app.use('/uploads', express.static(uploadsDir));
 // limiters over the same endpoint only makes it ambiguous which one fired when a request is
 // refused. Excluding them here also keeps their traffic off this shared bucket, which is the
 // same 50 window that every other /auth route shares.
+// Caps are overridable from .env and 0 disables the limiter, so a test run that logs in and
+// registers dozens of accounts does not have to keep restarting the app to clear the counter.
+// The defaults are unchanged; see the block at the top of config/rateLimits.js.
+const authCap = cap('AUTH_RATE_LIMIT', 50);
+const generalCap = cap('GENERAL_RATE_LIMIT', 200);
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50,
+  max: authCap.max,
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'GET'
+  skip: (req) => !authCap.enabled
+    || req.method === 'GET'
     || req.path === '/register'
     || req.path === '/resend-email'
     || req.path === '/forgot-password'
@@ -211,10 +219,10 @@ const authLimiter = rateLimit({
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: generalCap.max,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'GET'
+  skip: (req) => !generalCap.enabled || req.method === 'GET'
 });
 
 app.use('/auth', authLimiter);
