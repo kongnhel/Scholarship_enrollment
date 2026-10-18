@@ -471,7 +471,12 @@ router.get('/verify-otp', async (req, res) => {
 });
 
 router.post('/verify-otp', [
-  body('otpCode').isLength({ min: 5, max: 5 }).withMessage('Please enter a 5-digit code'),
+  // Digits only, and only after sanitizing. A code copied out of the mail or Telegram
+  // often arrives with a space or a stray character glued to it; that character used to
+  // occupy one of the five maxlength slots (the box then looked like it only took four
+  // digits) and the field's 5/5 pattern could never match, so the form refused to submit.
+  body('otpCode').customSanitizer(v => String(v == null ? '' : v).replace(/\D/g, ''))
+    .isLength({ min: 5, max: 5 }).withMessage('Please enter a 5-digit code'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

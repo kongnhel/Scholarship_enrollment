@@ -49,6 +49,7 @@
           <div class="relative">
             <i class="bi bi-shield-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
             <input type="text" name="otpCode" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" autocomplete="one-time-code"
+              oninput="this.value=this.value.replace(/\D/g,'')"
               class="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-center text-lg tracking-[0.5em] font-mono"
               placeholder="00000" required autofocus>
           </div>
