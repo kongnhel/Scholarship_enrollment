@@ -74,20 +74,21 @@ const verifyOTP = async (db, userId, code) => {
 
 const canResend = async (db, userId) => {
   const cooldownSeconds = parseInt(process.env.OTP_RESEND_COOLDOWN) || 60;
+  // The whole decision stays on the database clock. The first version read the
+  // otp_last_sent_at string into JS and compared it against Date.now(), but that string
+  // is written by NOW() (UTC on Aiven) and was parsed as LOCAL time -- on any server
+  // whose local timezone is ahead of UTC every fresh timestamp already looked ~7h old,
+  // so the cooldown silently never throttled anything.
   const [users] = await db.query(
-    'SELECT otp_last_sent_at FROM users WHERE id = ?',
-    [userId]
+    `SELECT (otp_last_sent_at IS NOT NULL AND otp_last_sent_at > DATE_SUB(NOW(), INTERVAL ? SECOND)) AS cooling,
+            TIMESTAMPDIFF(SECOND, otp_last_sent_at, NOW()) AS elapsed
+       FROM users WHERE id = ?`,
+    [cooldownSeconds, userId]
   );
   if (users.length === 0) return { allowed: false, waitSeconds: 0 };
-
-  const lastSent = users[0].otp_last_sent_at;
-  if (!lastSent) return { allowed: true, waitSeconds: 0 };
-
-  const elapsed = (Date.now() - new Date(lastSent).getTime()) / 1000;
-  if (elapsed >= cooldownSeconds) {
-    return { allowed: true, waitSeconds: 0 };
-  }
-  return { allowed: false, waitSeconds: Math.ceil(cooldownSeconds - elapsed) };
+  if (!users[0].cooling) return { allowed: true, waitSeconds: 0 };
+  const waitSeconds = Math.max(cooldownSeconds - (users[0].elapsed || 0), 1);
+  return { allowed: false, waitSeconds };
 };
 
 const clearOTP = async (db, userId) => {

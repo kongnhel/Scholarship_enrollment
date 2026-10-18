@@ -68,7 +68,14 @@ router.post('/login', [
     }
     if (!user.is_verified) {
       req.flash('error', t(req, 'សូមផ្ទៀងផ្ទាត់គណនីរបស់អ្នកមុនពេលចូល', 'Please verify your account before logging in'));
-      return res.redirect('/auth/verify-otp?userId=' + user.id);
+      // Bind the account now: this request just proved the password, which is stronger
+      // proof than the verify-account lookup form asks for. Without the binding the
+      // /auth/verify-otp redirect bounced every visitor straight back to login (the page
+      // requires session.pendingVerificationUserId), so a correctly-credentialed but
+      // unverified student could never reach the verification page from here.
+      req.session.pendingVerificationUserId = Number(user.id);
+      await saveSession(req);
+      return res.redirect('/auth/verify-account');
     }
     // Issue a brand-new session id the moment privileges change. Without this an
     // attacker who plants a known session id in a victim's browser before they log in
@@ -390,12 +397,38 @@ function pendingVerificationId(req) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+// Which channel the code is delivered and checked on. The verify-account form lets the
+// student pick at lookup time (email inbox or Telegram/phone); that choice is carried in
+// the session and wins over the account's registration method, because both contacts on
+// the row are the owner's -- the picker only ever chooses who gets the code, never what.
+function verificationChannel(req, userMethod) {
+  const session = req.session && req.session.pendingVerificationChannel;
+  if (session === 'email' || session === 'telegram') return session;
+  return userMethod === 'email' ? 'email' : 'telegram';
+}
+
 async function forgetPendingVerification(req) {
-  if (req.session && req.session.pendingVerificationUserId) {
-    delete req.session.pendingVerificationUserId;
-    await saveSession(req);
+  if (req.session) {
+    let cleared = false;
+    if (req.session.pendingVerificationUserId) {
+      delete req.session.pendingVerificationUserId;
+      cleared = true;
+    }
+    if (req.session.pendingVerificationChannel) {
+      delete req.session.pendingVerificationChannel;
+      cleared = true;
+    }
+    if (cleared) await saveSession(req);
   }
 }
+
+// "n***@gmail.com" -- the same shape the phone mask below already shows.
+const maskEmail = (email) => {
+  if (!email) return '***';
+  const parts = String(email).split('@');
+  if (parts.length < 2) return '***';
+  return parts[0].substring(0, 2) + '***@' + parts[1];
+};
 
 router.get('/verify-otp', async (req, res) => {
   const userId = pendingVerificationId(req);
@@ -406,7 +439,7 @@ router.get('/verify-otp', async (req, res) => {
   }
 
   try {
-    const [users] = await req.db.query('SELECT id, phone, is_verified, verify_method FROM users WHERE id = ?', [userId]);
+    const [users] = await req.db.query('SELECT id, phone, email, is_verified, verify_method FROM users WHERE id = ?', [userId]);
     if (users.length === 0) return res.redirect('/auth/login');
     const user = users[0];
     if (user.is_verified) {
@@ -415,16 +448,18 @@ router.get('/verify-otp', async (req, res) => {
       return res.redirect('/auth/login');
     }
 
+    const method = verificationChannel(req, user.verify_method);
     const resend = await canResend(req.db, userId);
     const maskedPhone = user.phone ? user.phone.substring(0, 5) + '***' + user.phone.substring(user.phone.length - 3) : '***';
+    const maskedTarget = method === 'email' ? maskEmail(user.email) : maskedPhone;
 
     res.render('auth/verify-otp', {
       title: 'Verify Account',
       userId: user.id,
-      maskedPhone,
+      maskedTarget,
       canResend: resend.allowed,
       waitSeconds: resend.waitSeconds,
-      verifyMethod: user.verify_method || 'telegram',
+      verifyMethod: method,
       error: null,
       success: null
     });
@@ -444,7 +479,7 @@ router.post('/verify-otp', [
     const userId = pendingVerificationId(req);
     if (!userId) return res.redirect('/auth/login');
 
-    const [users] = await req.db.query('SELECT id, phone, is_verified, verify_method FROM users WHERE id = ?', [userId]);
+    const [users] = await req.db.query('SELECT id, phone, email, is_verified, verify_method FROM users WHERE id = ?', [userId]);
     if (users.length === 0) return res.redirect('/auth/login');
     const user = users[0];
     if (user.is_verified) {
@@ -453,17 +488,18 @@ router.post('/verify-otp', [
       return res.redirect('/auth/login');
     }
 
-    // The delivery channel comes from the account, never from the request body: the
-    // method decides where the code went and which attempt budget applies.
-    const method = user.verify_method === 'email' ? 'email' : 'telegram';
+    // The delivery channel comes from the session choice or the account, never from the
+    // request body: the method decides where the code went and which attempt budget applies.
+    const method = verificationChannel(req, user.verify_method);
     const resend = await canResend(req.db, userId);
     const maskedPhone = user.phone ? user.phone.substring(0, 5) + '***' + user.phone.substring(user.phone.length - 3) : '***';
+    const maskedTarget = method === 'email' ? maskEmail(user.email) : maskedPhone;
 
     if (!errors.isEmpty()) {
       return res.render('auth/verify-otp', {
         title: 'Verify Account',
         userId,
-        maskedPhone,
+        maskedTarget,
         canResend: resend.allowed,
         waitSeconds: resend.waitSeconds,
         verifyMethod: method,
@@ -486,7 +522,7 @@ router.post('/verify-otp', [
         return res.render('auth/verify-otp', {
           title: 'Verify Account',
           userId,
-          maskedPhone,
+          maskedTarget,
           canResend: resend.allowed,
           waitSeconds: resend.waitSeconds,
           verifyMethod: method,
@@ -504,7 +540,7 @@ router.post('/verify-otp', [
         return res.render('auth/verify-otp', {
           title: 'Verify Account',
           userId,
-          maskedPhone,
+          maskedTarget,
           canResend: resend.allowed,
           waitSeconds: resend.waitSeconds,
           verifyMethod: method,
@@ -530,13 +566,16 @@ router.post('/resend-otp', async (req, res) => {
       req.flash('error', t(req, 'សូមចុះឈ្មោះជាថ្មីម្ដងទៀត ដើម្បីផ្ទៀងផ្ទាត់។', 'Please register again to verify your account.'));
       return res.redirect('/auth/register');
     }
-    const [users] = await req.db.query('SELECT id, phone, verify_method FROM users WHERE id = ? AND is_verified = 0', [userId]);
+    const [users] = await req.db.query('SELECT id, phone, email, verify_method FROM users WHERE id = ? AND is_verified = 0', [userId]);
     if (users.length === 0) {
       req.flash('error', t(req, 'រកមិនឃើញការផ្ទៀងផ្ទាត់ដែលរង់ចាំទេ', 'No pending verification found'));
       return res.redirect('/auth/login');
     }
     const user = users[0];
-    const method = user.verify_method || 'telegram';
+    // Same channel as the code the page is asking about -- the session choice, else the
+    // account's registration method. Resending on a different channel than the code being
+    // typed would leave the user reading an inbox for a code that went to Telegram.
+    const method = verificationChannel(req, user.verify_method);
 
     const resendCheck = await canResend(req.db, userId);
     if (!resendCheck.allowed) {
@@ -555,14 +594,20 @@ router.post('/resend-otp', async (req, res) => {
     } else {
       const code = generateOTP();
       await storeOTP(req.db, userId, code);
-      const [emailUser] = await req.db.query('SELECT email FROM users WHERE id = ?', [userId]);
-      if (emailUser.length > 0) {
-        await sendEmail(emailUser[0].email, 'Your Verification Code', `
-          <p>Your verification code is: <strong>${code}</strong></p>
-          <p>This code expires in ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.</p>
-        `);
+      const sentOk = await sendEmail(user.email, 'Your Verification Code', `
+        <p>Your verification code is: <strong>${code}</strong></p>
+        <p>This code expires in ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.</p>
+      `);
+      if (sentOk) {
+        req.flash('success', t(req, 'បានផ្ញើកូដផ្ទៀងផ្ទាត់ថ្មីទៅអ៊ីមែលរបស់អ្នក។', 'New verification code sent to your email.'));
+      } else {
+        // The code is stored but undelivered. Resending is throttled by the
+        // otp_last_sent_at timestamp storeOTP just set, so without this a broken SMTP
+        // response (quota, provider outage) leaves the student unable to request another
+        // code for the full cooldown -- indistinguishable on screen from a success.
+        await req.db.query('UPDATE users SET otp_last_sent_at = NULL WHERE id = ?', [userId]);
+        req.flash('error', t(req, 'មិនអាចផ្ញើកូដបានទេ។ សូមព្យាយាមផ្ញើឡើងវិញ។', 'Could not send the code. Please try resend again.'));
       }
-      req.flash('success', t(req, 'បានផ្ញើកូដផ្ទៀងផ្ទាត់ថ្មីទៅអ៊ីមែលរបស់អ្នក។', 'New verification code sent to your email.'));
     }
     return res.redirect('/auth/verify-otp?userId=' + userId);
   } catch (error) {
@@ -590,38 +635,78 @@ router.get('/verify-account', (req, res) => {
 });
 
 router.post('/verify-account', [
+  body('channel').isIn(['email', 'phone']).withMessage('Verification channel is invalid'),
   body('identifier').trim().notEmpty().withMessage('Email or phone number is required'),
+  // Same sanitizer the register form ran over the stored value, so the lookup compares
+  // like-for-like with whatever is in the users table.
+  body('identifier').if(body('channel').equals('email')).isEmail().normalizeEmail().withMessage('Valid email required'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      req.flash('error', t(req, 'សូមបំពេញអ៊ីមែលឬលេខទូរស័ព្ទ', 'Email or phone number is required'));
+      req.flash('error', t(req, 'សូមបំពេញអ៊ីមែល ឬលេខទូរស័ព្ទឲ្យបានត្រឹមត្រូវ', 'Please enter a valid email or phone number'));
       return res.redirect('/auth/verify-account');
     }
-const { identifier } = req.body;
-      const [users] = await req.db.query(
-        'SELECT id, email, phone, is_verified, verify_method FROM users WHERE email = ? OR phone = ?',
-        [identifier, identifier]
-      );
-      // One response for "no such account" and "already verified". These used to be two
-      // distinct messages, which turned this form -- linked straight from the login page --
-      // into a two-bit oracle for who has an account and whether they have verified it.
-      // Neither answer helps the person in front of the form, so neither is given.
-      if (users.length === 0 || users[0].is_verified) {
-        req.flash('error', t(req,
-          'រកមិនឃើញគណនីដែលត្រូវបានផ្ទៀងផ្ទាត់នៅលើអ៊ីមែលឬលេខទូរស័ព្ទនេះ ឬគណនីត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។',
-          'No account needing verification was found for that email or phone number'));
-        return res.redirect('/auth/verify-account');
-      }
-      // The id goes in the session, not the URL. /auth/verify-otp reads it from
-      // req.session.pendingVerificationUserId and treats a missing value as "redirect
-      // without confirming anything", which is the whole point of that page -- so passing
-      // ?userId= in the query string both leaked the internal id and, because this route
-      // never set the session key, dead-ended on /auth/login every single time. Setting it
-      // here repairs the flow and removes the leak at the same time.
-      req.session.pendingVerificationUserId = Number(users[0].id);
+    // One column ONLY. The old OR-lookup could match a phone that happened to collide
+    // with a different account's email (both '?') and verified whichever row came first.
+    const channel = req.body.channel === 'phone' ? 'phone' : 'email';
+    const identifier = String(req.body.identifier || '').trim();
+    const [users] = await req.db.query(
+      `SELECT id, email, phone, is_verified, verify_method FROM users WHERE ${channel} = ?`,
+      [identifier]
+    );
+    // One response for "no such account" and "already verified". These used to be two
+    // distinct messages, which turned this form -- linked straight from the login page --
+    // into a two-bit oracle for who has an account and whether they have verified it.
+    // Neither answer helps the person in front of the form, so neither is given.
+    if (users.length === 0 || users[0].is_verified) {
+      req.flash('error', t(req,
+        'រកមិនឃើញគណនីដែលត្រូវបានផ្ទៀងផ្ទាត់នៅលើអ៊ីមែលឬលេខទូរស័ព្ទនេះ ឬគណនីត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។',
+        'No account needing verification was found for that email or phone number'));
       await saveSession(req);
-      return res.redirect('/auth/verify-otp');
+      return res.redirect('/auth/verify-account');
+    }
+    // The id goes in the session, not the URL. /auth/verify-otp reads it from
+    // req.session.pendingVerificationUserId and treats a missing value as "redirect
+    // without confirming anything", which is the whole point of that page -- so passing
+    // ?userId= in the query string both leaked the internal id and, because this route
+    // never set the session key, dead-ended on /auth/login every single time. Setting it
+    // here repairs the flow and removes the leak at the same time.
+    req.session.pendingVerificationUserId = Number(users[0].id);
+    // The channel the STUDENT chose decides delivery, overriding what the account was
+    // registered with. Both contacts on the row are the owner's, so this only ever picks
+    // which of their own devices receives the code.
+    req.session.pendingVerificationChannel = channel === 'phone' ? 'telegram' : 'email';
+    const user = users[0];
+    await saveSession(req);
+
+    // Send the first code now, mirroring what POST /resend-otp does per channel, so the
+    // next page has something to verify against immediately.
+    if (req.session.pendingVerificationChannel === 'email') {
+      const code = generateOTP();
+      await storeOTP(req.db, user.id, code);
+      const sentOk = await sendEmail(user.email, 'Your Verification Code', `
+        <p>Your verification code is: <strong>${code}</strong></p>
+        <p>This code expires in ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.</p>
+      `);
+      if (sentOk) {
+        req.flash('success', t(req, 'កូដផ្ទៀងផ្ទាត់ត្រូវបានផ្ញើទៅអ៊ីមែលរបស់អ្នក។', 'A verification code was sent to your email.'));
+      } else {
+        // Same cooldown-release as the resend route: storeOTP stamped otp_last_sent_at,
+        // and a throttled resend would read on screen exactly like a successful send.
+        await req.db.query('UPDATE users SET otp_last_sent_at = NULL WHERE id = ?', [user.id]);
+        req.flash('error', t(req, 'មិនអាចផ្ញើកូដបានទេ។ សូមចុច "ផ្ញើឡើងវិញ" នៅទំព័របន្ទាប់។', 'Could not send the code. Please use "Resend" on the next page.'));
+      }
+    } else {
+      try {
+        await telegramOtp.sendOTP(user.phone);
+        req.flash('success', t(req, 'បានផ្ញើលេខកូដទៅ Telegram របស់អ្នក។', 'A verification code was sent to your Telegram.'));
+      } catch (otpError) {
+        console.error('Telegram OTP send error (verify-account):', otpError);
+        req.flash('error', t(req, 'មិនអាចផ្ញើកូដទៅ Telegram បានទេ។ សូមចុច "ផ្ញើឡើងវិញ" នៅទំព័របន្ទាប់។', 'Could not send the code to Telegram. Please use "Resend" on the next page.'));
+      }
+    }
+    return res.redirect('/auth/verify-otp');
   } catch (error) {
     console.error('Verify account lookup error:', error);
     req.flash('error', t(req, 'មានកំហុស', 'An error occurred'));

@@ -19,19 +19,88 @@
         </div>
       </div>
 
-      <form method="POST" action="/auth/verify-account" class="space-y-4">
+      <form method="POST" action="/auth/verify-account" class="space-y-4" id="lookupForm">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="channel" id="channelField" value="email">
+
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+          <%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់តាម' : 'Verify via' %> *
+        </label>
+        <div class="grid grid-cols-2 gap-3 mb-1">
+          <label for="choiceEmail" class="channel-option cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition-all" data-channel="email">
+            <input type="radio" name="channelChoice" value="email" checked class="sr-only">
+            <i class="bi bi-envelope text-base"></i>
+            <span><%= currentLang === 'km' ? 'អ៊ីមែល' : 'Email' %></span>
+          </label>
+          <label for="choicePhone" class="channel-option cursor-pointer flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition-all" data-channel="phone">
+            <input type="radio" name="channelChoice" value="phone" class="sr-only">
+            <i class="bi bi-telephone text-base"></i>
+            <span><%= currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone' %></span>
+          </label>
+        </div>
+
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'អ៊ីមែល ឬលេខទូរស័ព្ទ' : 'Email or Phone' %> *</label>
+          <label id="identifierLabel" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+            <%= currentLang === 'km' ? 'អ៊ីមែលដែលបានចុះឈ្មោះ' : 'Registered email' %> *
+          </label>
           <div class="relative">
-            <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
-            <input type="text" name="identifier" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="<%= currentLang === 'km' ? 'អ៊ីមែល ឬលេខទូរស័ព្ទ' : 'email or phone number' %>" required>
+            <i id="identifierIcon" class="bi bi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+            <input type="email" id="identifier" name="identifier" autocomplete="email"
+              class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              placeholder="you@example.com" required>
           </div>
         </div>
+
         <button type="submit" class="w-full py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm">
-          <i class="bi bi-search mr-1"></i><%= currentLang === 'km' ? 'ស្វែងរក' : 'Find Account' %>
+          <i class="bi bi-search mr-1"></i><%= currentLang === 'km' ? 'បន្តផ្ទៀងផ្ទាត់' : 'Continue to verify' %>
         </button>
       </form>
+
+      <script>
+      (function() {
+        var form = document.getElementById('lookupForm');
+        if (!form) return;
+        var ICON = { email: 'bi-envelope', phone: 'bi-telephone' };
+        function pick(channel) {
+          var options = form.querySelectorAll('.channel-option');
+          options.forEach(function(optEl) {
+            var on = optEl.getAttribute('data-channel') === channel;
+            optEl.classList.toggle('border-green-500', on);
+            optEl.classList.toggle('bg-green-50', on);
+            optEl.classList.toggle('dark:bg-green-900/20', on);
+            optEl.classList.toggle('text-green-700', on);
+            optEl.classList.toggle('dark:text-green-300', on);
+            optEl.classList.toggle('border-gray-200', !on);
+            optEl.classList.toggle('dark:border-gray-700', !on);
+            optEl.classList.toggle('text-gray-600', !on);
+            optEl.classList.toggle('dark:text-gray-300', !on);
+          });
+          var radio = form.querySelector('input[name="channelChoice"][value="' + channel + '"]');
+          if (radio) radio.checked = true;
+          document.getElementById('channelField').value = channel;
+          var input = document.getElementById('identifier');
+          var icon = document.getElementById('identifierIcon');
+          icon.className = 'bi ' + (channel === 'email' ? ICON.email : ICON.phone) + ' absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500';
+          if (channel === 'email') {
+            input.type = 'email';
+            input.name = 'identifier';
+            input.required = true;
+            document.getElementById('identifierLabel').textContent = '<%= currentLang === "km" ? "អ៊ីមែលដែលបានចុះឈ្មោះ" : "Registered email" %>';
+            input.placeholder = 'you@example.com';
+          } else {
+            input.type = 'tel';
+            input.name = 'identifier';
+            input.required = true;
+            document.getElementById('identifierLabel').textContent = '<%= currentLang === "km" ? "លេខទូរស័ព្ទដែលបានចុះឈ្មោះ" : "Registered phone number" %>';
+            input.placeholder = '012 345 678';
+          }
+        }
+        form.querySelectorAll('input[name="channelChoice"]').forEach(function(r) {
+          r.addEventListener('change', function() { pick(r.value); });
+        });
+        pick('email');
+      })();
+      </script>
 
       <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
         <a href="/auth/login" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">

@@ -245,6 +245,16 @@ app.use('/auth/register', registerByIpLimiter, registerByAddressLimiter);
 app.use('/auth/resend-email', resendVerificationByIpLimiter, resendVerificationByAddressLimiter);
 app.use('/auth/forgot-password', forgotPasswordByIpLimiter, forgotPasswordByAddressLimiter);
 
+// The verify-account lookup and resend-otp also mint and send codes (email code or
+// Telegram message) on every POST. Until now they drew only from the coarse 50-per-15min
+// /auth bucket, so one machine could fire fifty code-sends into someone else's recovery
+// flow. The address-keyed resend limiters need req.body.email, which verify-account does
+// not carry (it may be a phone), so only the per-IP POST-only limiter mounts here -- 20
+// code-sends per 15 minutes per machine, plenty for a human, useless for a flood. GETs are
+// skipped, so the pages themselves stay unlimited like the rest of the portal.
+app.use('/auth/verify-account', resendVerificationByIpLimiter);
+app.use('/auth/resend-otp', resendVerificationByIpLimiter);
+
 app.use(async (req, res, next) => {
   req.db = db;
   res.locals.user = req.session.user || null;
