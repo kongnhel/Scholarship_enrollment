@@ -58,12 +58,12 @@
           <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
           <input type="text" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" name="search" placeholder="<%= currentLang === 'km' ? 'ស្វែងរកតាមឈ្មោះជំនាញ មហាវិទ្យាល័យ...' : 'Search by major name, faculty...' %>" value="<%= filters.search || '' %>">
         </div>
-        <div class="flex gap-2 items-end">
-          <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
-            <i class="bi bi-search"></i><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="submit" class="w-full justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
+            <i class="bi bi-search"></i><span class="truncate"><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %></span>
           </button>
-          <a href="/admin/majors" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
-            <i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %>
+          <a href="/admin/majors" class="w-full justify-center px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
+            <i class="bi bi-x-lg"></i><span class="truncate"><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %></span>
           </a>
         </div>
       </div>

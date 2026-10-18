@@ -15,34 +15,34 @@
 
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
-          <i class="bi bi-cash-stack text-white text-xl"></i>
+    <div class="relative px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-cash-stack text-white text-lg sm:text-xl"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
             <i class="bi bi-collection"></i>
             <%= totalRecords %> <%= currentLang === 'km' ? 'កំណត់ត្រា' : 'records' %>
           </div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'គ្រប់គ្រងប្រភេទថ្លៃ' : 'Manage Fee Types' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងប្រភេទថ្លៃនិងចំនួនទឹកប្រាក់' : 'Manage fee types and amounts' %></p>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? 'គ្រប់គ្រងប្រភេទថ្លៃ' : 'Manage Fee Types' %></h1>
+          <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate"><%= currentLang === 'km' ? 'គ្រប់គ្រងប្រភេទថ្លៃនិងចំនួនទឹកប្រាក់' : 'Manage fee types and amounts' %></p>
         </div>
       </div>
-      <button onclick="document.getElementById('addFeeModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto">
+      <button onclick="document.getElementById('addFeeModal').classList.remove('hidden')" class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 flex-shrink-0">
         <i class="bi bi-plus-lg"></i><%= currentLang === 'km' ? 'បន្ថែមថ្លៃ' : 'Add Fee' %>
       </button>
     </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
         <i class="bi bi-funnel text-green-600 dark:text-green-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
     </div>
-    <form action="/admin/fee-types" method="GET" class="p-5">
+    <form action="/admin/fee-types" method="GET" class="p-4 sm:p-5">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="relative sm:col-span-2 lg:col-span-3">
           <label class="sr-only" for="feeSearch"><%= currentLang === 'km' ? 'ស្វែងរក' : 'Search' %></label>
@@ -58,29 +58,29 @@
           </select>
         </div>
       </div>
-      <div class="flex gap-2 mt-4">
-        <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all flex items-center gap-2">
-          <i class="bi bi-search"></i><%= currentLang === 'km' ? 'តម្រង' : 'Filter' %>
+<div class="grid grid-cols-2 gap-2 mt-4">
+        <button type="submit" class="w-full justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all flex items-center gap-2">
+          <i class="bi bi-search"></i><span class="truncate"><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %></span>
         </button>
-        <a href="/admin/fee-types" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all rounded-xl text-sm font-medium flex items-center gap-2">
-          <i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %>
+        <a href="/admin/fee-types" class="w-full justify-center px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all rounded-xl text-sm font-medium flex items-center gap-2">
+          <i class="bi bi-x-lg"></i><span class="truncate"><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %></span>
         </a>
       </div>
     </form>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full">
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full min-w-[720px]">
         <%# The dark variant on thead is what fixes the light band across a dark page. %>
         <thead class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
           <tr>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ (ខ្មែរ)' : 'Name (Khmer)' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ (អង់គ្លេស)' : 'Name (English)' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ (ខ្មែរ)' : 'Name (Khmer)' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ (អង់គ្លេស)' : 'Name (English)' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -95,36 +95,36 @@
             </tr>
           <% } else { feeTypes.forEach(function(ft, index) { %>
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-              <td class="px-5 py-4">
+              <td class="px-4 lg:px-5 py-4">
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * limit + index + 1 %></span>
               </td>
-              <td class="px-5 py-4">
+              <td class="px-4 lg:px-5 py-4">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= ft.name_kh %></div>
                 <% if (ft.name_en) { %><div class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><%= ft.name_en %></div><% } %>
               </td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= ft.name_en || '-' %></td>
-              <td class="px-5 py-4">
-                <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300"><%= Number(ft.amount).toLocaleString() %>៛</span>
+              <td class="px-4 lg:px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= ft.name_en || '-' %></td>
+              <td class="px-4 lg:px-5 py-4">
+                <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-full whitespace-nowrap bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300"><%= Number(ft.amount).toLocaleString() %>៛</span>
               </td>
-              <td class="px-5 py-4">
+              <td class="px-4 lg:px-5 py-4">
                 <% if (ft.is_active) { %>
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span><%= currentLang === 'km' ? 'សកម្ម' : 'Active' %>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full whitespace-nowrap bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span><%= currentLang === 'km' ? 'សកម្ម' : 'Active' %>
                   </span>
                 <% } else { %>
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span><%= currentLang === 'km' ? 'មិនសកម្ម' : 'Inactive' %>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full whitespace-nowrap bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0"></span><%= currentLang === 'km' ? 'មិនសកម្ម' : 'Inactive' %>
                   </span>
                 <% } %>
               </td>
-              <td class="px-5 py-4">
+              <td class="px-4 lg:px-5 py-4">
                 <%# Icon-only buttons were unreadable without colour; these carry a label like
                     the other admin lists, and every colour keeps a dark variant. %>
                 <div class="flex gap-1.5">
-                  <button type="button" data-action="editFeeType" data-payload="<%= JSON.stringify(ft) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
+                  <button type="button" data-action="editFeeType" data-payload="<%= JSON.stringify(ft) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1 whitespace-nowrap"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
                   <form action="/admin/fee-types/<%= ft.id %>/toggle" method="POST">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 <%= ft.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20' : 'border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' %>">
+                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 whitespace-nowrap <%= ft.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20' : 'border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' %>">
                       <i class="bi <%= ft.is_active ? 'bi-pause-circle' : 'bi-play-circle' %>"></i>
                       <%= ft.is_active ? (currentLang === 'km' ? 'បិទ' : 'Off') : (currentLang === 'km' ? 'បើក' : 'On') %>
                     </button>
@@ -133,7 +133,7 @@
                         data-confirm="<%= currentLang === 'km' ? 'លុបប្រភេទថ្លៃនេះឬទេ?' : 'Delete this fee type?' %>"
                         data-confirm-title="<%= currentLang === 'km' ? 'បញ្ជាក់ការលុប' : 'Confirm delete' %>">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Del' %></button>
+                    <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1 whitespace-nowrap"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Del' %></button>
                   </form>
                 </div>
               </td>
@@ -143,12 +143,64 @@
       </table>
     </div>
 
+    <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+      <% if (feeTypes.length === 0) { %>
+        <div class="px-5 py-12 text-center">
+          <div class="flex flex-col items-center gap-2">
+            <i class="bi bi-inbox text-4xl text-gray-300 dark:text-gray-600"></i>
+            <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានប្រភេទថ្លៃទេ' : 'No fee types found' %></p>
+          </div>
+        </div>
+      <% } else { feeTypes.forEach(function(ft, index) { %>
+        <div class="px-4 py-4">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= ft.name_kh %></div>
+              <% if (ft.name_en) { %><div class="text-xs text-gray-400 dark:text-gray-500 break-words"><%= ft.name_en %></div><% } %>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 text-[11px] font-bold rounded-full flex-shrink-0 whitespace-nowrap bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300"><%= Number(ft.amount).toLocaleString() %>៛</span>
+          </div>
+          <div class="mt-2">
+            <% if (ft.is_active) { %>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full whitespace-nowrap bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span><%= currentLang === 'km' ? 'សកម្ម' : 'Active' %>
+              </span>
+            <% } else { %>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full whitespace-nowrap bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span><%= currentLang === 'km' ? 'មិនសកម្ម' : 'Inactive' %>
+              </span>
+            <% } %>
+          </div>
+          <div class="mt-3 grid grid-cols-3 gap-2">
+            <button type="button" data-action="editFeeType" data-payload="<%= JSON.stringify(ft) %>" class="w-full px-2 py-2 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center justify-center gap-1">
+              <i class="bi bi-pencil"></i><span class="truncate"><%= currentLang === 'km' ? 'កែ' : 'Edit' %></span>
+            </button>
+            <form action="/admin/fee-types/<%= ft.id %>/toggle" method="POST" class="contents">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="w-full px-2 py-2 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-1 <%= ft.is_active ? 'border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20' : 'border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' %>">
+                <i class="bi <%= ft.is_active ? 'bi-pause-circle' : 'bi-play-circle' %>"></i>
+                <span class="truncate"><%= ft.is_active ? (currentLang === 'km' ? 'បិទ' : 'Off') : (currentLang === 'km' ? 'បើក' : 'On') %></span>
+              </button>
+            </form>
+            <form action="/admin/fee-types/<%= ft.id %>/delete" method="POST" class="contents"
+                  data-confirm="<%= currentLang === 'km' ? 'លុបប្រភេទថ្លៃនេះឬទេ?' : 'Delete this fee type?' %>"
+                  data-confirm-title="<%= currentLang === 'km' ? 'បញ្ជាក់ការលុប' : 'Confirm delete' %>">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="w-full px-2 py-2 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-1">
+                <i class="bi bi-trash"></i><span class="truncate"><%= currentLang === 'km' ? 'លុប' : 'Del' %></span>
+              </button>
+            </form>
+          </div>
+        </div>
+      <% }); } %>
+    </div>
+
     <% if (totalPages > 1) { %>
-    <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
+    <div class="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <p class="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
         <%= currentLang === 'km' ? 'ទំព័រ' : 'Page' %> <%= currentPage %> <%= currentLang === 'km' ? 'នៃ' : 'of' %> <%= totalPages %>
       </p>
-      <div class="flex gap-1">
+      <div class="flex gap-1 overflow-x-auto pb-1 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
         <% const feeQs = 'search=' + encodeURIComponent(filters.search || '') + '&status=' + encodeURIComponent(filters.status || ''); %>
         <a href="?page=<%= currentPage - 1 %>&<%= feeQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
           <i class="bi bi-chevron-left"></i>
@@ -187,14 +239,14 @@
 </div>
 
 <div id="addFeeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form action="/admin/fee-types" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមប្រភេទថ្លៃថ្មី' : 'Add New Fee Type' %></h5>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមប្រភេទថ្លៃថ្មី' : 'Add New Fee Type' %></h5>
         <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4">
+      <div class="p-4 sm:p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះ (ខ្មែរ) *' : 'Name (Khmer) *' %></label>
           <input type="text" name="name_kh" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
@@ -221,14 +273,14 @@
 </div>
 
 <div id="editFeeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form id="editFeeForm" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-pencil-square"></i><%= currentLang === 'km' ? 'កែប្រែប្រភេទថ្លៃ' : 'Edit Fee Type' %></h5>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-pencil-square"></i><%= currentLang === 'km' ? 'កែប្រែប្រភេទថ្លៃ' : 'Edit Fee Type' %></h5>
         <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4">
+      <div class="p-4 sm:p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះ (ខ្មែរ) *' : 'Name (Khmer) *' %></label>
           <input type="text" id="edit_fee_name_kh" name="name_kh" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">

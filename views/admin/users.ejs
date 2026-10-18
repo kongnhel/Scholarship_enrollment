@@ -1,35 +1,35 @@
 <div class="max-w-7xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
-          <i class="bi bi-people text-white text-xl"></i>
+    <div class="relative px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-people text-white text-lg sm:text-xl"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
             <i class="bi bi-collection"></i>
             <%= totalRecords %> <%= currentLang === 'km' ? 'អ្នកប្រើ' : 'users' %>
           </div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងអ្នកប្រើប្រាស់' : 'User Management' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់ទាំងអស់' : 'Manage all system users' %></p>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងអ្នកប្រើប្រាស់' : 'User Management' %></h1>
+          <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate"><%= currentLang === 'km' ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់ទាំងអស់' : 'Manage all system users' %></p>
         </div>
       </div>
       <button type="button" onclick="document.getElementById('createUserModal').classList.remove('hidden')"
-              class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+              class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 flex-shrink-0">
         <i class="bi bi-person-plus"></i><%= currentLang === 'km' ? 'បង្កើតអ្នកប្រើថ្មី' : 'Create User' %>
       </button>
     </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
         <i class="bi bi-funnel text-green-600 dark:text-green-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
     </div>
-    <form action="/admin/users" method="GET" class="p-5">
+    <form action="/admin/users" method="GET" class="p-4 sm:p-5">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="relative">
           <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
@@ -43,12 +43,12 @@
             <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>><%= currentLang === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Admin' %></option>
           </select>
         </div>
-        <div class="flex gap-2 items-end sm:col-span-2 lg:col-span-2">
-          <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
-            <i class="bi bi-search"></i><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %>
+        <div class="grid grid-cols-2 gap-2 sm:col-span-2 lg:col-span-2">
+          <button type="submit" class="w-full justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
+            <i class="bi bi-search"></i><span class="truncate"><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %></span>
           </button>
-          <a href="/admin/users" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
-            <i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %>
+          <a href="/admin/users" class="w-full justify-center px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
+            <i class="bi bi-x-lg"></i><span class="truncate"><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %></span>
           </a>
         </div>
       </div>
@@ -56,18 +56,18 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full">
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full min-w-[880px]">
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'តួនាទី' : 'Role' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ថ្ងៃបង្កើត' : 'Created' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអ្នកប្រើប្រាស់' : 'Username' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'តួនាទី' : 'Role' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ថ្ងៃបង្កើត' : 'Created' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -83,11 +83,11 @@
           <% } else { %>
             <% users.forEach(function(u, index) { %>
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <td class="px-5 py-4">
+                <td class="px-4 lg:px-5 py-4">
                   <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * limit + index + 1 %></span>
                 </td>
-                <td class="px-5 py-4">
-                  <div class="flex items-center gap-3">
+                <td class="px-4 lg:px-5 py-4">
+                  <div class="flex items-center gap-3 min-w-0">
                     <% if (u.profile_pic) { %>
                       <img src="<%= u.profile_pic %>" alt="" class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
                     <% } else { %>
@@ -95,28 +95,28 @@
                         <%= (u.english_name || 'U').charAt(0).toUpperCase() %>
                       </div>
                     <% } %>
-                    <div>
-                      <div class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= u.english_name || 'N/A' %></div>
-                      <div class="text-xs text-gray-400 dark:text-gray-500"><%= u.khmer_name || '' %></div>
+                    <div class="min-w-0">
+                      <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"><%= u.english_name || 'N/A' %></div>
+                      <div class="text-xs text-gray-400 dark:text-gray-500 truncate"><%= u.khmer_name || '' %></div>
                     </div>
                   </div>
                 </td>
-                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= u.username ? '@' + u.username : '—' %></td>
-                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= u.email %></td>
-                <td class="px-5 py-4">
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : u.role === 'committee' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' %>">
-                    <span class="w-1.5 h-1.5 rounded-full <%= u.role === 'admin' ? 'bg-red-500' : u.role === 'committee' ? 'bg-blue-500' : 'bg-green-500' %>"></span>
+                <td class="px-4 lg:px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= u.username ? '@' + u.username : '—' %></td>
+                <td class="px-4 lg:px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><div class="truncate max-w-[220px]"><%= u.email %></div></td>
+                <td class="px-4 lg:px-5 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap <%= u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : u.role === 'committee' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' %>">
+                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 <%= u.role === 'admin' ? 'bg-red-500' : u.role === 'committee' ? 'bg-blue-500' : 'bg-green-500' %>"></span>
                     <%= u.role.charAt(0).toUpperCase() + u.role.slice(1) %>
                   </span>
                 </td>
-                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= u.phone || '—' %></td>
-                <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
+                <td class="px-4 lg:px-5 py-4 text-sm text-gray-500 dark:text-gray-400"><%= u.phone || '—' %></td>
+                <td class="px-4 lg:px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   <div class="flex items-center gap-1.5">
                     <i class="bi bi-calendar3 text-xs"></i>
                     <%= u.created_at ? formatDateOnly(u.created_at) : '—' %>
                   </div>
                 </td>
-                <td class="px-5 py-4">
+                <td class="px-4 lg:px-5 py-4">
                   <div class="flex gap-1.5">
                     <form action="/admin/users/<%= u.id %>/reset-password" method="POST" data-confirm="<%= currentLang === 'km' ? 'តើអ្នកពិតជាចង់កំណត់ពាក្យសម្ងាត់ថ្មីមែនទេ?' : 'Reset this user password?' %>" data-confirm-title="<%= currentLang === 'km' ? 'កំណត់ពាក្យសម្ងាត់ថ្មី' : 'Reset Password' %>">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -137,14 +137,87 @@
       </table>
     </div>
 
+    <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+      <% if (users.length === 0) { %>
+        <div class="px-5 py-12 text-center">
+          <div class="flex flex-col items-center gap-2">
+            <i class="bi bi-people text-4xl text-gray-300 dark:text-gray-600"></i>
+            <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានអ្នកប្រើទេ' : 'No users found' %></p>
+          </div>
+        </div>
+      <% } else { %>
+        <% users.forEach(function(u, index) { %>
+          <div class="px-4 py-4">
+            <div class="flex items-start gap-3">
+              <% if (u.profile_pic) { %>
+                <img src="<%= u.profile_pic %>" alt="" class="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm ring-2 ring-gray-100 dark:ring-gray-700">
+              <% } else { %>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+                  <%= (u.english_name || 'U').charAt(0).toUpperCase() %>
+                </div>
+              <% } %>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"><%= u.english_name || 'N/A' %></div>
+                <% if (u.khmer_name) { %>
+                  <div class="text-xs text-gray-400 dark:text-gray-500 truncate"><%= u.khmer_name %></div>
+                <% } %>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full flex-shrink-0 whitespace-nowrap <%= u.role === 'admin' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : u.role === 'committee' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' %>">
+                <span class="w-1.5 h-1.5 rounded-full <%= u.role === 'admin' ? 'bg-red-500' : u.role === 'committee' ? 'bg-blue-500' : 'bg-green-500' %>"></span>
+                <%= u.role.charAt(0).toUpperCase() + u.role.slice(1) %>
+              </span>
+            </div>
+
+            <dl class="mt-3 space-y-1.5 text-xs">
+              <div class="flex gap-2">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500">Email</dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-all"><%= u.email %></dd>
+              </div>
+              <% if (u.username) { %>
+                <div class="flex gap-2">
+                  <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Username' %></dt>
+                  <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-all">@<%= u.username %></dd>
+                </div>
+              <% } %>
+              <div class="flex gap-2">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200"><%= u.phone || '—' %></dd>
+              </div>
+              <div class="flex gap-2">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ថ្ងៃបង្កើត' : 'Created' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200"><%= u.created_at ? formatDateOnly(u.created_at) : '—' %></dd>
+              </div>
+            </dl>
+
+            <div class="mt-3 flex gap-2">
+              <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="flex-1" data-confirm="<%= currentLang === 'km' ? 'តើអ្នកពិតជាចង់កំណត់ពាក្យសម្ងាត់ថ្មីមែនទេ?' : 'Reset this user password?' %>" data-confirm-title="<%= currentLang === 'km' ? 'កំណត់ពាក្យសម្ងាត់ថ្មី' : 'Reset Password' %>">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="w-full px-3 py-2 rounded-lg text-xs font-semibold border border-blue-200 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center gap-1.5">
+                  <i class="bi bi-key"></i><span class="truncate"><%= currentLang === 'km' ? 'កំណត់ពាក្យសម្ងាត់' : 'Reset Password' %></span>
+                </button>
+              </form>
+              <% if (u.role !== 'admin') { %>
+                <form action="/admin/users/<%= u.id %>/delete" method="POST" class="flex-1" data-confirm="<%= currentLang === 'km' ? 'តើអ្នកពិតជាចង់លុបអ្នកប្រើប្រាស់នេះមែនទេ?' : 'Delete this user?' %>" data-confirm-title="<%= currentLang === 'km' ? 'លុបអ្នកប្រើប្រាស់' : 'Delete User' %>">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="w-full px-3 py-2 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-1.5">
+                    <i class="bi bi-trash"></i><span class="truncate"><%= currentLang === 'km' ? 'លុប' : 'Delete' %></span>
+                  </button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+
     <% if (totalPages > 1) { %>
-      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
+      <div class="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
           <%= currentLang === 'km' ? 'ទំព័រ' : 'Page' %> <%= currentPage %> <%= currentLang === 'km' ? 'នៃ' : 'of' %> <%= totalPages %>
         </p>
-        <div class="flex gap-1">
+        <div class="flex gap-1 overflow-x-auto pb-1 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
           <% const userQs = 'search=' + encodeURIComponent(filters.search || '') + '&role=' + encodeURIComponent(filters.role || ''); %>
-          <a href="?page=<%= currentPage - 1 %>&<%= userQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+          <a href="?page=<%= currentPage - 1 %>&<%= userQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
             <i class="bi bi-chevron-left"></i>
             <span class="hidden sm:inline ml-1"><%= currentLang === 'km' ? 'មុន' : 'Previous' %></span>
           </a>
@@ -166,10 +239,10 @@
             <% if (p === '...') { %>
               <span class="px-2 py-2 text-sm text-gray-400 dark:text-gray-500">...</span>
             <% } else { %>
-              <a href="?page=<%= p %>&<%= userQs %>" class="px-3.5 py-2 rounded-xl text-sm font-bold transition-all <%= currentPage === p ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>"><%= p %></a>
+              <a href="?page=<%= p %>&<%= userQs %>" class="px-3.5 py-2 rounded-xl text-sm font-bold transition-all flex-shrink-0 <%= currentPage === p ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>"><%= p %></a>
             <% } %>
           <% }); %>
-          <a href="?page=<%= currentPage + 1 %>&<%= userQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+          <a href="?page=<%= currentPage + 1 %>&<%= userQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 <%= currentPage === totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
             <span class="hidden sm:inline mr-1"><%= currentLang === 'km' ? 'បន្ទាប់' : 'Next' %></span>
             <i class="bi bi-chevron-right"></i>
           </a>
@@ -192,14 +265,14 @@
       : 'The system already has more than one administrator, so this cannot be created');
 %>
 <div id="createUserModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form action="/admin/users" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-person-plus"></i><%= currentLang === 'km' ? 'បង្កើតអ្នកប្រើប្រាស់' : 'Create User' %></h5>
-        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-person-plus flex-shrink-0"></i><span class="truncate"><%= currentLang === 'km' ? 'បង្កើតអ្នកប្រើប្រាស់' : 'Create User' %></span></h5>
+        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white flex-shrink-0"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4">
+      <div class="p-4 sm:p-6 space-y-4">
         <p class="text-xs text-gray-500 dark:text-gray-400">
           <i class="bi bi-info-circle"></i>
           <%= currentLang === 'km'
@@ -238,9 +311,9 @@
           <p class="text-xs <%= canCreateAdmin ? 'text-gray-400' : 'text-amber-600 dark:text-amber-400' %> mt-1.5"><i class="bi bi-info-circle"></i> <%= adminOptionNote %></p>
         </div>
       </div>
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-        <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
-        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'បង្កើត' : 'Create' %></button>
+      <div class="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+        <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="w-full sm:w-auto px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'បង្កើត' : 'Create' %></button>
       </div>
     </form>
   </div>

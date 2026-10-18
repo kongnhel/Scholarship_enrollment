@@ -1,21 +1,21 @@
 <div class="max-w-5xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-md shadow-emerald-500/20 flex-shrink-0">
-          <i class="bi bi-qr-code text-white text-xl"></i>
+    <div class="relative px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-md shadow-emerald-500/20 flex-shrink-0">
+          <i class="bi bi-qr-code text-white text-lg sm:text-xl"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold mb-1">
             <i class="bi bi-collection"></i>
             <%= banks.length %> <%= currentLang === 'km' ? 'ធនាគារ' : 'banks' %>
           </div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ធនាគារសម្រាប់ទូទាត់' : 'Payment Banks' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'សិស្សជ្រើសបានធនាគារដែលត្រូវបង់ប្រាក់' : 'Students pick which bank to pay through' %></p>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? 'ធនាគារសម្រាប់ទូទាត់' : 'Payment Banks' %></h1>
+          <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate"><%= currentLang === 'km' ? 'សិស្សជ្រើសបានធនាគារដែលត្រូវបង់ប្រាក់' : 'Students pick which bank to pay through' %></p>
         </div>
       </div>
-      <a href="/admin/payments" class="self-start sm:self-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-1.5"><i class="bi bi-cash-stack"></i><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></a>
+      <a href="/admin/payments" class="w-full sm:w-auto justify-center self-start sm:self-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-1.5 flex-shrink-0"><i class="bi bi-cash-stack"></i><%= currentLang === 'km' ? 'ការទូទាត់' : 'Payments' %></a>
     </div>
   </div>
 
@@ -129,13 +129,13 @@
   <% } %>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-      <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
         <i class="bi bi-plus-circle text-emerald-600 dark:text-emerald-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'បញ្ចូលធនាគារថ្មី' : 'Add a new bank' %></span>
     </div>
-    <form action="/admin/payment-banks" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+    <form action="/admin/payment-banks" method="POST" enctype="multipart/form-data" class="p-4 sm:p-6 space-y-5">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -172,7 +172,7 @@
         <input type="checkbox" name="is_active" value="1" checked class="w-4 h-4 text-emerald-600 rounded">
         <%= currentLang === 'km' ? 'សកម្ម (សិស្សឃើញភ្លាម)' : 'Active (visible to students immediately)' %>
       </label>
-      <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all shadow-sm flex items-center gap-1.5">
+      <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all shadow-sm flex items-center justify-center gap-1.5">
         <i class="bi bi-plus-lg"></i><%= currentLang === 'km' ? 'បញ្ចូលធនាគារ' : 'Add bank' %>
       </button>
     </form>

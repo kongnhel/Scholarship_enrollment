@@ -1,45 +1,45 @@
 <div class="max-w-6xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
-          <i class="bi bi-geo-alt text-white text-xl"></i>
+    <div class="relative px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-geo-alt text-white text-lg sm:text-xl"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
             <i class="bi bi-collection"></i>
             <%= totalRecords %> <%= currentLang === 'km' ? 'ខេត្ត' : 'provinces' %>
           </div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងខេត្ត' : 'Provinces Management' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'គ្រប់គ្រងខេត្តទាំងអស់' : 'Manage all provinces' %></p>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? 'ការគ្រប់គ្រងខេត្ត' : 'Provinces Management' %></h1>
+          <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate"><%= currentLang === 'km' ? 'គ្រប់គ្រងខេត្តទាំងអស់' : 'Manage all provinces' %></p>
         </div>
       </div>
-      <button onclick="document.getElementById('addProvinceModal').classList.remove('hidden')" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2 self-start sm:self-auto">
+      <button onclick="document.getElementById('addProvinceModal').classList.remove('hidden')" class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 flex-shrink-0">
         <i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមខេត្តថ្មី' : 'Add New Province' %>
       </button>
     </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
-      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+      <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
         <i class="bi bi-funnel text-green-600 dark:text-green-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'តម្រង' : 'Filters' %></span>
     </div>
-    <form action="/admin/provinces" method="GET" class="p-5">
+    <form action="/admin/provinces" method="GET" class="p-4 sm:p-5">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="relative sm:col-span-2 lg:col-span-3">
           <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
           <input type="text" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" name="search" placeholder="<%= currentLang === 'km' ? 'ស្វែងរកតាមឈ្មោះខេត្ត...' : 'Search by province name...' %>" value="<%= filters.search || '' %>">
         </div>
-        <div class="flex gap-2 items-end">
-          <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
-            <i class="bi bi-search"></i><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="submit" class="w-full justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
+            <i class="bi bi-search"></i><span class="truncate"><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %></span>
           </button>
-          <a href="/admin/provinces" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
-            <i class="bi bi-x-lg"></i><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %>
+          <a href="/admin/provinces" class="w-full justify-center px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1">
+            <i class="bi bi-x-lg"></i><span class="truncate"><%= currentLang === 'km' ? 'សម្អាត' : 'Clear' %></span>
           </a>
         </div>
       </div>
@@ -47,14 +47,14 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full">
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full min-w-[520px]">
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Name (Khmer)' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'Name (English)' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Name (Khmer)' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះអង់គ្លេស' : 'Name (English)' %></th>
+            <th class="px-4 lg:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សកម្មភាព' : 'Actions' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -70,15 +70,15 @@
           <% } else { %>
             <% provinces.forEach(function(province, index) { %>
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <td class="px-5 py-4">
+                <td class="px-4 lg:px-5 py-4">
                   <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400"><%= (currentPage - 1) * limit + index + 1 %></span>
                 </td>
-                <td class="px-5 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"><%= province.name_kh %></td>
-                <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= province.name_en %></td>
-                <td class="px-5 py-4">
+                <td class="px-4 lg:px-5 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"><%= province.name_kh %></td>
+                <td class="px-4 lg:px-5 py-4 text-sm text-gray-700 dark:text-gray-200"><%= province.name_en %></td>
+                <td class="px-4 lg:px-5 py-4">
                   <div class="flex gap-1.5">
-                    <button type="button" data-action="editProvince" data-payload="<%= JSON.stringify(province) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
-                    <button type="button" data-action="confirmDeleteProvince" data-id="<%= province.id %>" data-name="<%= province.name_kh %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
+                    <button type="button" data-action="editProvince" data-payload="<%= JSON.stringify(province) %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center gap-1 whitespace-nowrap"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែ' : 'Edit' %></button>
+                    <button type="button" data-action="confirmDeleteProvince" data-id="<%= province.id %>" data-name="<%= province.name_kh %>" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1 whitespace-nowrap"><i class="bi bi-trash"></i><%= currentLang === 'km' ? 'លុប' : 'Delete' %></button>
                   </div>
                 </td>
               </tr>
@@ -88,14 +88,40 @@
       </table>
     </div>
 
+    <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+      <% if (provinces.length === 0) { %>
+        <div class="px-5 py-12 text-center">
+          <div class="flex flex-col items-center gap-2">
+            <i class="bi bi-geo-alt text-4xl text-gray-300 dark:text-gray-600"></i>
+            <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'មិនមានខេត្តទេ' : 'No provinces found' %></p>
+          </div>
+        </div>
+      <% } else { %>
+        <% provinces.forEach(function(province, index) { %>
+          <div class="px-4 py-4">
+            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words"><%= province.name_kh %></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 break-words"><%= province.name_en %></div>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <button type="button" data-action="editProvince" data-payload="<%= JSON.stringify(province) %>" class="w-full px-3 py-2 rounded-lg text-xs font-semibold border border-green-200 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all flex items-center justify-center gap-1.5">
+                <i class="bi bi-pencil"></i><span class="truncate"><%= currentLang === 'km' ? 'កែ' : 'Edit' %></span>
+              </button>
+              <button type="button" data-action="confirmDeleteProvince" data-id="<%= province.id %>" data-name="<%= province.name_kh %>" class="w-full px-3 py-2 rounded-lg text-xs font-semibold border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-1.5">
+                <i class="bi bi-trash"></i><span class="truncate"><%= currentLang === 'km' ? 'លុប' : 'Delete' %></span>
+              </button>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+
     <% if (totalPages > 1) { %>
-      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
+      <div class="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
           <%= currentLang === 'km' ? 'ទំព័រ' : 'Page' %> <%= currentPage %> <%= currentLang === 'km' ? 'នៃ' : 'of' %> <%= totalPages %>
         </p>
-        <div class="flex gap-1">
+        <div class="flex gap-1 overflow-x-auto pb-1 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
           <% const provQs = 'search=' + encodeURIComponent(filters.search || ''); %>
-          <a href="?page=<%= currentPage - 1 %>&<%= provQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+          <a href="?page=<%= currentPage - 1 %>&<%= provQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 <%= currentPage === 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
             <i class="bi bi-chevron-left"></i>
             <span class="hidden sm:inline ml-1"><%= currentLang === 'km' ? 'មុន' : 'Previous' %></span>
           </a>
@@ -117,10 +143,10 @@
             <% if (p === '...') { %>
               <span class="px-2 py-2 text-sm text-gray-400 dark:text-gray-500">...</span>
             <% } else { %>
-              <a href="?page=<%= p %>&<%= provQs %>" class="px-3.5 py-2 rounded-xl text-sm font-bold transition-all <%= currentPage === p ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>"><%= p %></a>
+              <a href="?page=<%= p %>&<%= provQs %>" class="px-3.5 py-2 rounded-xl text-sm font-bold transition-all flex-shrink-0 <%= currentPage === p ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>"><%= p %></a>
             <% } %>
           <% }); %>
-          <a href="?page=<%= currentPage + 1 %>&<%= provQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all <%= currentPage === totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
+          <a href="?page=<%= currentPage + 1 %>&<%= provQs %>" class="px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 <%= currentPage === totalPages ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' %>">
             <span class="hidden sm:inline mr-1"><%= currentLang === 'km' ? 'បន្ទាប់' : 'Next' %></span>
             <i class="bi bi-chevron-right"></i>
           </a>
@@ -131,14 +157,14 @@
 </div>
 
 <div id="addProvinceModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form action="/admin/provinces" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមខេត្តថ្មី' : 'Add New Province' %></h5>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមខេត្តថ្មី' : 'Add New Province' %></h5>
         <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4">
+      <div class="p-4 sm:p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Name (Khmer)' %></label>
           <input type="text" name="name_kh" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
@@ -148,23 +174,23 @@
           <input type="text" name="name_en" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
         </div>
       </div>
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
-        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save' %></button>
+      <div class="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="w-full sm:w-auto px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save' %></button>
       </div>
     </form>
   </div>
 </div>
 
 <div id="editProvinceModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form id="editProvinceForm" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែខេត្ត' : 'Edit Province' %></h5>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែខេត្ត' : 'Edit Province' %></h5>
         <button type="button" onclick="document.getElementById('editProvinceModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4">
+      <div class="p-4 sm:p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះខ្មែរ' : 'Name (Khmer)' %></label>
           <input type="text" name="name_kh" id="edit_name_kh" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
@@ -174,15 +200,15 @@
           <input type="text" name="name_en" id="edit_name_en" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
         </div>
       </div>
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-        <button type="button" onclick="document.getElementById('editProvinceModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
-        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'អាប់ដេត' : 'Update' %></button>
+      <div class="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+        <button type="button" onclick="document.getElementById('editProvinceModal').classList.add('hidden')" class="w-full sm:w-auto px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'អាប់ដេត' : 'Update' %></button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="deleteProvincePopover" class="hidden fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 w-72" onclick="event.stopPropagation()">
+<div id="deleteProvincePopover" class="hidden fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 w-72 max-w-[calc(100vw-2rem)]" onclick="event.stopPropagation()">
   <div class="flex items-center gap-3 mb-3">
     <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
       <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400"></i>
@@ -218,6 +244,7 @@ function confirmDeleteProvince(id, name, btn) {
   var popH = pop.offsetHeight || 140;
   var left = rect.right + 8;
   if (left + popW > window.innerWidth) left = rect.left - popW - 8;
+  if (left < 8) left = 8;
   var top = rect.top + (rect.height / 2) - (popH / 2);
   if (top < 8) top = 8;
   if (top + popH > window.innerHeight - 8) top = window.innerHeight - popH - 8;
