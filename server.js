@@ -439,8 +439,17 @@ app.use((err, req, res, next) => {
     // line with the route is enough to diagnose it.
     console.warn(`[upload-rejected] ${req.method} ${req.originalUrl} -> ${err.code || err.message}`);
     const km = req.session && req.session.lang === 'km';
-    req.flash('error', km ? uploadMsg.km : uploadMsg.en);
-    return res.redirect(safeBackPath(req));
+    // Same guard as the generic branch below: this handler also serves requests that
+    // failed before the flash middleware was mounted, where req.flash does not exist.
+    if (typeof req.flash === 'function') {
+      req.flash('error', km ? uploadMsg.km : uploadMsg.en);
+      return res.redirect(safeBackPath(req));
+    }
+    if (res.headersSent) return res.end();
+    return res.status(400).send(
+      '<!doctype html><meta charset="utf-8"><title>Upload rejected</title>' +
+      '<h1>That file could not be accepted</h1><p>Please check the file and try again.</p>'
+    );
   }
 
   // A template that fails to compile throws here, and the generic branch below redirected
@@ -459,8 +468,28 @@ app.use((err, req, res, next) => {
   }
 
   console.error('Server error:', err);
-  req.flash('error', 'An internal server error occurred');
-  res.redirect(safeBackPath(req));
+
+  // The error handler runs for failures raised BEFORE the flash middleware too -- most
+  // often the database-backed session store losing its connection (read ECONNRESET on a
+  // transient network blip). req.flash did not exist on those requests, so the handler
+  // itself threw "req.flash is not a function" and the TypeError killed the whole process
+  // instead of returning a 500. A transient database hiccup therefore took the whole site
+  // down with no explanation in the log. Degrade instead: flash when we can, plain 500 when
+  // we cannot, and never throw out of the error handler.
+  if (typeof req.flash === 'function') {
+    try {
+      req.flash('error', 'An internal server error occurred');
+      return res.redirect(safeBackPath(req));
+    } catch (flashErr) {
+      console.error('Error handler could not flash:', flashErr);
+    }
+  }
+  if (res.headersSent) return res.end();
+  return res.status(500).send(
+    '<!doctype html><meta charset="utf-8"><title>Server error</title>' +
+    '<h1>Something went wrong on our side</h1>' +
+    '<p>This page could not be displayed. The problem has been logged.</p>'
+  );
 });
 
 const PORT = process.env.PORT || 5000;

@@ -42,22 +42,6 @@ const parseDbDate = (value) => {
   return isNaN(d) ? null : d;
 };
 
-// A naive UTC timestamp string for a DATETIME column, as 'YYYY-MM-DD HH:mm:ss'.
-//
-// Needed because mysql2 serialises a JS Date using the PROCESS timezone. This box runs
-// +07:00 while MySQL's system timezone is UTC, so passing `new Date(Date.now() + 3600000)`
-// as a query parameter stores a wall-clock reading that is 7 hours AHEAD of the instant it
-// represents. Any expiry compared against NOW() is therefore granted 7 extra hours: the
-// "expires in 1 hour" verification and password-reset links actually stayed usable for 8.
-// Formatting the stamp as UTC here keeps the write side consistent with the UTC that NOW(),
-// CURRENT_TIMESTAMP and parseDbDate all already assume.
-//
-// Deliberately a string rather than a connection-wide `timezone: 'Z'`: that option also
-// changes how DATETIME columns come back, and parseDbDate compensates for the current
-// local-time parsing. Flipping the pool would silently shift every displayed timestamp.
-const utcStamp = (date = new Date()) =>
-  date.toISOString().slice(0, 19).replace('T', ' ');
-
 // "02/10/2026 10:02"
 const formatDateTime = (value) => {
   const d = parseDbDate(value);
@@ -223,7 +207,6 @@ const flashAndRedirect = async (req, res, type, message, location) => {
 module.exports = {
   APP_TIMEZONE,
   parseDbDate,
-  utcStamp,
   cambodiaDateParts,
   formatDateTime,
   formatDateOnly,

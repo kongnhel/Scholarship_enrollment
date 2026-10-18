@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const { sendEmail } = require('../config/mailer');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
-const { generateToken, escapeHtml, saveSession, revokeSessionsForUser, utcStamp } = require('../utils/helpers');
+const { generateToken, escapeHtml, saveSession, revokeSessionsForUser } = require('../utils/helpers');
 const { generateOTP, storeOTP, verifyOTP: verifyUserOTP, canResend } = require('../utils/otp');
 const telegramOtp = require('../services/otpSender');
 const { uploadToImageKit } = require('../utils/imagekit');
@@ -173,10 +173,15 @@ router.post('/register', [
 
     if (verify_method === 'email') {
       const token = generateToken();
-      const expires = utcStamp(new Date(Date.now() + 3600000));
+      // The expiry is built by MySQL itself, from the exact same clock the
+      // `token_expires_at > NOW()` lookup compares against. Computing it in Node as a UTC
+      // string looked correct on Aiven (time_zone UTC) but on a server whose MySQL runs
+      // SYSTEM/+0700 the compare clock runs ~7h ahead of the UTC-stamped expiry, so every
+      // token was already-expired at the moment it was written and verification mail
+      // bounced straight to "Invalid or expired".
       const [result] = await req.db.query(
-        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, expires, 'email']
+        'INSERT INTO users (khmer_name, english_name, username, email, phone, password, role, is_verified, verification_token, token_expires_at, verify_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR), ?)',
+        [khmer_name, english_name, username, email, phone, hashedPassword, 'student', 0, token, 'email']
       );
       const verificationUrl = `${appConfig.linkBase(req)}/auth/verify-email/${token}`;
       const emailSent = await sendEmail(email, 'Verify Your Scholarship Application', `
@@ -231,33 +236,88 @@ router.post('/register', [
 });
 
 // ==================== EMAIL VERIFICATION ====================
+//
+// Verification is deliberately TWO-STEP as of this rewrite: the emailed GET link only
+// opens a confirmation page and the POST from that page's button performs the change.
+// The old one-step GET consumed the token on the first fetch of the URL, and mail
+// providers do fetch links themselves -- Outlook SafeLinks, Gmail link scanning and
+// desktop antivirus all routinely prefetch emailed URLs. A scanner could consume the
+// token before the student ever saw the email, whose click then reported
+// "Invalid or expired verification token" within seconds of the send.
+//
+// The lookup here is the same three-way split the POST below re-applies; sharing one
+// helper keeps GET and POST honest about the wording:
+//   live token, unverified  -> render confirm page / verify
+//   token row, is_verified  -> "already verified" success flash, straight to login
+//   otherwise               -> generic invalid-or-expired error
+const verifyTokenOutcome = async (db, token) => {
+  const [rows] = await db.query(
+    'SELECT id, is_verified, (token_expires_at > NOW()) AS live FROM users WHERE verification_token = ?',
+    [token]
+  );
+  if (rows.length === 0) return 'unknown';
+  return rows[0].is_verified ? 'verified' : (rows[0].live ? 'live' : 'expired');
+};
 
 router.get('/verify-email/:token', async (req, res) => {
   try {
+    const outcome = await verifyTokenOutcome(req.db, req.params.token);
+    if (outcome === 'live') {
+      // The token travels to the page so its POST action can carry it; rendering it is as
+      // safe as the mail that already revealed it.
+      return res.render('auth/verify-email', { title: 'Verify Email', token: req.params.token });
+    }
+    if (outcome === 'verified') {
+      req.flash('success', t(req, 'អ៊ីមែលត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។ អ្នកអាចចូលបានហើយ។', 'Email already verified. You can log in now.'));
+      await saveSession(req);
+      return res.redirect('/auth/login');
+    }
+    req.flash('error', t(req, 'តំណផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired verification token'));
+    await saveSession(req);
+    return res.redirect('/auth/login');
+  } catch (error) {
+    console.error('Email verification page error:', error);
+    req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់', 'An error occurred during verification'));
+    await saveSession(req);
+    return res.redirect('/auth/login');
+  }
+});
+
+router.post('/verify-email/:token', async (req, res) => {
+  try {
     const { token } = req.params;
+    // Defense in depth: the GET page revalidated before rendering, but time moved on
+    // since then and this is the one write, so re-check liveness in SQL here rather
+    // than trusting the page.
     const [users] = await req.db.query(
-      'SELECT * FROM users WHERE verification_token = ? AND token_expires_at > NOW()',
+      'SELECT id FROM users WHERE verification_token = ? AND is_verified = 0 AND token_expires_at > NOW()',
       [token]
     );
-      if (users.length === 0) {
-        req.flash('error', t(req, 'តំណផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired verification token'));
-        await saveSession(req);
-        return res.redirect('/auth/login');
-      }
-      const user = users[0];
+    if (users.length > 0) {
       await req.db.query(
         'UPDATE users SET is_verified = 1, verification_token = NULL, token_expires_at = NULL WHERE id = ?',
-        [user.id]
+        [users[0].id]
       );
       req.flash('success', t(req, 'ផ្ទៀងផ្ទាត់អ៊ីមែលជោគជ័យ! អ្នកអាចចូលបានឥឡូវនេះ។', 'Email verified successfully! You can now login.'));
       await saveSession(req);
       return res.redirect('/auth/login');
-    } catch (error) {
-      console.error('Email verification error:', error);
-      req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់', 'An error occurred during verification'));
-      await saveSession(req);
-      return res.redirect('/auth/login');
     }
+    // No live token. Fall back to the shared outcome check so the wording matches what
+    // the GET page would have said for the same row.
+    const outcome = await verifyTokenOutcome(req.db, token);
+    if (outcome === 'verified') {
+      req.flash('success', t(req, 'អ៊ីមែលត្រូវបានផ្ទៀងផ្ទាត់រួចហើយ។ អ្នកអាចចូលបានហើយ។', 'Email already verified. You can log in now.'));
+    } else {
+      req.flash('error', t(req, 'តំណផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវឬផុតកំណត់', 'Invalid or expired verification token'));
+    }
+    await saveSession(req);
+    return res.redirect('/auth/login');
+  } catch (error) {
+    console.error('Email verification error:', error);
+    req.flash('error', t(req, 'មានកំហុសក្នុងការផ្ទៀងផ្ទាត់', 'An error occurred during verification'));
+    await saveSession(req);
+    return res.redirect('/auth/login');
+  }
 });
 
 // Rate limiting for /resend-email lives in config/rateLimits.js and is mounted in server.js,
@@ -282,16 +342,22 @@ router.post('/resend-email', [
       return res.redirect('/auth/login');
     }
     const email = String(req.body.email || '').trim().toLowerCase();
-    const [users] = await req.db.query('SELECT * FROM users WHERE email = ? AND is_verified = 0', [email]);
+    // Telegram-method accounts verify by OTP, not by clicking a mail link: without this
+    // filter a Telegram-registered, still-unverified account received a clickable email
+    // token as an out-of-band second path.
+    const [users] = await req.db.query(
+      'SELECT * FROM users WHERE email = ? AND is_verified = 0 AND verify_method = \'email\'',
+      [email]
+    );
     if (users.length === 0) {
       return done();
     }
     const user = users[0];
     const token = generateToken();
-    const expires = utcStamp(new Date(Date.now() + 3600000));
+    // MySQL's clock again, for the same write-side/compare-side consistency as register.
     await req.db.query(
-      'UPDATE users SET verification_token = ?, token_expires_at = ? WHERE id = ?',
-      [token, expires, user.id]
+      'UPDATE users SET verification_token = ?, token_expires_at = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE id = ?',
+      [token, user.id]
     );
     const verificationUrl = `${appConfig.linkBase(req)}/auth/verify-email/${token}`;
     const sent = await sendEmail(email, 'Resend Verification Link', `
@@ -596,10 +662,10 @@ router.post('/forgot-password', [
     if (users.length > 0) {
       const user = users[0];
       const token = generateToken();
-      const expires = utcStamp(new Date(Date.now() + 3600000));
+      // MySQL's clock, same reasoning as the verification-token writes.
       await req.db.query(
-        'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
-        [token, expires, user.id]
+        'UPDATE users SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE id = ?',
+        [token, user.id]
       );
       const resetUrl = `${appConfig.linkBase(req)}/auth/reset-password/${token}`;
       try {

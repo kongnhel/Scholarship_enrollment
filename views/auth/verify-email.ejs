@@ -1,0 +1,25 @@
+<div class="min-h-[60vh] flex items-center justify-center">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-6">
+      <img src="/images/nmu-logo.jpg" alt="NMU" class="w-16 h-16 rounded-full mx-auto mb-4 ring-4 ring-green-100 shadow-lg">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់អ៊ីមែល' : 'Verify Your Email' %></h1>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+      <% if (currentLang === 'km') { %>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">ដើម្បីបញ្ចប់ការផ្ទៀងផ្ទាត់គណនីរបស់អ្នក សូមចុចប៊ូតុងខាងក្រោម។ តំណផ្ទៀងផ្ទាត់នេះមានសុពលលទ្ធភាពរយៈពេល ១ ម៉ោង។</p>
+      <% } else { %>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">To finish verifying your account, click the button below. This verification link is valid for 1 hour.</p>
+      <% } %>
+
+      <form method="POST" action="/auth/verify-email/<%= token %>" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="w-full px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-sm"><%= currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់អ៊ីមែលរបស់ខ្ញុំ' : 'Verify my email' %></button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <a href="/auth/login" class="text-sm text-green-600 dark:text-green-400 hover:text-green-700"><%= currentLang === 'km' ? 'ត្រឡប់ទៅចូល' : 'Back to Login' %></a>
+      </div>
+    </div>
+  </div>
+</div>
