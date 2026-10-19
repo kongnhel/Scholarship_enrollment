@@ -16,21 +16,21 @@
     <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
       <h5 class="font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមជំនាញ' : 'Applications by Major' %></h5>
     </div>
-    <div class="p-6 overflow-x-auto">
+    <div class="p-4 sm:p-6 overflow-x-auto">
       <table class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
           <% byMajor.forEach(function(m) { %>
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? (m.name_kh || 'N/A') : (m.name_en || 'N/A') %></td>
-              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= m.count %></td>
-              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= approvedTotal > 0 ? ((m.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap"><%= m.count %></td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap"><%= approvedTotal > 0 ? ((m.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
             </tr>
           <% }); %>
         </tbody>
@@ -42,13 +42,13 @@
     <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
       <h5 class="font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមប្រភេទ' : 'Applications by Category' %></h5>
     </div>
-    <div class="p-6 overflow-x-auto">
+    <div class="p-4 sm:p-6 overflow-x-auto">
       <table class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -56,7 +56,7 @@
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? (c.name_kh || 'N/A') : (c.name_en || 'N/A') %></td>
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= c.count %></td>
-              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= approvedTotal > 0 ? ((c.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap"><%= approvedTotal > 0 ? ((c.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
             </tr>
           <% }); %>
         </tbody>
@@ -68,13 +68,13 @@
     <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
       <h5 class="font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមខេត្ត' : 'Applications by Province' %></h5>
     </div>
-    <div class="p-6 overflow-x-auto">
+    <div class="p-4 sm:p-6 overflow-x-auto">
       <table class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -82,7 +82,7 @@
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= currentLang === 'km' ? (p.province_kh || 'N/A') : (p.province_en || 'N/A') %></td>
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= p.count %></td>
-              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= approvedTotal > 0 ? ((p.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap"><%= approvedTotal > 0 ? ((p.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
             </tr>
           <% }); %>
         </tbody>
@@ -94,13 +94,13 @@
     <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
       <h5 class="font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យសុំតាមភេទ' : 'Applications by Gender' %></h5>
     </div>
-    <div class="p-6 overflow-x-auto">
+    <div class="p-4 sm:p-6 overflow-x-auto">
       <table class="w-full">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ចំនួន' : 'Count' %></th>
+            <th class="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"><%= currentLang === 'km' ? 'ភាគរយ' : 'Percentage' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -108,7 +108,7 @@
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= g.gender === 'male' ? (currentLang === 'km' ? 'ប្រុស' : 'Male') : (currentLang === 'km' ? 'ស្រី' : 'Female') %></td>
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= g.count %></td>
-              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200"><%= approvedTotal > 0 ? ((g.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap"><%= approvedTotal > 0 ? ((g.count / approvedTotal) * 100).toFixed(1) : 0 %>%</td>
             </tr>
           <% }); %>
         </tbody>

@@ -220,14 +220,14 @@
 </div>
 
 <div id="addTypeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form action="/admin/scholarship-types" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-plus-circle"></i><%= currentLang === 'km' ? 'បន្ថែមប្រភេទអាហារូបករណ៍ថ្មី' : 'Add New Scholarship Type' %></h5>
-        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10 flex-shrink-0">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-plus-circle flex-shrink-0"></i><span class="truncate"><%= currentLang === 'km' ? 'បន្ថែមប្រភេទអាហារូបករណ៍ថ្មី' : 'Add New Scholarship Type' %></span></h5>
+        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="text-white/80 hover:text-white flex-shrink-0"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div class="p-4 sm:p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះប្រភេទ (ខ្មែរ)' : 'Scholarship Name (Khmer)' %> <span class="text-red-500">*</span></label>
           <input type="text" name="name_kh" required placeholder="<%= currentLang === 'km' ? 'ឧ. អាហារូបករណ៍៥០% សិក្សារយៈពេល២ឆ្នាំ' : 'e.g. 50% Scholarship for 2 Years' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
@@ -238,7 +238,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍ (%) — បញ្ចូលម្តងមួយៗ' : 'Scholarship levels (%) — add one by one' %> <span class="text-red-500">*</span></label>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <input type="number" id="add_tier_input" min="1" max="100" oninput="renderTierSuggestions('add')" placeholder="<%= currentLang === 'km' ? 'ភាគរយ' : '%' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('add');}">
             <input type="number" id="add_tier_years" min="1" max="10" oninput="renderTierSuggestions('add')" placeholder="<%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('add');}">
             <input type="number" id="add_tier_seats" min="1" placeholder="<%= currentLang === 'km' ? 'កន្លែង' : 'seats' %>" class="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('add');}">
@@ -296,23 +296,23 @@
           </div>
         </div>
       </div>
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
-        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save' %></button>
+      <div class="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+        <button type="button" onclick="this.closest('[id$=Modal]').classList.add('hidden')" class="w-full sm:w-auto px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all flex items-center justify-center"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save' %></button>
       </div>
     </form>
   </div>
 </div>
 
 <div id="editTypeModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
     <form id="editTypeForm" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between rounded-t-2xl">
-        <h5 class="font-bold flex items-center gap-2"><i class="bi bi-pencil"></i><%= currentLang === 'km' ? 'កែប្រែប្រភេទអាហារូបករណ៍' : 'Edit Scholarship Type' %></h5>
-        <button type="button" onclick="document.getElementById('editTypeModal').classList.add('hidden')" class="text-white/80 hover:text-white"><i class="bi bi-x-lg"></i></button>
+      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white flex items-center justify-between gap-3 rounded-t-2xl sticky top-0 z-10 flex-shrink-0">
+        <h5 class="font-bold flex items-center gap-2 text-sm sm:text-base min-w-0"><i class="bi bi-pencil flex-shrink-0"></i><span class="truncate"><%= currentLang === 'km' ? 'កែប្រែប្រភេទអាហារូបករណ៍' : 'Edit Scholarship Type' %></span></h5>
+        <button type="button" onclick="document.getElementById('editTypeModal').classList.add('hidden')" class="text-white/80 hover:text-white flex-shrink-0"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div class="p-4 sm:p-6 space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះប្រភេទ (ខ្មែរ)' : 'Scholarship Name (Khmer)' %> <span class="text-red-500">*</span></label>
           <input type="text" name="name_kh" id="edit_name_kh" required class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
@@ -323,7 +323,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'កម្រិតអាហារូបករណ៍ (%) — បញ្ចូលម្តងមួយៗ' : 'Scholarship levels (%) — add one by one' %> <span class="text-red-500">*</span></label>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <input type="number" id="edit_tier_input" min="1" max="100" oninput="renderTierSuggestions('edit')" placeholder="<%= currentLang === 'km' ? 'ភាគរយ' : '%' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('edit');}">
             <input type="number" id="edit_tier_years" min="1" max="10" oninput="renderTierSuggestions('edit')" placeholder="<%= currentLang === 'km' ? 'ឆ្នាំ' : 'yrs' %>" class="w-20 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('edit');}">
             <input type="number" id="edit_tier_seats" min="1" placeholder="<%= currentLang === 'km' ? 'កន្លែង' : 'seats' %>" class="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onkeydown="if(event.key==='Enter'){event.preventDefault();addTier('edit');}">
@@ -382,15 +382,15 @@
           </div>
         </div>
       </div>
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
-        <button type="button" onclick="document.getElementById('editTypeModal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
-        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'អាប់ដេត' : 'Update' %></button>
+      <div class="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+        <button type="button" onclick="document.getElementById('editTypeModal').classList.add('hidden')" class="w-full sm:w-auto px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all flex items-center justify-center"><%= currentLang === 'km' ? 'បោះបង់' : 'Cancel' %></button>
+        <button type="submit" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'អាប់ដេត' : 'Update' %></button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="deleteTypePopover" class="hidden fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 w-72" onclick="event.stopPropagation()">
+<div id="deleteTypePopover" class="hidden fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 w-72 max-w-[calc(100vw-2rem)]" onclick="event.stopPropagation()">
   <div class="flex items-center gap-3 mb-3">
     <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
       <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400"></i>

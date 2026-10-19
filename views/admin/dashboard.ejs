@@ -305,16 +305,16 @@
       <a href="/admin/applications" class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-xs font-semibold hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors inline-flex items-center gap-1"><%= currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' %><i class="bi bi-arrow-right"></i></a>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full">
+      <table class="w-auto min-w-full">
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លេខ' : 'No.' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លេខ' : 'No.' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
@@ -381,15 +381,15 @@
       <a href="/admin/payments" class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors inline-flex items-center gap-1"><%= currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' %><i class="bi bi-arrow-right"></i></a>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full">
+      <table class="w-auto min-w-full">
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សិស្ស' : 'Student' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ប្រភេទថ្លៃ' : 'Fee' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ធនាគារ' : 'Bank' %></th>
-            <th class="px-5 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួន' : 'Amount' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថាន្ធ' : 'Status' %></th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'សិស្ស' : 'Student' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ប្រភេទថ្លៃ' : 'Fee' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ធនាគារ' : 'Bank' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួន' : 'Amount' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថាន្ធ' : 'Status' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">

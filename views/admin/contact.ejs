@@ -1,28 +1,28 @@
 <div class="max-w-3xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
-          <i class="bi bi-telephone-inbound text-white text-xl"></i>
+    <div class="relative px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-telephone-inbound text-white text-lg sm:text-xl"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">
             <i class="bi bi-collection"></i>
             <%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Public details' %>
           </div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'បង្ហាញនៅថ្នែកខាងក្រោមគេហទំព័' : 'Shown in the footer on every page' %></p>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? 'ព័ត៌មានទំនាក់ទំនង' : 'Contact Information' %></h1>
+          <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate"><%= currentLang === 'km' ? 'បង្ហាញនៅថ្នែកខាងក្រោមគេហទំព័' : 'Shown in the footer on every page' %></p>
         </div>
       </div>
-      <a href="/" target="_blank" class="self-start sm:self-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center gap-1.5"><i class="bi bi-box-arrow-up-right"></i><%= currentLang === 'km' ? 'មើលផ្ទាល់' : 'Preview footer' %></a>
+      <a href="/" target="_blank" class="w-full sm:w-auto self-start sm:self-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all flex items-center justify-center gap-1.5 flex-shrink-0"><i class="bi bi-box-arrow-up-right"></i><%= currentLang === 'km' ? 'មើលផ្ទាល់' : 'Preview footer' %></a>
     </div>
   </div>
 
   <form action="/admin/contact" method="POST" class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700">
       <p class="text-sm text-gray-500 dark:text-gray-400">
         <%= currentLang === 'km'
           ? 'ព័ត៌មានទាំងនេះបង្ហាញនៅផ្នែកខាងក្រោមwebsite'
@@ -30,7 +30,7 @@
       </p>
     </div>
 
-    <div class="p-6 space-y-5">
+    <div class="p-4 sm:p-6 space-y-5">
       <%
         // One definition per field, so the label, placeholder, help text and validation
         // hint cannot drift apart.
@@ -78,9 +78,9 @@
       </p>
     </div>
 
-    <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-2 bg-gray-50/50 dark:bg-gray-800/40 rounded-b-3xl">
-      <a href="/admin/dashboard" class="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
-      <button type="submit" class="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-1.5">
+    <div class="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 bg-gray-50/50 dark:bg-gray-800/40 rounded-b-3xl">
+      <a href="/admin/dashboard" class="w-full sm:w-auto px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center justify-center"><%= currentLang === 'km' ? 'ត្រឡប់' : 'Back' %></a>
+      <button type="submit" class="w-full sm:w-auto px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center justify-center gap-1.5">
         <i class="bi bi-check-lg"></i><%= currentLang === 'km' ? 'រក្សាទុក' : 'Save changes' %>
       </button>
     </div>

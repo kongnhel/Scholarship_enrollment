@@ -1,34 +1,34 @@
 <div id="screenContent" class="max-w-4xl mx-auto space-y-6">
   <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
     <div class="absolute top-0 right-0 w-40 h-40 bg-green-50 dark:bg-green-900/20 rounded-bl-[6rem] -mr-10 -mt-10"></div>
-    <div class="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
+<div class="relative px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+      <div class="flex items-center gap-3 sm:gap-4 min-w-0">
         <a href="/admin/enrollments" class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-all flex-shrink-0">
           <i class="bi bi-arrow-left text-gray-600 dark:text-gray-300"></i>
         </a>
-        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
-          <i class="bi bi-journal-text text-white text-xl"></i>
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md shadow-green-500/20 flex-shrink-0">
+          <i class="bi bi-journal-text text-white text-lg sm:text-xl"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold mb-1">#<%= enrollment.id %></div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះចូលរៀន' : 'Enrollment Application' %></h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400">#<%= enrollment.id %></p>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? 'ពាក្យស្នើសុំចុះឈ្មោះចូលរៀន' : 'Enrollment Application' %></h1>
+          <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">#<%= enrollment.id %></p>
         </div>
       </div>
-      <a href="/admin/enrollments/<%= enrollment.id %>/print" target="_blank" rel="noopener" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all flex items-center gap-2 self-start sm:self-auto">
+      <a href="/admin/enrollments/<%= enrollment.id %>/print" target="_blank" rel="noopener" class="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all flex items-center justify-center gap-2 self-start sm:self-auto flex-shrink-0">
         <i class="bi bi-printer"></i><%= currentLang === 'km' ? 'ព្រីន' : 'Print' %>
       </a>
     </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-person-badge text-blue-600 dark:text-blue-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= currentLang === 'km' ? 'ព័ត៌មាននិស្សិត' : 'Student Information' %></span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500 dark:text-gray-400">គោត្តនាម និងនាម (ខ្មែរ)</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.khmer_first_name || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500 dark:text-gray-400">Full Name (English)</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.english_first_name || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500 dark:text-gray-400">ភេទ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.gender === 'male' ? 'ប្រុស' : enrollment.gender === 'female' ? 'ស្រី' : 'N/A' %></p></div>
@@ -37,13 +37,13 @@
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-geo-alt text-emerald-600 dark:text-emerald-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">អាសយដ្ឋាន</span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500">ភូមិ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.village || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">ឃុំ/សង្កាត់</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.commune || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">ស្រុក/ក្រុង/ខណ្ឌ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.district || 'N/A' %></p></div>
@@ -51,13 +51,13 @@
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-people text-purple-600 dark:text-purple-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">ព័ត៌មានគ្រួសារ</span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500">ឈ្មោះឪពុក</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.father_name || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">ឈ្មោះម្តាយ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.mother_name || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">មុខរបរ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.occupation || 'N/A' %></p></div>
@@ -65,25 +65,25 @@
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-telephone text-amber-600 dark:text-amber-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">ទំនាក់ទំនង</span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500">លេខទូរស័ព្ទ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.phone || enrollment.user_phone || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">លេខអាណាព្យាបាល</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.guardian_phone || 'N/A' %></p></div>
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-teal-100 dark:bg-teal-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-book text-teal-600 dark:text-teal-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">ប្រវត្តិសិក្សា</span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500">សម័យប្រឡង</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.exam_session || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">និទ្ទេសរួម</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.overall_grade || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">វិទ្យាល័យ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.high_school || 'N/A' %></p></div>
@@ -92,13 +92,13 @@
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-mortarboard text-indigo-600 dark:text-indigo-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">ការចុះឈ្មោះ</span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500">កម្រិតសិក្សា</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= ({bachelor:'បរិញ្ញាបត្រ',associate:'បរិញ្ញាបត្ររង',lower_secondary:'មធ្យមសិក្សា',upper_secondary:'មធ្យមសិក្សាទុតិយភូមិ'})[enrollment.education_level_enroll] || enrollment.education_level_enroll || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">មុខជំនាញ</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.major_choice || 'N/A' %></p></div>
       <div><label class="text-xs text-gray-500">ពេលសិក្សា</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.study_schedule === 'mon_fri' ? 'ចន្ទ-សុក្រ' : enrollment.study_schedule === 'sat_sun' ? 'សៅរ៍-អាទិត្យ' : 'N/A' %></p></div>
@@ -108,13 +108,13 @@
     </div></div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-rose-100 dark:bg-rose-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-file-earmark-check text-rose-600 dark:text-rose-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">ឯកសារភ្ជាប់</span>
     </div>
-    <div class="p-6">
+    <div class="p-4 sm:p-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <label class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">Transcript</label>
@@ -180,13 +180,13 @@
     </div>
   </div>
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
+    <div class="px-4 sm:px-6 py-3.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2.5">
       <div class="w-8 h-8 bg-violet-100 dark:bg-violet-900/40 rounded-lg flex items-center justify-center">
         <i class="bi bi-info-circle text-violet-600 dark:text-violet-400 text-sm"></i>
       </div>
       <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">ស្ថានភាព</span>
     </div>
-    <div class="p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="p-4 sm:p-6"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div><label class="text-xs text-gray-500">ស្ថានភាព</label><p class="text-sm font-semibold text-gray-900 dark:text-gray-100"><%= enrollment.status === 'approved' ? 'អនុម័ត' : enrollment.status === 'rejected' ? 'បដិសេធ' : 'រង់ចាំ' %></p></div>
       <div><label class="text-xs text-gray-500">ថ្ងៃចុះឈ្មោះ</label><p class="text-sm text-gray-700 dark:text-gray-200"><%= enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A' %></p></div>
       <% if (enrollment.admin_notes) { %>
@@ -198,9 +198,9 @@
 
 <div id="docModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeDocModal()">
   <button onclick="closeDocModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all z-10"><i class="bi bi-x-lg text-lg"></i></button>
-  <div class="max-w-full max-h-[90vh] flex items-center justify-center">
+  <div class="w-full max-w-full max-h-[90vh] overflow-y-auto flex items-center justify-center">
     <img id="docModalImg" src="" alt="Document" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain">
-    <iframe id="docModalPdf" src="" class="hidden w-[80vw] h-[85vh] rounded-xl shadow-2xl border-0"></iframe>
+    <iframe id="docModalPdf" src="" class="hidden w-full sm:w-[80vw] max-w-full h-[70vh] sm:h-[85vh] rounded-xl shadow-2xl border-0"></iframe>
   </div>
 </div>
 
