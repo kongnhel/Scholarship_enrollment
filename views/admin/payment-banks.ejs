@@ -106,7 +106,7 @@
               <input type="number" name="sort_order" value="<%= b.sort_order %>" class="w-24 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'ក្រាមដែនបន្ទាន់' : 'Instructions' %></label>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"><%= currentLang === 'km' ? 'ពិពណ៏នា' : 'Instructions' %></label>
               <textarea name="instructions" rows="2" maxlength="2000" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none"><%= b.instructions || '' %></textarea>
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -137,6 +137,14 @@
     </div>
     <form action="/admin/payment-banks" method="POST" enctype="multipart/form-data" class="p-4 sm:p-6 space-y-5">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl px-3 py-2">
+        <i class="bi bi-info-circle mt-0.5 flex-shrink-0"></i>
+        <p>
+          <span class="font-semibold text-red-500">*</span> <%= currentLang === 'km' ? 'ត្រូវបំពេញ' : 'required' %>
+          &nbsp;·&nbsp;
+          <%= currentLang === 'km' ? '(ស្រេចចិត្ត) មិនត្រូវបំពេញ' : '(optional) not required' %>
+        </p>
+      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះធនាគារ (ខ្មែរ)' : 'Bank name (Khmer)' %></label>
@@ -147,20 +155,12 @@
           <input type="text" name="name_en" maxlength="120" placeholder="<%= currentLang === 'km' ? 'ឧ. Canadia Bank' : 'e.g. Canadia Bank' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ឈ្មោះអាជីវកម្ម' : 'Account name' %></label>
-          <input type="text" name="account_name" maxlength="160" placeholder="<%= currentLang === 'km' ? 'ឧ. ហុ្គល្គង' : 'e.g. National Meanchey University' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខគណនី' : 'Account number' %></label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'លេខគណនី' : 'Account number' %> <span class="text-xs text-gray-400 font-normal">(<%= currentLang === 'km' ? 'ស្រេចចិត្ត' : 'optional' %>)</span></label>
           <input type="text" name="account_number" maxlength="80" placeholder="<%= currentLang === 'km' ? 'ឧ. 0001 2345 6789' : 'e.g. 0001 2345 6789' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ក្រាមដែន' : 'Sort order' %> <span class="text-gray-400 font-normal text-xs">(<%= currentLang === 'km' ? 'លេខតូចបំផុតបង្ហាញមុន' : 'lower shows first' %>)</span></label>
-        <input type="number" name="sort_order" value="0" class="w-32 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ក្រាមដែនបន្ទាន់' : 'Instructions for students' %></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? 'ពិពណ៏នា' : 'Instructions for students' %> <span class="text-xs text-gray-400 font-normal">(<%= currentLang === 'km' ? 'ស្រេចចិត្ត' : 'optional' %>)</span></label>
         <textarea name="instructions" rows="2" maxlength="2000" placeholder="<%= currentLang === 'km' ? 'ឧ. ស្កេនកូដ QR ដោយកម្មវិធីធនាគារកម្មវិធី...' : 'e.g. Scan the QR with any Cambodia QR app, then upload your slip.' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
       </div>
       <div>
