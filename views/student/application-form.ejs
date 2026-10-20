@@ -104,7 +104,7 @@
           </div>
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៧. ទីកន្លែងកំណើត' : '7. Place of Birth' %> <span class="text-red-500">*</span></label>
-            <input type="text" name="birth_place" placeholder="<%= currentLang === 'km' ? 'ភូមិ ឃុំ/សង្កាត់ ស្រុក/ក្រុង ខេត្ត/រាជធានី' : 'Village, Commune, District, Province' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
+            <input type="text" name="birth_place" placeholder="<%= currentLang === 'km' ? 'ឧ. ភូមិ ស្វាយចេក ឃុំ ស្វាយចេក ស្រុក ស្វាយចេក ខេត្ត បន្ទាយមានជ័យ' : 'Village, Commune, District, Province' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
             <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><%= currentLang === 'km' ? 'សូមបញ្ជាក់ ភូមិ ឃុំ/សង្កាត់ ស្រុក/ក្រុង និងខេត្ត/រាជធានី។' : 'Please state village, commune, district and province/city.' %></p>
           </div>
         </div>
@@ -114,19 +114,19 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៨. ភូមិ' : '8. Village' %> <span class="text-red-500">*</span></label>
-              <input type="text" name="address_village" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
+              <input type="text" name="address_village" placeholder="<%= currentLang === 'km' ? 'ឧ. ភូមិស្វាយចេក' : 'e.g. Svay Chek Village' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '៩. ឃុំ / សង្កាត់' : '9. Commune / Sangkat' %> <span class="text-red-500">*</span></label>
-              <input type="text" name="address_commune" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
+              <input type="text" name="address_commune" placeholder="<%= currentLang === 'km' ? 'ឧ. ឃុំស្វាយចេក' : 'e.g. Svay Chek Commune' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១០. ស្រុក / ក្រុង / ខណ្ឌ' : '10. District / Municipality / Khan' %> <span class="text-red-500">*</span></label>
-              <input type="text" name="address_district" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
+              <input type="text" name="address_district" placeholder="<%= currentLang === 'km' ? 'ឧ. ស្រុកស្វាយចេក' : 'e.g. Svay Chek District' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5"><%= currentLang === 'km' ? '១១. ខេត្ត / រាជធានី' : '11. Province / City' %> <span class="text-red-500">*</span></label>
-              <input type="text" name="address_province" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
+              <input type="text" name="address_province" placeholder="<%= currentLang === 'km' ? 'ឧ. ខេត្តបន្ទាយមានជ័យ' : 'e.g. Banteay Meanchey Province' %>" class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" required>
             </div>
           </div>
         </div>
