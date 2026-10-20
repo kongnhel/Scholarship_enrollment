@@ -1,3 +1,136 @@
+(function () {
+  var bar = document.getElementById('pageLoadBar');
+  if (!bar) return;
+  var line = bar.querySelector('.page-load-bar-line');
+  if (!line) return;
+
+  var NAVIGATION_TIMEOUT_MS = 8000;
+  var startedAt = 0;
+  var progress = 0;
+  var frame = null;
+  var finishTimer = null;
+  var hideTimer = null;
+  var navigationTimer = null;
+  var navigating = false;
+
+  function setProgress(value) {
+    progress = Math.max(progress, Math.min(value, 100));
+    line.style.width = progress + '%';
+  }
+
+  function creep() {
+    if (!bar.classList.contains('active') || bar.classList.contains('completing')) return;
+    var elapsed = Date.now() - startedAt;
+    setProgress(90 * (1 - Math.exp(-elapsed / 1800)));
+    frame = window.requestAnimationFrame(creep);
+  }
+
+  function start() {
+    clearTimeout(finishTimer);
+    clearTimeout(hideTimer);
+    clearTimeout(navigationTimer);
+    finishTimer = null;
+    hideTimer = null;
+    navigationTimer = null;
+    if (frame) {
+      window.cancelAnimationFrame(frame);
+      frame = null;
+    }
+    bar.classList.remove('done', 'completing');
+    bar.classList.add('active');
+    progress = 0;
+    line.style.width = '0%';
+    startedAt = Date.now();
+    setProgress(8);
+    frame = window.requestAnimationFrame(creep);
+  }
+
+  function finish(force) {
+    if (navigating && !force) return;
+    if (!bar.classList.contains('active') || finishTimer) return;
+    if (frame) {
+      window.cancelAnimationFrame(frame);
+      frame = null;
+    }
+    bar.classList.add('completing');
+    setProgress(100);
+    finishTimer = setTimeout(function () {
+      finishTimer = null;
+      bar.classList.add('done');
+      hideTimer = setTimeout(function () {
+        hideTimer = null;
+        bar.classList.remove('active', 'done', 'completing');
+        progress = 0;
+        startedAt = 0;
+        navigating = false;
+        line.style.width = '0%';
+      }, 300);
+    }, 200);
+  }
+
+  function startNavigation() {
+    navigating = true;
+    start();
+    navigationTimer = setTimeout(function () {
+      navigationTimer = null;
+      finish(true);
+    }, NAVIGATION_TIMEOUT_MS);
+  }
+
+  start();
+
+  window.addEventListener('load', function () { finish(); });
+
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+        frame = null;
+      }
+      clearTimeout(finishTimer);
+      clearTimeout(hideTimer);
+      clearTimeout(navigationTimer);
+      finishTimer = null;
+      hideTimer = null;
+      navigationTimer = null;
+      navigating = false;
+      startedAt = 0;
+      progress = 0;
+      line.style.width = '0%';
+      bar.classList.remove('active', 'done', 'completing');
+    } else if (document.readyState === 'complete') {
+      finish();
+    }
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var link = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!link) return;
+    if (link.hasAttribute('download') || link.hasAttribute('data-no-progress')) return;
+    if (link.target && link.target.toLowerCase() !== '_self') return;
+    var href = link.getAttribute('href');
+    if (!href || href.charAt(0) === '#' || /^(javascript:|mailto:|tel:)/i.test(href)) return;
+    var url;
+    try {
+      url = new URL(link.href, window.location.href);
+    } catch (err) {
+      return;
+    }
+    if (url.origin !== window.location.origin) return;
+    if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+    startNavigation();
+  });
+
+  document.addEventListener('submit', function (e) {
+    if (e.defaultPrevented) return;
+    var form = e.target;
+    if (!form || form.hasAttribute('data-no-progress')) return;
+    if (form.target && form.target.toLowerCase() !== '_self') return;
+    startNavigation();
+  });
+})();
+
 document.addEventListener('DOMContentLoaded', function () {
   var isKm = typeof currentLang !== 'undefined' && currentLang === 'km';
 

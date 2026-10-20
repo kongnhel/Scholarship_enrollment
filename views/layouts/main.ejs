@@ -127,9 +127,48 @@
       background: #1f2937;
       color: #e5e7eb;
     }
+    #pageLoadBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      z-index: 9999;
+      pointer-events: none;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    #pageLoadBar.active { opacity: 1; }
+    #pageLoadBar.done { opacity: 0; }
+    .page-load-bar-line {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: 0 9999px 9999px 0;
+      background: linear-gradient(90deg, #16a34a, #22c55e 45%, #86efac);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+      will-change: width;
+    }
+    #pageLoadBar.completing .page-load-bar-line { transition: width 0.18s ease-out; }
+    @media (prefers-reduced-motion: reduce) {
+      #pageLoadBar.completing .page-load-bar-line { transition: none; }
+    }
+    @media print {
+      #pageLoadBar { display: none !important; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+  <div id="pageLoadBar" aria-hidden="true"><span class="page-load-bar-line"></span></div>
+  <script>
+    (function () {
+      var bar = document.getElementById('pageLoadBar');
+      if (!bar) return;
+      bar.classList.add('active');
+      bar.querySelector('.page-load-bar-line').style.width = '8%';
+    })();
+  </script>
   <%- include('../partials/sidebar') %>
   <%- include('../partials/navbar') %>
   <%- include('../partials/flash') %>
