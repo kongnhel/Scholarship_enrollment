@@ -31,6 +31,14 @@
       '<span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 min-w-[120px] sm:min-w-[190px] flex-shrink-0 pt-0.5">' + esc(nn + '. ' + (currentLang === 'km' ? km : en)) + '</span>' +
       '<span class="text-[13px] font-medium text-gray-800 dark:text-gray-100 min-w-0">' + html + '</span></div>';
   };
+  var statusMeta = function (s) {
+    if (s === 'approved') return { badge: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300', dot: 'bg-green-500', label: currentLang === 'km' ? 'អនុម័ត' : 'APPROVED' };
+    if (s === 'rejected') return { badge: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', dot: 'bg-red-500', label: currentLang === 'km' ? 'បដិសេធ' : 'REJECTED' };
+    if (s === 'pending') return { badge: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300', dot: 'bg-yellow-500', label: currentLang === 'km' ? 'រង់ចាំ' : 'PENDING' };
+    if (s === 'under_review') return { badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300', dot: 'bg-blue-500', label: currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW' };
+    if (s === 'correction_requested') return { badge: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300', dot: 'bg-orange-500', label: currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECT' };
+    return { badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300', dot: 'bg-blue-500', label: String(s || '').replace('_', ' ').toUpperCase() };
+  };
   var docChips = function (a) {
     var list = String(a.documents_ready || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
     if (!list.length) return esc('—');
@@ -71,7 +79,7 @@
     </div>
     <form action="/admin/applications" method="GET" class="p-4 sm:p-5">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-        <div class="relative">
+        <div class="relative sm:col-span-2 xl:col-span-1">
           <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
           <input type="text" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" name="search" placeholder="<%= currentLang === 'km' ? 'ស្វែងរកតាមឈ្មោះ...' : 'Search by name...' %>" value="<%= filters.search || '' %>">
         </div>
@@ -116,7 +124,7 @@
             <option value="female" <%= filters.gender === 'female' ? 'selected' : '' %>><%= currentLang === 'km' ? 'ស្រី' : 'Female' %></option>
           </select>
         </div>
-        <div class="grid grid-cols-2 gap-2 lg:col-span-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:col-span-2 lg:col-span-2">
           <div class="relative flex-1">
             <i class="bi bi-calendar3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"></i>
             <input type="date" name="dateFrom" value="<%= filters.dateFrom || '' %>" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
@@ -126,7 +134,7 @@
             <input type="date" name="dateTo" value="<%= filters.dateTo || '' %>" class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2 sm:col-span-2 lg:col-span-2">
           <button type="submit" class="w-full justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm flex items-center gap-2">
             <i class="bi bi-search"></i><span class="truncate"><%= currentLang === 'km' ? 'ត្រង' : 'Filter' %></span>
           </button>
@@ -139,30 +147,30 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-auto min-w-full">
+    <div class="hidden lg:block overflow-x-auto">
+      <table class="w-full table-fixed">
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លំដាប់លេខរៀង' : 'No.' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden xl:table-cell"><%= currentLang === 'km' ? 'កម្មវិធី' : 'Program' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
-            <th class="w-12 px-2 py-3.5"></th>
+            <th class="w-[52px] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'លេខ' : 'No.' %></th>
+            <th class="w-[18%] 2xl:w-[14%] px-4 xl:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ឈ្មោះ' : 'Name' %></th>
+            <th class="w-[80px] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></th>
+            <th class="w-[130px] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden 2xl:table-cell"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></th>
+            <th class="w-[18%] 2xl:w-[12%] px-4 xl:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></th>
+            <th class="w-[14%] px-4 xl:px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden 2xl:table-cell"><%= currentLang === 'km' ? 'កម្មវិធី' : 'Program' %></th>
+            <th class="w-[7%] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden 2xl:table-cell"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></th>
+            <th class="w-[7%] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden 2xl:table-cell"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></th>
+            <th class="w-[120px] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
+            <th class="w-[110px] px-3 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
+            <th class="w-[44px] px-2 py-3.5"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
           <% applications.forEach(function(app, index) { %>
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer group" onclick="window.location='/admin/applications/<%= app.id %>'">
-              <td class="px-5 py-4">
+              <td class="px-3 py-4">
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:bg-green-100 dark:group-hover:bg-green-900/30 group-hover:text-green-600 dark:group-hover:text-green-400 transition-all"><%= (currentPage - 1) * limit + index + 1 %></span>
               </td>
-              <td class="px-5 py-4">
+              <td class="px-4 xl:px-5 py-4">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                     <%= (khName(app) || enName(app) || '?').charAt(0).toUpperCase() %>
@@ -173,33 +181,34 @@
                   </div>
                 </div>
               </td>
-              <td class="px-5 py-4 hidden md:table-cell">
-                <span class="inline-flex items-center gap-1.5 text-sm <%= app.gender === 'male' ? 'text-blue-600 dark:text-blue-400' : 'text-pink-600 dark:text-pink-400' %>">
+              <td class="px-3 py-4">
+                <span class="inline-flex items-center gap-1.5 text-sm whitespace-nowrap <%= app.gender === 'male' ? 'text-blue-600 dark:text-blue-400' : 'text-pink-600 dark:text-pink-400' %>">
                   <i class="bi <%= app.gender === 'male' ? 'bi-gender-male' : 'bi-gender-female' %>"></i><%= L(GND[app.gender]) || app.gender || '—' %>
                 </span>
               </td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hidden lg:table-cell"><%= dash(app.phone) %></td>
-              <td class="px-5 py-4 hidden md:table-cell">
+              <td class="px-3 py-4 text-xs text-gray-700 dark:text-gray-200 hidden 2xl:table-cell truncate"><%= dash(app.phone) %></td>
+              <td class="px-4 xl:px-5 py-4">
                 <p class="text-sm text-gray-700 dark:text-gray-200 truncate"><%= dash(currentLang === 'km' ? app.major_name_kh : app.major_name_en) %></p>
                 <% if (app.major2_name_kh || app.major2_name_en) { %>
                   <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><%= currentLang === 'km' ? '២: ' : '2: ' %><%= currentLang === 'km' ? app.major2_name_kh : app.major2_name_en %></p>
                 <% } %>
               </td>
-              <td class="px-5 py-4 hidden xl:table-cell">
+              <td class="px-4 xl:px-5 py-4 hidden 2xl:table-cell">
                 <p class="text-sm text-gray-700 dark:text-gray-200 truncate"><%= dash(currentLang === 'km' ? (app.scholarship_name_kh || app.scholarship_name_en) : (app.scholarship_name_en || app.scholarship_name_kh)) %></p>
                 <% if (app.scholarship_leader) { %>
                   <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><i class="bi bi-person-badge"></i> <%= app.scholarship_leader %></p>
                 <% } %>
               </td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hidden md:table-cell"><%= currentLang === 'km' ? app.category_name_kh : app.category_name_en %></td>
-              <td class="px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hidden lg:table-cell"><%= currentLang === 'km' ? app.province_name_kh : app.province_name_en %></td>
-              <td class="px-5 py-4">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <%= app.status === 'approved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : app.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : app.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : app.status === 'correction_requested' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' %>">
-                  <span class="w-1.5 h-1.5 rounded-full <%= app.status === 'approved' ? 'bg-green-500' : app.status === 'rejected' ? 'bg-red-500' : app.status === 'pending' ? 'bg-yellow-500' : app.status === 'correction_requested' ? 'bg-orange-500' : 'bg-blue-500' %>"></span>
-                  <%= app.status === 'pending' ? (currentLang === 'km' ? 'រង់ចាំ' : 'PENDING') : app.status === 'approved' ? (currentLang === 'km' ? 'អនុម័ត' : 'APPROVED') : app.status === 'rejected' ? (currentLang === 'km' ? 'បដិសេធ' : 'REJECTED') : app.status === 'under_review' ? (currentLang === 'km' ? 'កំពុងពិនិត្យ' : 'REVIEW') : app.status === 'correction_requested' ? (currentLang === 'km' ? 'តម្រូវកែ' : 'CORRECT') : app.status.replace('_', ' ').toUpperCase() %>
+              <td class="px-3 py-4 text-sm text-gray-700 dark:text-gray-200 hidden 2xl:table-cell truncate"><%= dash(currentLang === 'km' ? app.category_name_kh : app.category_name_en) %></td>
+              <td class="px-3 py-4 text-sm text-gray-700 dark:text-gray-200 hidden 2xl:table-cell truncate"><%= dash(currentLang === 'km' ? app.province_name_kh : app.province_name_en) %></td>
+              <td class="px-3 py-4">
+                <% var st = statusMeta(app.status); %>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full max-w-full <%= st.badge %>">
+                  <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 <%= st.dot %>"></span>
+                  <span class="truncate"><%= st.label %></span>
                 </span>
               </td>
-              <td class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">
+              <td class="px-3 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                 <div class="flex items-center gap-1.5">
                   <i class="bi bi-clock text-xs"></i>
                   <%= app.submitted_at ? formatDateOnly(app.submitted_at) : '—' %>
@@ -277,6 +286,81 @@
           <% } %>
         </tbody>
       </table>
+    </div>
+
+    <div class="lg:hidden divide-y divide-gray-100 dark:divide-gray-700">
+      <% if (applications.length === 0) { %>
+        <div class="px-4 py-14 text-center">
+          <div class="flex flex-col items-center gap-3">
+            <i class="bi bi-inbox text-5xl text-gray-300 dark:text-gray-600"></i>
+            <p class="text-gray-500 dark:text-gray-400 font-medium"><%= currentLang === 'km' ? 'មិនមានពាក្យសុំទេ' : 'No applications found' %></p>
+            <p class="text-sm text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'សូមកែប្រែតម្រងរបស់អ្នក' : 'Try adjusting your filters' %></p>
+          </div>
+        </div>
+      <% } else { %>
+        <% applications.forEach(function(app, index) { var st = statusMeta(app.status); %>
+          <div class="px-3 sm:px-4 py-4">
+            <div class="flex items-start gap-2.5">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-gray-100 dark:bg-gray-700 text-[11px] font-bold text-gray-500 dark:text-gray-400 flex-shrink-0"><%= (currentPage - 1) * limit + index + 1 %></span>
+              <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                <%= (khName(app) || enName(app) || '?').charAt(0).toUpperCase() %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"><%= currentLang === 'km' ? (khName(app) || enName(app)) : (enName(app) || khName(app)) %></p>
+                <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate"><%= currentLang === 'km' ? (enName(app) || '—') : (khName(app) || '—') %></p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full flex-shrink-0 whitespace-nowrap <%= st.badge %>">
+                <span class="w-1.5 h-1.5 rounded-full <%= st.dot %>"></span><%= st.label %>
+              </span>
+            </div>
+
+            <dl class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1.5 text-xs">
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ភេទ' : 'Gender' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-words"><%= L(GND[app.gender]) || app.gender || '—' %></dd>
+              </div>
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-all"><%= dash(app.phone) %></dd>
+              </div>
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ជំនាញ' : 'Major' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-words">
+                  <%= dash(currentLang === 'km' ? app.major_name_kh : app.major_name_en) %>
+                  <% if (app.major2_name_kh || app.major2_name_en) { %>
+                    <span class="block text-[11px] text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? '២: ' : '2: ' %><%= currentLang === 'km' ? app.major2_name_kh : app.major2_name_en %></span>
+                  <% } %>
+                </dd>
+              </div>
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កម្មវិធី' : 'Program' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-words"><%= dash(currentLang === 'km' ? (app.scholarship_name_kh || app.scholarship_name_en) : (app.scholarship_name_en || app.scholarship_name_kh)) %></dd>
+              </div>
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ប្រភេទ' : 'Category' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-words"><%= dash(currentLang === 'km' ? app.category_name_kh : app.category_name_en) %></dd>
+              </div>
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'ខេត្ត' : 'Province' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200 break-words"><%= dash(currentLang === 'km' ? app.province_name_kh : app.province_name_en) %></dd>
+              </div>
+              <div class="flex gap-2 min-w-0">
+                <dt class="w-20 flex-shrink-0 text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></dt>
+                <dd class="min-w-0 text-gray-700 dark:text-gray-200"><%= app.submitted_at ? formatDateOnly(app.submitted_at) : '—' %></dd>
+              </div>
+            </dl>
+
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <a href="/admin/applications/<%= app.id %>" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 transition-all shadow-sm">
+                <i class="bi bi-eye"></i><span class="truncate"><%= currentLang === 'km' ? 'មើលលម្អិត' : 'View' %></span>
+              </a>
+              <a href="/admin/applications/<%= app.id %>/print" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all">
+                <i class="bi bi-printer"></i><span class="truncate"><%= currentLang === 'km' ? 'បោះពុម្ព' : 'Print' %></span>
+              </a>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
     </div>
 
     <% if (totalPages > 1) { %>

@@ -58,7 +58,7 @@
             <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
               <% if (win.state === 'open' && win.end) { %>
                 <%= currentLang === 'km'
-                    ? ('បិទត្រឹង ' + formatDateOnly(win.end) + (win.daysLeft !== null ? ' • នៅសល់ ' + win.daysLeft + ' ថ្ងៃ' : ''))
+                    ? ('បិទត្រឹម ' + formatDateOnly(win.end) + (win.daysLeft !== null ? ' • នៅសល់ ' + win.daysLeft + ' ថ្ងៃ' : ''))
                     : ('Closes ' + formatDateOnly(win.end) + (win.daysLeft !== null ? ' • ' + win.daysLeft + ' days left' : '')) %>
               <% } else if (win.state === 'not_started' && win.start) { %>
                 <%= currentLang === 'km' ? ('ចាប់ផ្ដើម ' + formatDateOnly(win.start)) : ('Opens ' + formatDateOnly(win.start)) %>
@@ -191,7 +191,7 @@
       </div>
       <% if (verifiedRevenue > 0) { %>
         <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-          <span class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ប្រាក់ដែលបានបញ្ជាក់សរុប' : 'Total verified revenue' %></span>
+          <span class="text-xs text-gray-500 dark:text-gray-400"><%= currentLang === 'km' ? 'ប្រាក់ដែលបានទូទាត់បញ្ជាក់សរុប' : 'Total verified revenue' %></span>
           <span class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400"><%= verifiedRevenue.toLocaleString() %>៛</span>
         </div>
       <% } %>
@@ -213,7 +213,7 @@
           <div class="w-9 h-9 bg-purple-100 dark:bg-purple-900/40 rounded-xl flex items-center justify-center"><i class="bi bi-people text-purple-600 dark:text-purple-400"></i></div>
           <div>
             <h2 class="font-bold text-gray-900 dark:text-gray-100 text-sm"><%= currentLang === 'km' ? 'គណនីអ្នកប្រើប្រាស់' : 'Accounts' %></h2>
-            <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'តាមតួអទី' : 'By role' %></p>
+            <p class="text-xs text-gray-400 dark:text-gray-500"><%= currentLang === 'km' ? 'តាមតួនាទី' : 'By role' %></p>
           </div>
         </div>
         <a href="/admin/users" class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"><%= currentLang === 'km' ? 'មើល' : 'View' %></a>
@@ -388,7 +388,7 @@
             <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ប្រភេទថ្លៃ' : 'Fee' %></th>
             <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell"><%= currentLang === 'km' ? 'ធនាគារ' : 'Bank' %></th>
             <th class="px-5 py-3.5 whitespace-nowrap text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ចំនួន' : 'Amount' %></th>
-            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថាន្ធ' : 'Status' %></th>
+            <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><%= currentLang === 'km' ? 'ស្ថានភាព' : 'Status' %></th>
             <th class="px-5 py-3.5 whitespace-nowrap text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"><%= currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Date' %></th>
           </tr>
         </thead>
